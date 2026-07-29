@@ -190,7 +190,8 @@ To pick up code changes you must rebuild.
   EAS, plus the `device_push_tokens` migration applied to the hosted project and
   the `send-push-notification` Edge Function deployed.
 - **iOS.** Needs an Apple Developer Program membership for device provisioning,
-  regardless of EAS. See **B9**.
+  regardless of EAS. Step-by-step in **`IOS-BUILD.md`**; the reasoning behind
+  needing the account at all is **B9**.
 - **Play Store submission.** A separate $25 one-time Google Play account, plus
   everything in `STORE-SUBMISSION.md`.
 - **Applying migrations to the hosted project.** `backbone/supabase/migrations/`

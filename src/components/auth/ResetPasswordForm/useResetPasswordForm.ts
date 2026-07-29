@@ -101,7 +101,12 @@ export function useResetPasswordForm() {
     setSubmitting(false)
   }, [canSubmit, password])
 
-  const goToSignIn = useCallback(() => router.replace("/sign-in"), [router])
+  // To `/`, not `/sign-in`: that screen sits behind a `!signedIn` guard, so a
+  // REPLACE onto it is dropped whenever a session exists — which the invalid
+  // branch can reach, when a reset link fails to exchange on a device that is
+  // already signed in. `index` is unguarded and routes to the right place in
+  // every state.
+  const goToSignIn = useCallback(() => router.replace("/"), [router])
   const togglePassword = useCallback(() => setShowPassword((v) => !v), [])
 
   return {

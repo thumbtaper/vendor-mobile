@@ -45,7 +45,15 @@ function RootNavigator() {
   const signedIn = Boolean(session) && !isRecovering
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    // `initialRouteName` is load-bearing, not cosmetic. When a guard change
+    // removes every screen currently on the stack, StackRouter falls back to
+    // this name — and without it, to `routeNames[0]`, which is the first
+    // DECLARED screen (`reset-password`, below). Every guard here is false for
+    // as long as the vendor gate is "checking", which sign-in, sign-out and
+    // switch-vendor all pass through, so that fallback is reached routinely.
+    // `index` is never guarded and owns the "where does this user belong"
+    // decision, so it is the only correct destination.
+    <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
       {/* Unguarded, and deliberately so (I4). The recovery link creates a
           session, so a `!signedIn` guard would eject the user the moment the
           code is exchanged; a `signedIn` guard would block the expired-link

@@ -1,56 +1,129 @@
-# Welcome to your Expo app 👋
+# Ezzy Vendor — mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo / React Native companion to the **Bookdeck Vendor** web portal. A vendor can
+sign in, see today's numbers, and approve or reject bookings from their phone.
 
-## Get started
+It is a new *client* of the existing system, not a new backend: the same Supabase
+project, the same tables, the same RLS boundaries as the web portal.
 
-1. Install dependencies
+- **Expo SDK 57** · React Native 0.86 · React 19 · TypeScript (strict)
+- **`expo-router`** file-based routing, with auth gating via `Stack.Protected`
+- **Supabase** for auth, data and realtime — sessions persisted in the device keystore
+- **TanStack Query** for server state, with a bounded offline read cache
 
-   ```bash
-   npm install
-   ```
+Bundle ID / package: `com.ezzy.vendormobile`. Phone only — no tablet layout, no
+web target.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## Prerequisites
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Node 22+ must be on `PATH`. In this WSL shell that means nvm:
 
 ```bash
-npm run reset-project
+export PATH="$HOME/.nvm/versions/node/v22.17.0/bin:$PATH"
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Then, from this folder:
 
-### Other setup steps
+```bash
+npm install
+cp .env.example .env      # then fill it in — see below
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### Environment
 
-## Learn more
+`.env` is gitignored and holds four public values:
 
-To learn more about developing your project with Expo, look at the following resources:
+| Variable | Notes |
+|---|---|
+| `EXPO_PUBLIC_SUPABASE_URL` | Hosted project URL, or a local stack |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | **Anon key only** |
+| `EXPO_PUBLIC_VENDOR_PORTAL_URL` | Deployed web portal. Optional — links are hidden when unset |
+| `EXPO_PUBLIC_APP_NAME` | Home-screen name. Baked in at build time |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+`SUPABASE_SERVICE_ROLE_KEY` must **never** appear here under any prefix.
+`EXPO_PUBLIC_*` values are inlined into the bundle, so anyone who unpacks the
+binary can read them — and this app has no service-role dependency at all.
 
-## Join the community
+Metro inlines these at bundle time, so **restart the dev server after editing
+`.env`** — a reload is not enough. If a required value is missing, the app shows
+a config-error screen naming it rather than crashing.
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Running it
+
+```bash
+npx expo start --dev-client
+```
+
+**Not Expo Go.** On iOS, App Store Expo Go cannot open an SDK 57 project at all;
+on Android it works but can never do push notifications. Use a development build
+from EAS — see `EAS-SETUP.md`.
+
+| Task | Command |
+|---|---|
+| Lint | `npm run lint` |
+| Type check | `node_modules/.bin/tsc --noEmit` |
+| Unit tests | `npm test` |
+
+Tests run on Node's built-in runner with no framework, so a module that imports
+the Supabase client cannot be loaded by one. Pure logic that needs testing lives
+in its own file — `services/vendorMapping.ts`, `services/bookingErrors.ts`,
+`services/transactionTotals.ts`.
+
+---
+
+## Layout
+
+```
+src/
+├── app/           # routes; (app)/ is the authenticated tab group
+├── components/    # feature-grouped, one folder per component
+├── hooks/         # queries, realtime subscriptions, session, vendor gate
+├── lib/           # supabase client, constants, query client, formatting
+├── providers/     # SessionGate, Snackbar, Push
+├── services/      # one file per domain, no React imports
+└── theme/         # design tokens and the theme provider
+```
+
+Every component with state, effects or handlers is three files: `Name.tsx`
+(render only), `useName.ts` (all logic), and `Name.styles.ts` (a
+`makeStyles(tokens)` factory). Inline `style={{}}` is reserved for genuinely
+dynamic values. `components/common/ConfigErrorScreen/` is a short example of all
+three.
+
+---
+
+## Building and shipping
+
+| Doc | Covers |
+|---|---|
+| **`EAS-SETUP.md`** | Android builds via EAS — profiles, environment variables, connecting a device, troubleshooting |
+| **`IOS-BUILD.md`** | iOS — Apple Developer enrolment, what EAS needs from you, device registration, ad-hoc vs TestFlight |
+| **`STORE-SUBMISSION.md`** | Store listings, declarations and review notes |
+
+The most common mistake is installing a **development** build and opening it with
+no Metro running: that profile ships an APK with no JavaScript inside it. Build
+**preview** for a standalone app. `EAS-SETUP.md` §5 compares them.
+
+Current state: verified on a physical **Android** device. **Nothing has been
+verified on iOS yet** — that needs a paid Apple Developer account (`IOS-BUILD.md`).
+
+---
+
+## Where the rest of the documentation lives
+
+This app is one of five in the workspace. The shared, cross-app documentation
+lives in the parent repo:
+
+- `../architecture/` — schema, conventions, portals, and how the apps fit together
+- `../.plans/` — dated plan documents, including this app's build-out plan,
+  `2026-07-27-ezzy-vendor-mobile-companion.md`
+- `AGENTS.md` — working rules for this app, including the traps worth reading
+  before you touch routing, native module imports, or configuration
+
+Work from the workspace root so those stay in reach. Commits for this app must be
+made from **inside this folder** — it is its own git repository
+(`thumbtaper/vendor-mobile`).

@@ -2,6 +2,17 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // Node's built-in test runner resolves ESM strictly and will not guess an
+    // extension. The unit tests (I7) therefore import with an explicit `.ts`,
+    // which Metro also resolves. Requires noEmit, which expo/tsconfig.base sets.
+    "allowImportingTsExtensions": true,
+    // `@types/node` is already present transitively (via expo). Naming it here
+    // makes `node:test` / `node:assert` resolve for the unit tests without a new
+    // dependency — expo/tsconfig.base sets `customConditions: ["react-native"]`,
+    // under which the node builtins are otherwise not picked up.
+    "types": [
+      "node"
+    ],
     "paths": {
       "@/*": [
         "./src/*"

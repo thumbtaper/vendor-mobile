@@ -33,7 +33,18 @@ export const makeStyles = (t: Tokens) =>
       flex: 1,
       gap: 3,
     },
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm,
+    },
+    // Nudged down to sit on the title's baseline rather than its box top — the
+    // web row does the same with `mt-0.5`.
+    typeIcon: {
+      marginTop: 2,
+    },
     title: {
+      flex: 1,
       color: t.strong,
       fontSize: type.body.size,
       fontWeight: "600",

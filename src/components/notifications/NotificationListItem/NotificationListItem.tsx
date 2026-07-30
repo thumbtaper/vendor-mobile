@@ -1,12 +1,41 @@
-import { Archive, Trash2 } from "lucide-react-native"
+import {
+  Archive,
+  CalendarPlus,
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  CreditCard,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react-native"
 import { useMemo } from "react"
 import { Alert, Pressable, Text, View } from "react-native"
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable"
 
 import { fmtRelativeTime } from "@/lib/format"
-import type { AppNotification } from "@/lib/types"
+import type { AppNotification, NotificationType } from "@/lib/types"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./NotificationListItem.styles"
+
+// Ported from `vendor/components/layout/NotificationPanel/NotificationItem.tsx`'s
+// `TYPE_ICON` — same glyph and same colour per type, so a vendor who uses both
+// clients reads the same signal. Canonical lucide v1 names: the web app is on
+// `lucide-react` 0.468 and still uses the pre-v1 spellings (`AlertCircle`,
+// `CheckCircle2`, `XCircle`), which survive here only as legacy aliases.
+//
+// An exhaustive `Record<NotificationType, …>` rather than a switch: adding a member
+// to `NotificationType` then becomes a compile error instead of a silently
+// icon-less row. Colours are per-type data, so they live here beside the glyph
+// rather than in the style file.
+const TYPE_ICON: Record<NotificationType, { icon: LucideIcon; color: string }> = {
+  new_booking: { icon: CalendarPlus, color: "#3b82f6" },
+  payment_confirmed: { icon: CreditCard, color: "#10b981" },
+  booking_confirmed: { icon: CircleCheck, color: "#10b981" },
+  booking_rejected: { icon: CircleX, color: "#ef4444" },
+  booking_cancelled: { icon: CircleAlert, color: "#f59e0b" },
+  vendor_pending_approval: { icon: CircleCheck, color: "#3b82f6" },
+  new_user_registration: { icon: CircleCheck, color: "#3b82f6" },
+}
 
 interface Props {
   notification: AppNotification
@@ -29,6 +58,7 @@ export function NotificationListItem({
 }: Props) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
+  const { icon: TypeIcon, color: typeColor } = TYPE_ICON[notification.type]
 
   const confirmDelete = () => {
     Alert.alert(
@@ -89,11 +119,19 @@ export function NotificationListItem({
         )}
 
         <View style={styles.body}>
-          <Text
-            style={[styles.title, notification.is_read && styles.titleRead]}
-          >
-            {notification.title}
-          </Text>
+          {/* Icon leads the title, matching the web row. Decorative — the title
+              text carries the meaning and the Pressable already has a label — so
+              it is left out of the accessibility tree. */}
+          <View style={styles.titleRow}>
+            <View style={styles.typeIcon}>
+              <TypeIcon size={16} color={typeColor} />
+            </View>
+            <Text
+              style={[styles.title, notification.is_read && styles.titleRead]}
+            >
+              {notification.title}
+            </Text>
+          </View>
           {notification.body ? (
             <Text style={styles.message}>{notification.body}</Text>
           ) : null}

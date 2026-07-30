@@ -20,7 +20,9 @@ export const makeStyles = (t: Tokens) =>
       paddingHorizontal: spacing.lg,
     },
     label: {
-      color: "#ffffff",
+      // Tokenised, not white: on the branded auth surface `btnPrimary` is gold,
+      // where white text is unreadable.
+      color: t.btnPrimaryFg,
       fontSize: type.body.size,
       fontWeight: "600",
     },

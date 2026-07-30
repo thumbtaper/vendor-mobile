@@ -36,7 +36,9 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     linkText: {
-      color: "#2563eb",
+      // Tokenised so the branded auth surface renders these gold, as the web's
+      // `.forgotLink` / `.signupLink` do.
+      color: t.accent,
       fontSize: type.body.size,
       fontWeight: "600",
     },

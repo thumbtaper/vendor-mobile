@@ -72,7 +72,9 @@ export function PrimaryButton({
         style={styles.gradient}
       >
         {loading ? (
-          <ActivityIndicator color="#ffffff" />
+          // Same reason as `styles.label`: white would all but vanish on the gold
+          // button the branded auth surface uses.
+          <ActivityIndicator color={tokens.btnPrimaryFg} />
         ) : (
           <Text style={styles.label}>{label}</Text>
         )}

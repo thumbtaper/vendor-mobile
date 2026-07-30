@@ -88,14 +88,35 @@ exactly like a bug in the app.
 npx eas-cli@latest env:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://<ref>.supabase.co"
 npx eas-cli@latest env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "<anon key>"
 npx eas-cli@latest env:create --name EXPO_PUBLIC_APP_NAME --value "Ezzy Vendor"
+npx eas-cli@latest env:create --name EXPO_PUBLIC_VENDOR_PORTAL_URL --value "https://<vendor-portal-domain>"
 ```
+
+That is **all four** of the app's public variables — the set in `.env.example`. The
+fourth is easy to skip because nothing crashes without it: `lib/constants.ts`
+defaults `WEB_PORTAL_URL` to `null` and the affected links are *hidden* rather than
+shown broken. What silently disappears from the build is the "Open the web portal"
+link on sign-in and the Settings rows for **account deletion** and the **privacy
+policy** — and those two are store-review requirements (D13-A, B6), so an unset
+value here is a submission problem rather than a cosmetic one.
 
 `env:create` prompts for an **environment** (development / preview / production)
 — a variable set for one is invisible to the others. Each build profile in
 `eas.json` names its environment explicitly (`"environment": "preview"`, etc.), so
 set the variables for the environment matching the profile you intend to build.
 
-Verify with `npx eas-cli@latest env:list --environment preview`.
+Simplest habit: set all four in **every** environment you build, so switching
+`--profile` never needs a second thought. A development build reads its
+`EXPO_PUBLIC_*` values from your local `.env` at runtime (see above), but
+`app.config.js` is still evaluated on EAS, so `EXPO_PUBLIC_APP_NAME` in the
+`development` environment is what names the installed app — falling back to
+`app.json`'s value when unset.
+
+Verify per environment:
+
+```bash
+npx eas-cli@latest env:list --environment preview
+npx eas-cli@latest env:list --environment development
+```
 
 ---
 

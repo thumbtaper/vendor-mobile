@@ -1,16 +1,27 @@
 import { LinearGradient } from "expo-linear-gradient"
+import { StatusBar } from "expo-status-bar"
 import { useMemo } from "react"
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg"
 
 import { APP_NAME } from "@/lib/constants"
-import { useAppTheme } from "@/theme/useAppTheme"
+import { AppThemeContext } from "@/theme/useAppTheme"
 import { makeStyles } from "./AuthScreen.styles"
+import { useAuthScreen } from "./useAuthScreen"
 
-// Pure display shell for the pre-app screens. Reproduces the web's `--sp-page-bg`
-// gradient, which has no RN equivalent, and handles the two things every mobile
-// form gets wrong: the keyboard covering the submit button, and content sitting
-// under a notch or gesture bar.
+// Branded shell for the pre-app screens, matching the vendor web login
+// (`vendor/components/auth/LoginPage`): a hardcoded-dark navy page with gold
+// accents, a 3px gold top edge on the form shell, and two radial washes.
+//
+// It provides `AppThemeContext` so the whole subtree — FormField, PrimaryButton,
+// VendorPicker, the three auth forms, BlockedNotice — picks up the brand palette
+// without any of them being edited (D3-A). All six pre-app routes come through
+// here: sign-in, forgot-password, reset-password, select-vendor, blocked, and the
+// index anchor's loading state.
+//
+// Still handles the two things every mobile form gets wrong: the keyboard covering
+// the submit button, and content sitting under a notch or gesture bar.
 export function AuthScreen({
   children,
   showBrand = true,
@@ -18,35 +29,67 @@ export function AuthScreen({
   children: React.ReactNode
   showBrand?: boolean
 }) {
-  const { tokens } = useAppTheme()
-  const styles = useMemo(() => makeStyles(tokens), [tokens])
+  const theme = useAuthScreen()
+  const styles = useMemo(() => makeStyles(theme.tokens), [theme.tokens])
 
   return (
-    <LinearGradient
-      colors={tokens.pageBg.colors}
-      start={tokens.pageBg.start}
-      end={tokens.pageBg.end}
-      style={styles.gradient}
-    >
-      <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-        <KeyboardAvoidingView
-          style={styles.keyboard}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
+    <AppThemeContext.Provider value={theme}>
+      {/* This surface is dark whatever the device theme is, so the status-bar
+          glyphs must be forced light — on a light-mode device the OS would draw
+          them dark, i.e. invisible against the navy. */}
+      <StatusBar style="light" />
+      <LinearGradient
+        colors={theme.tokens.pageBg.colors}
+        start={theme.tokens.pageBg.start}
+        end={theme.tokens.pageBg.end}
+        style={styles.gradient}
+      >
+        {/* Decorative, behind everything, and non-interactive so they cannot
+            swallow a tap meant for the form. */}
+        <Svg style={styles.blob1} pointerEvents="none" viewBox="0 0 100 100">
+          <Defs>
+            <RadialGradient id="authBlobBlue" cx="50%" cy="50%" r="50%">
+              <Stop offset="0" stopColor="#1a3a8f" stopOpacity={0.35} />
+              <Stop offset="1" stopColor="#1a3a8f" stopOpacity={0} />
+            </RadialGradient>
+          </Defs>
+          <Circle cx="50" cy="50" r="50" fill="url(#authBlobBlue)" />
+        </Svg>
+        <Svg style={styles.blob2} pointerEvents="none" viewBox="0 0 100 100">
+          <Defs>
+            <RadialGradient id="authBlobGold" cx="50%" cy="50%" r="50%">
+              <Stop offset="0" stopColor="#FFC200" stopOpacity={0.08} />
+              <Stop offset="1" stopColor="#FFC200" stopOpacity={0} />
+            </RadialGradient>
+          </Defs>
+          <Circle cx="50" cy="50" r="50" fill="url(#authBlobGold)" />
+        </Svg>
+
+        <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+          <KeyboardAvoidingView
+            style={styles.keyboard}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
-            {showBrand ? (
-              <View style={styles.brandRow}>
-                <Text style={styles.brand}>{APP_NAME}</Text>
+            <ScrollView
+              contentContainerStyle={styles.scroll}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+            >
+              <View style={styles.shell}>
+                {showBrand ? (
+                  <View style={styles.brandRow}>
+                    <Text style={styles.brand} accessibilityRole="header">
+                      {APP_NAME}
+                    </Text>
+                    <Text style={styles.brandSub}>Vendor Portal</Text>
+                  </View>
+                ) : null}
+                {children}
               </View>
-            ) : null}
-            {children}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </LinearGradient>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </LinearGradient>
+    </AppThemeContext.Provider>
   )
 }

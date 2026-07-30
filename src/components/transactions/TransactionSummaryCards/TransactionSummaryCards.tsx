@@ -1,3 +1,4 @@
+import { ClipboardList, Percent, Receipt, Wallet } from "lucide-react-native"
 import { useMemo } from "react"
 import { Text, View } from "react-native"
 
@@ -23,23 +24,38 @@ export function TransactionSummaryCards({
 
   return (
     <View style={styles.wrapper}>
+      {/* Glyphs and tints match the web summary strip
+          (`vendor/components/transactions/TransactionSummaryCards`) by meaning, not
+          by position — the web orders them Collected / Platform Fee / Total Payout.
+          The count card has no web counterpart: it takes `ClipboardList` in neutral
+          slate (plan D5-a), the neutral tint marking it as a count rather than a
+          fourth currency figure. */}
       <View style={styles.grid}>
         <StatCard
           label="Collected"
           value={fmtPeso(totals?.collected ?? 0, 0)}
           sub="From bookers"
           loading={loading}
+          icon={Receipt}
+          iconColor="#3b82f6"
+          iconBg="rgba(59,130,246,0.12)"
         />
         <StatCard
           label="Your payout"
           value={fmtPeso(totals?.payout ?? 0, 0)}
           sub="After platform fee"
           loading={loading}
+          icon={Wallet}
+          iconColor="#10b981"
+          iconBg="rgba(16,185,129,0.12)"
         />
         <StatCard
           label="Platform fees"
           value={fmtPeso(totals?.platformFees ?? 0, 0)}
           loading={loading}
+          icon={Percent}
+          iconColor="#f59e0b"
+          iconBg="rgba(245,158,11,0.12)"
         />
         <StatCard
           label="Transactions"
@@ -50,6 +66,9 @@ export function TransactionSummaryCards({
               : undefined
           }
           loading={loading}
+          icon={ClipboardList}
+          iconColor="#64748b"
+          iconBg="rgba(100,116,139,0.12)"
         />
       </View>
 

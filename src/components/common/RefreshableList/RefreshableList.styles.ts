@@ -5,8 +5,14 @@ import { spacing, type, type Tokens } from "@/theme/tokens"
 export const makeStyles = (t: Tokens) =>
   StyleSheet.create({
     content: {
+      // No `gap` here — FlashList lays every cell out absolutely
+      // (`ViewHolder`: `position: "absolute"`), so a flex gap on the content
+      // container is silently inert. Row spacing is the `separator` below,
+      // handed to `ItemSeparatorComponent`. `padding` *is* honoured.
       padding: spacing.xl,
-      gap: spacing.md,
+    },
+    separator: {
+      height: spacing.md,
     },
     centred: {
       flex: 1,

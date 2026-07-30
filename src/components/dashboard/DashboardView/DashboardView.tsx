@@ -1,3 +1,9 @@
+import {
+  CalendarCheck,
+  CircleAlert,
+  CircleCheckBig,
+  TrendingUp,
+} from "lucide-react-native"
 import { useMemo } from "react"
 import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native"
 
@@ -43,24 +49,38 @@ export function DashboardView() {
           </Text>
         ) : null}
 
+        {/* Glyphs and tints are the web dashboard's, card for card
+            (`vendor/components/dashboard/DashboardPage`), so the two clients read
+            the same at a glance. Canonical lucide v1 names — the web app is on
+            0.468 and still spells these `AlertCircle` / `CheckCircle`. */}
         <View style={styles.grid}>
           <StatCard
             label="Pending Approvals"
             value={stats?.pendingApprovals ?? 0}
             sub="Waiting on you"
             loading={s.isLoading}
+            icon={CircleAlert}
+            iconColor="#f59e0b"
+            iconBg="rgba(245,158,11,0.12)"
+            urgent={(stats?.pendingApprovals ?? 0) > 0}
           />
           <StatCard
             label="Today's Bookings"
             value={stats?.todaysBookings ?? 0}
             sub="Manila time"
             loading={s.isLoading}
+            icon={CalendarCheck}
+            iconColor="#3b82f6"
+            iconBg="rgba(59,130,246,0.12)"
           />
           <StatCard
             label="Completed This Month"
             value={stats?.completedThisMonth ?? 0}
             sub={stats?.monthLabel}
             loading={s.isLoading}
+            icon={CircleCheckBig}
+            iconColor="#10b981"
+            iconBg="rgba(16,185,129,0.12)"
           />
           <StatCard
             label="Monthly Revenue"
@@ -72,6 +92,9 @@ export function DashboardView() {
             }
             loading={s.isLoading}
             unavailable={stats?.revenueAvailable === false}
+            icon={TrendingUp}
+            iconColor="#6366f1"
+            iconBg="rgba(99,102,241,0.12)"
           />
         </View>
 

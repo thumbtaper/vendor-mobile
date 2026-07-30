@@ -30,11 +30,26 @@ export function RefreshableList<T>({
   loadingMore = false,
   data,
   contentContainerStyle,
+  ItemSeparatorComponent,
   ...listProps
 }: Props<T>) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
   const { refreshing, refresh } = useRefreshableList(onRefresh)
+
+  // Defaulted here rather than per screen so bookings, transactions and
+  // notifications cannot drift apart. Identity must be stable: FlashList's cell
+  // memo compares `ItemSeparatorComponent` by reference, so an inline component
+  // would remount every separator on each render. `styles` is already memoised on
+  // `tokens`, so this changes only when the theme does.
+  const Separator = useMemo(
+    () =>
+      ItemSeparatorComponent ??
+      function RowSeparator() {
+        return <View style={styles.separator} />
+      },
+    [ItemSeparatorComponent, styles],
+  )
 
   const isEmpty = !data || data.length === 0
 
@@ -69,6 +84,7 @@ export function RefreshableList<T>({
       {...listProps}
       data={data}
       contentContainerStyle={contentContainerStyle ?? styles.content}
+      ItemSeparatorComponent={Separator}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

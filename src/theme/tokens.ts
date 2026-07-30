@@ -83,6 +83,17 @@ export interface Tokens {
   navActive: Gradient
   btnPrimaryShadow: Shadow
 
+  // The urgency bar on an `urgent` stat card — `vendor/components/ui/StatCard`'s
+  // `bg-[linear-gradient(90deg,#f59e0b,#f97316)]`. Theme-independent.
+  accentUrgent: Gradient
+
+  // Foreground on top of `btnPrimary`. A token rather than a literal because the
+  // branded auth surface (`brandTokens`) uses a gold button, where white text is
+  // unreadable.
+  btnPrimaryFg: string
+  // Link and inline-action colour. Blue in both themes; gold on `brandTokens`.
+  accent: string
+
   // Status colours from `vendor/lib/utils.ts` `statusStyle()`, theme-independent.
   status: Record<string, { bg: string; fg: string }>
 }
@@ -97,6 +108,14 @@ const NAV_ACTIVE: Gradient = {
   colors: ["#2563eb", "#1e40af"],
   start: { x: 0, y: 0 },
   end: { x: 1, y: 1 },
+}
+
+// CSS `90deg` is a left-to-right sweep, so this one is horizontal — not the
+// `DIAGONAL` used by the two 135deg button gradients above.
+const ACCENT_URGENT: Gradient = {
+  colors: ["#f59e0b", "#f97316"],
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 0 },
 }
 
 const BTN_PRIMARY_SHADOW = shadow(
@@ -173,6 +192,9 @@ export const lightTokens: Tokens = {
   btnPrimary: BTN_PRIMARY,
   navActive: NAV_ACTIVE,
   btnPrimaryShadow: BTN_PRIMARY_SHADOW,
+  accentUrgent: ACCENT_URGENT,
+  btnPrimaryFg: "#ffffff",
+  accent: "#2563eb",
   status: STATUS,
 }
 
@@ -231,6 +253,9 @@ export const darkTokens: Tokens = {
   btnPrimary: BTN_PRIMARY,
   navActive: NAV_ACTIVE,
   btnPrimaryShadow: BTN_PRIMARY_SHADOW,
+  accentUrgent: ACCENT_URGENT,
+  btnPrimaryFg: "#ffffff",
+  accent: "#2563eb",
   status: STATUS,
 }
 

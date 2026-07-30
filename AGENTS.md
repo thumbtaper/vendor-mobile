@@ -46,7 +46,7 @@ authoritative record of scope, decisions (D1–D13), and per-phase status.
 |---|---|
 | Ph0–Ph6 | ✅ Code complete — auth + deep-link password reset, vendor access gate, multi-vendor picker, tab shell + theming, dashboard stats, bookings with approve/reject, transactions, notifications with Realtime, settings |
 | Ph7 (push) | 🔄 Client and backbone code written; blocked on FCM/APNs credentials, the `device_push_tokens` migration, and the Edge Function deploy |
-| Ph8 (store) | 🔄 Config and declarations done; **B5** brand assets, **B6** privacy policy + deletion route, **B7** Play account type block submission |
+| Ph8 (store) | 🔄 Config, declarations and **brand assets** done (icon + splash, 2026-07-30 — regenerate with `scripts/generate-brand-assets.js`); **B5** store listing assets (screenshots, descriptions), **B6** privacy policy + deletion route, **B7** Play account type block submission |
 
 Verification status matters here: phases were verified on **Android**. **Nothing
 has been verified on iOS** — App Store Expo Go cannot open an SDK 57 project, so

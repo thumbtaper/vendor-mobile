@@ -4,11 +4,11 @@
     "slug": "ezzy-vendor-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/brand/icon-ios.png",
     "scheme": "ezzyvendormobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/brand/icon-ios.png",
       "bundleIdentifier": "com.ezzy.vendormobile",
       "supportsTablet": false,
       "infoPlist": {
@@ -34,10 +34,9 @@
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#034BFC",
+        "foregroundImage": "./assets/brand/icon-android-foreground.png",
+        "monochromeImage": "./assets/brand/icon-android-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -50,9 +49,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#04060E",
+          "image": "./assets/brand/splash-mark.png",
+          "imageWidth": 180
         }
       ],
       "expo-secure-store",

@@ -83,9 +83,19 @@ Worth stating plainly, because it is the part people expect to be painful.
 | `ios.privacyManifests` | UserDefaults + FileTimestamp | Required since 2024; missing entries are an automatic upload rejection |
 | `eas.json` `development` profile | `developmentClient: true`, `distribution: internal` | `ios.simulator` already defaults to `false`, so this targets a device. No edit required |
 
-The only genuine gap is **B5 — brand assets**. `ios.icon` still points at
-`assets/expo.icon`, which is Expo's template icon. That is fine for development
-and TestFlight; it blocks public App Store release, not builds.
+**Brand assets are no longer a gap (2026-07-30).** `ios.icon` points at
+`assets/brand/icon-ios.png` — a real 1024² icon with **no alpha channel**, which is
+what App Store Connect requires. The template `assets/expo.icon` bundle is deleted.
+
+Two caveats specific to iOS. The icon has been **asserted** correct (1024², colour
+type 2) but **never seen rendered**, because no iOS build has ever existed here — so
+the first iOS build is also the first look at it. And `ios.icon` is deliberately a
+plain PNG rather than an `{light, dark, tinted}` object or an Icon Composer `.icon`
+bundle; those need iOS-18+ appearance assets or Xcode 26, neither verifiable in this
+environment. Revisit once iOS builds are possible.
+
+What still blocks public App Store release is the **listing** side of B5 — screenshots
+and descriptions — plus **B6** (privacy policy). Neither blocks a build.
 
 ---
 

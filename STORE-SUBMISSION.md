@@ -15,12 +15,12 @@ you transcribe into App Store Connect and Play Console.
 
 | Field | Value | Status |
 |---|---|---|
-| Display name | Bookdeck Vendor | provisional — B5 |
+| Display name | Ezzy Vendor | resolved 2026-07-28 — sourced from `EXPO_PUBLIC_APP_NAME` via `app.config.js`, with `app.json` as fallback |
 | Bundle ID (iOS) | `com.ezzy.vendormobile` | set |
 | Package (Android) | `com.ezzy.vendormobile` | set |
 | Deep-link scheme | `ezzyvendormobile://` | set |
 | Devices | iPhone + Android phones, portrait only | `ios.supportsTablet: false` (D12-A) |
-| Icons / splash | Expo template placeholders | **BLOCKED — B5** |
+| Icons / splash | Real brand assets — white ZZ mark on `#034BFC`; splash on `#04060E` | done 2026-07-30, verified via `expo prebuild` |
 
 **Screenshot sets required:** iPhone 6.9" and 6.5" (App Store), Android phone (Play).
 **No iPad set is owed** — the app declares itself phone-only.
@@ -140,10 +140,23 @@ Requirements:
 
 ## 6. Blockers before submission
 
-### B5 — no brand assets
-`app.json` still carries Expo template artwork and a provisional display name. Needed: iOS
-1024² icon, Android adaptive icon (fore/back/monochrome), splash, final store name, short +
-full descriptions, screenshots. **Requires a brand decision — do not invent a logo.**
+### B5 — brand assets — **binary assets DONE, listing assets outstanding**
+**Resolved 2026-07-30 (icon + splash):** real artwork generated from a vector source and
+wired into `app.json` — iOS 1024² icon (alpha-free), Android adaptive foreground +
+monochrome on a `#034BFC` background colour, and the splash on `#04060E`. Every Expo
+template artifact is deleted. Verified through a real `expo prebuild`, Android only.
+Regenerate with `node scripts/generate-brand-assets.js`; see
+`.plans/2026-07-30-vendor-mobile-brand-assets.md`. **Display name resolved 2026-07-28** —
+"Ezzy Vendor".
+
+**Still outstanding — these are *listing* assets, not binary assets, and still block
+submission:** screenshots (iPhone 6.9" + 6.5", Android phone) and the short + full store
+descriptions. Play also wants a 512² store icon and a 1024×500 feature graphic, both
+derivable from the same master.
+
+**The iOS icon has never been seen rendered** — no Apple Developer membership, so no iOS
+build exists (**B9**). It is asserted correct (1024², no alpha channel), not visually
+confirmed.
 
 ### B6 — no privacy policy or deletion route exists
 Verified absent from the whole `vendor` product. **Both stores block submission without a

@@ -4,7 +4,7 @@ import { Pressable, ScrollView, Text } from "react-native"
 
 import type { BookingFilter } from "@/hooks/useBookingsQuery"
 import { useAppTheme } from "@/theme/useAppTheme"
-import { makeStyles } from "./BookingFilterTabs.styles"
+import { CHIP_HIT_SLOP, makeStyles } from "./BookingFilterTabs.styles"
 
 const FILTERS: { value: BookingFilter; label: string }[] = [
   { value: "pending", label: "Pending" },
@@ -30,6 +30,10 @@ export function BookingFilterTabs({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      // `style` and `contentContainerStyle` are both required here and do
+      // different jobs — see the comments in the styles file. Without `style`,
+      // RN's `flexGrow: 1` base style stretches the whole strip.
+      style={styles.container}
       contentContainerStyle={styles.scroll}
     >
       {FILTERS.map((filter) => {
@@ -40,6 +44,7 @@ export function BookingFilterTabs({
             onPress={() => onChange(filter.value)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
+            hitSlop={CHIP_HIT_SLOP}
             style={[styles.chip, active && styles.chipActive]}
           >
             {active ? (
@@ -50,7 +55,15 @@ export function BookingFilterTabs({
                 style={styles.gradient}
               />
             ) : null}
-            <Text style={[styles.label, active && styles.labelActive]}>
+            {/* Capped because this chip is sized by padding, not a `minHeight`
+                floor: above ~1.5x OS font scale an uncapped label would make the
+                chip TALLER than the 36pt version it replaced. 12 x 1.3 = 16pt
+                stays legible, and the row scrolls horizontally so nothing clips.
+                See `.plans/2026-07-31-vendor-mobile-filter-density.md` D1. */}
+            <Text
+              style={[styles.label, active && styles.labelActive]}
+              maxFontSizeMultiplier={1.3}
+            >
               {filter.label}
             </Text>
           </Pressable>

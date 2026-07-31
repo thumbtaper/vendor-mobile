@@ -48,10 +48,24 @@ authoritative record of scope, decisions (D1–D13), and per-phase status.
 | Ph7 (push) | 🔄 Client and backbone code written; blocked on FCM/APNs credentials, the `device_push_tokens` migration, and the Edge Function deploy |
 | Ph8 (store) | 🔄 Config, declarations and **brand assets** done (icon + splash, 2026-07-30 — regenerate with `scripts/generate-brand-assets.js`); **B5** store listing assets (screenshots, descriptions), **B6** privacy policy + deletion route, **B7** Play account type block submission |
 
+Post-build-out polish runs in its own dated plans rather than in the build-out doc:
+styling/branding parity with the vendor web portal
+(`.plans/2026-07-29-vendor-mobile-styling-branding.md`, COMPLETE), brand assets
+(`.plans/2026-07-30-vendor-mobile-brand-assets.md`, COMPLETE), and UI fixes
+(`.plans/2026-07-30-vendor-mobile-ui-fixes.md` + `.plans/2026-07-31-vendor-mobile-filter-density.md`).
+Next up and not yet started: booking status transitions beyond approve/reject
+(`.plans/2026-07-31-vendor-mobile-booking-status-actions.md`, DRAFT — decisions open).
+
 Verification status matters here: phases were verified on **Android**. **Nothing
 has been verified on iOS** — App Store Expo Go cannot open an SDK 57 project, so
 iOS needs a paid Apple Developer account (plan **B9**, procedure in
 `IOS-BUILD.md`). State which platforms you actually ran when marking work done.
+
+**Device verification is not optional on visual work.** Four separate style passes
+across two plans shipped changes that machine checks approved and that did nothing on
+screen, because the styles were being silently overridden by library defaults (see
+Traps below). `tsc`, `expo lint`, `npm test` and `expo export` cannot see that class of
+bug. For any visual change, get a screenshot before declaring it fixed.
 
 Own git repository (`origin` → `thumbtaper/vendor-mobile`), separate from the
 workspace root repo. Commits for this app must be made **from inside this
@@ -147,6 +161,21 @@ them, don't re-litigate:
 - **Pure logic that needs a test must live in its own module** — tests run under
   `node --test` with no framework, so anything importing `lib/supabase/client`
   cannot load. See `vendorMapping.ts`, `bookingErrors.ts`, `transactionTotals.ts`.
+- **A horizontal `ScrollView` fills its cross axis.** RN puts `flexGrow: 1` in the
+  base style of every ScrollView (`ScrollView.js:1887-1892`), so in a `flex: 1`
+  column a horizontal strip expands to fill all remaining *vertical* space and
+  stretches its children to that height. `BookingFilterTabs` rendered ~400pt chips
+  this way; `minHeight` and `paddingVertical` on the chip did nothing. Fix is
+  `flexGrow: 0` on the ScrollView's own `style` — not `contentContainerStyle`.
+  `.plans/2026-07-31-vendor-mobile-filter-density.md` §0.9
+- **`gap` in a FlashList `contentContainerStyle` is inert** — v2 lays cells out
+  absolutely (`ViewHolder.js:44`), so only `padding` applies. Row spacing goes
+  through a **memoised** `ItemSeparatorComponent` (the cell memo compares it by
+  identity, `:75`). See `RefreshableList`.
+- **Both of the above pass `tsc`, `expo lint`, `npm test` and `expo export`.** No
+  machine check in this repo can see a style that is silently overridden — if a
+  spacing change appears to do nothing on device, suspect the container and read
+  the library source before re-tuning the value. Ask for a screenshot early.
 
 ### Environment variables
 

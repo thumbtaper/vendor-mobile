@@ -5,7 +5,11 @@ import { useCallback } from "react"
 import { useBookingsQuery } from "@/hooks/useBookingsQuery"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 import { getDashboardStats } from "@/services/dashboard.service"
-import type { Booking } from "@/lib/types"
+import type { Booking, BookingStatus } from "@/lib/types"
+
+// Module-level constant, not an inline literal: a fresh array on every render
+// would be a new query key each time and refetch forever.
+const PENDING_ONLY: BookingStatus[] = ["pending"]
 
 export function useDashboardView() {
   const router = useRouter()
@@ -20,9 +24,14 @@ export function useDashboardView() {
     enabled: Boolean(vendorId),
   })
 
-  // The preview reuses the bookings query rather than a second fetch, so the
-  // dashboard and the Bookings tab can never show a different pending list.
-  const pending = useBookingsQuery(vendorId, "pending")
+  // The preview reuses the bookings query rather than a second fetch, so it
+  // shares a cache prefix with the Bookings tab and refreshes with it.
+  //
+  // Strictly `["pending"]`, NOT the "Needs you" group. That group also contains
+  // `returned`, but this card is labelled "Pending Approvals", its count is
+  // `status = pending`, and its empty state reads "Nothing needs your approval" —
+  // widening the list here would contradict all three.
+  const pending = useBookingsQuery(vendorId, PENDING_ONLY)
 
   const refresh = useCallback(async () => {
     await Promise.all([stats.refetch(), pending.refetch()])

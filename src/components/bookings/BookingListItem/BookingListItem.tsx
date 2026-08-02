@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { Pressable, Text, View } from "react-native"
 
-import { fmtPeso } from "@/lib/format"
+import { fmtPeso, statusLabel } from "@/lib/format"
 import type { Booking } from "@/lib/types"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./BookingListItem.styles"
@@ -33,7 +33,7 @@ export function BookingListItem({
     <Pressable
       onPress={() => onPress(booking)}
       accessibilityRole="button"
-      accessibilityLabel={`${booking.bookerName || "Booking"}, ${booking.status}`}
+      accessibilityLabel={`${booking.bookerName || "Booking"}, ${statusLabel(booking.status)}`}
       accessibilityHint="Opens the booking to approve or reject it"
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
@@ -67,7 +67,7 @@ export function BookingListItem({
       <View style={styles.trailing}>
         {/* Status is always text, never colour alone (plan §5.3). */}
         <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>
-          {capitalise(booking.status)}
+          {statusLabel(booking.status)}
         </Text>
         <Text style={styles.price}>{fmtPeso(booking.pricePaid, 0)}</Text>
       </View>
@@ -79,8 +79,4 @@ function initialsOf(name: string): string {
   const parts = name.split(/\s+/).filter(Boolean).slice(0, 2)
   if (parts.length === 0) return "?"
   return parts.map((p) => p[0]?.toUpperCase() ?? "").join("")
-}
-
-function capitalise(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1)
 }

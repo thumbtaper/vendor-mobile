@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useCallback } from "react"
 
-import { useBookingActions } from "@/hooks/useBookingActions"
+import { useBookingActions, type FulfilAction } from "@/hooks/useBookingActions"
 import { useBookerContacts } from "@/hooks/useBookingsQuery"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 import { getBookingById, type BookerContact } from "@/services/bookings.service"
@@ -35,7 +35,7 @@ export function useBookingDetail() {
   // Approve returns to the list: the vendor's job here is done, and staying on a
   // detail screen that has just lost its actions is a dead end. The undo lives
   // in the snackbar, which outlives the navigation.
-  // Signature takes the booking so it matches `ApproveRejectBar`'s prop, but the
+  // Signature takes the booking so it matches `BookingActionBar`'s prop, but the
   // fetched row is used rather than the argument — they are the same row, and
   // reading from the query keeps the source of truth in one place.
   const approve = useCallback(() => {
@@ -55,6 +55,30 @@ export function useBookingDetail() {
     [actions, query.data, goBack],
   )
 
+  // Deliberately does NOT goBack, unlike approve/reject above.
+  //
+  // Those navigate away because acting on a `pending` booking strips the screen
+  // of every action, leaving a dead end with the undo stranded in a snackbar. A
+  // fulfilment move does the opposite: the new state is the feedback the vendor
+  // wants to see, and it usually brings its own on-screen Undo. Even the terminal
+  // one — "Got it back" -> completed — is worth staying for, since that is the
+  // moment the payout is released and the screen says so.
+  const flag = useCallback(
+    async (_: unknown, reason: string) => {
+      if (!query.data) return
+      await actions.flag(query.data, reason)
+    },
+    [actions, query.data],
+  )
+
+  const fulfil = useCallback(
+    async (_: unknown, action: FulfilAction) => {
+      if (!query.data) return
+      await actions.fulfil(query.data, action)
+    },
+    [actions, query.data],
+  )
+
   return {
     booking: query.data ?? null,
     isLoading: query.isLoading || contacts.isLoading,
@@ -62,6 +86,8 @@ export function useBookingDetail() {
     refetch: query.refetch,
     approve: approveBookingFromBar,
     reject,
+    fulfil,
+    flag,
     goBack,
   }
 }

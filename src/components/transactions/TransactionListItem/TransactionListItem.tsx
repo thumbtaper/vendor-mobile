@@ -1,7 +1,13 @@
 import { useMemo } from "react"
 import { Text, View } from "react-native"
 
-import { fmtPeso, fmtPhDate, isPayable, payoutExclusionReason } from "@/lib/format"
+import {
+  fmtPeso,
+  fmtPhDate,
+  isPayable,
+  payoutExclusionReason,
+  statusLabel,
+} from "@/lib/format"
 import type { Transaction } from "@/lib/types"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./TransactionListItem.styles"
@@ -14,8 +20,11 @@ export function TransactionListItem({ transaction }: { transaction: Transaction 
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
 
-  const payable = isPayable(transaction.status)
-  const exclusion = payoutExclusionReason(transaction.status)
+  // Payability comes from the LEDGER's payout status; the pill below still shows
+  // the BOOKING's status. They answer different questions and must not be merged:
+  // a `completed` booking whose payout was reversed is still shown as completed.
+  const payable = isPayable(transaction.payoutStatus)
+  const exclusion = payoutExclusionReason(transaction.payoutStatus)
   const status = tokens.status[transaction.status] ?? {
     bg: tokens.pillBg,
     fg: tokens.text,
@@ -42,7 +51,7 @@ export function TransactionListItem({ transaction }: { transaction: Transaction 
       </View>
 
       <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>
-        {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+        {statusLabel(transaction.status)}
       </Text>
 
       {exclusion ? <Text style={styles.exclusion}>{exclusion}</Text> : null}

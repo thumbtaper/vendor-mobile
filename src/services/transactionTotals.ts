@@ -9,13 +9,15 @@
 // the Node test runner, which resolves neither bare extensionless specifiers nor
 // the TypeScript path alias. Metro resolves it identically.
 import { isPayable } from "../lib/format.ts"
-import type { BookingStatus } from "../lib/types.ts"
+import type { PayoutStatus } from "../lib/types.ts"
 
 export interface TotalsRow {
   amount_paid: number
   platform_fee_amount: number
   payout_amount: number
-  bookings: { status: string } | null
+  // A plain column on booking_transactions, NOT a joined booking field — which is
+  // why the totals query no longer embeds `bookings(status)` at all.
+  payout_status: PayoutStatus | null
 }
 
 export interface Totals {
@@ -28,11 +30,18 @@ export interface Totals {
 export function sumTransactionTotals(rows: TotalsRow[]): Totals {
   return rows.reduce<Totals>(
     (acc, row) => {
-      // A missing join defaults to `confirmed`: the ledger row only exists
-      // because a payment happened, so treating it as unpayable would understate
-      // the vendor. Matches the web service's fallback.
-      const status = (row.bookings?.status ?? "confirmed") as BookingStatus
-      if (!isPayable(status)) return acc
+      // Defaults to `held`, NOT to payable. The old rule defaulted a missing
+      // booking join to `confirmed` on the reasoning that a ledger row only exists
+      // because a payment happened, so assuming unpayable would understate the
+      // vendor. That reasoning does not survive the move to payout_status:
+      //   1. payout_status is `not null default 'held'` on the row itself, so
+      //      there is no join to lose — an absent value means the column was not
+      //      selected, which is a bug, not a payment.
+      //   2. Under mutual acknowledgement, "we don't know" must never resolve to
+      //      "the vendor is owed it". Overstating money owed is the exact defect
+      //      this change removes; understating it is visible and self-correcting.
+      const payoutStatus = row.payout_status ?? "held"
+      if (!isPayable(payoutStatus)) return acc
       return {
         collected: acc.collected + Number(row.amount_paid),
         platformFees: acc.platformFees + Number(row.platform_fee_amount),

@@ -2,26 +2,30 @@ import { LinearGradient } from "expo-linear-gradient"
 import { useMemo } from "react"
 import { Pressable, ScrollView, Text } from "react-native"
 
+import { BOOKING_FILTERS } from "@/lib/bookingFilters"
+import type { FilterCounts } from "@/hooks/useBookingFilterCounts"
 import type { BookingFilter } from "@/hooks/useBookingsQuery"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { CHIP_HIT_SLOP, makeStyles } from "./BookingFilterTabs.styles"
 
-const FILTERS: { value: BookingFilter; label: string }[] = [
-  { value: "pending", label: "Pending" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "all", label: "All" },
-]
-
-// Pure display — fully controlled by the screen hook. Pending leads because it
-// is the only filter with work attached to it.
+// Pure display — fully controlled by the screen hook.
+//
+// The chip list is no longer declared here: it comes from `lib/bookingFilters.ts`,
+// which is the port of the web portal's `BOOKING_FILTERS`. A local copy would be
+// the exact drift that file's comment warns about, and the order shown ("All"
+// first, then by urgency) is part of the shared definition.
+//
+// Six chips now instead of five, so the strip scrolls on a narrow phone. That is
+// fine and already handled — the ScrollView's `flexGrow: 0` (see the styles file)
+// is what keeps it sized to its content.
 export function BookingFilterTabs({
   value,
   onChange,
+  counts,
 }: {
   value: BookingFilter
   onChange: (next: BookingFilter) => void
+  counts?: FilterCounts
 }) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
@@ -36,12 +40,17 @@ export function BookingFilterTabs({
       style={styles.container}
       contentContainerStyle={styles.scroll}
     >
-      {FILTERS.map((filter) => {
-        const active = filter.value === value
+      {BOOKING_FILTERS.map((filter) => {
+        const active = filter.key === value
+        // Zero is not rendered: an empty badge is visual noise, and "0 need you"
+        // is worse than nothing — it draws the eye to reassure about a state the
+        // absence of a badge already communicates.
+        const badge = counts?.[filter.key]
+        const showBadge = typeof badge === "number" && badge > 0
         return (
           <Pressable
-            key={filter.value}
-            onPress={() => onChange(filter.value)}
+            key={filter.key}
+            onPress={() => onChange(filter.key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             hitSlop={CHIP_HIT_SLOP}
@@ -66,6 +75,16 @@ export function BookingFilterTabs({
             >
               {filter.label}
             </Text>
+            {showBadge ? (
+              <Text
+                style={[styles.badge, active && styles.badgeActive]}
+                maxFontSizeMultiplier={1.3}
+                // Read as part of the chip, not as a stray number.
+                accessibilityLabel={`${badge} ${filter.label}`}
+              >
+                {badge > 99 ? "99+" : badge}
+              </Text>
+            ) : null}
           </Pressable>
         )
       })}

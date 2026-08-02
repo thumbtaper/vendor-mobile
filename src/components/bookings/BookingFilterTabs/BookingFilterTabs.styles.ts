@@ -69,6 +69,12 @@ export const makeStyles = (t: Tokens) =>
     // the real target. Do not reintroduce `minHeight` to "fix" the touch area —
     // that is what hitSlop is for, and it would undo the sizing.
     chip: {
+      // Row, so the count badge sits beside the label rather than under it. The
+      // active gradient is `position: "absolute"` and therefore out of flow, so
+      // this affects only the label and the badge — it does not disturb the
+      // sizing that CHIP_HEIGHT and the ScrollView's flexGrow:0 depend on.
+      flexDirection: "row",
+      alignItems: "center",
       justifyContent: "center",
       paddingVertical: CHIP_PADDING_V,
       paddingHorizontal: spacing.md,
@@ -84,6 +90,33 @@ export const makeStyles = (t: Tokens) =>
       color: t.text,
       fontSize: type.caption.size,
       fontWeight: "600",
+    },
+    /**
+     * The count badge. Sits inline with the label inside the chip, so the chip
+     * grows with it rather than the badge floating over a corner — an overlaid
+     * badge would clip against the chip's own border radius at this size.
+     *
+     * `maxFontSizeMultiplier` is capped at the call site for the same reason the
+     * label is: this chip is sized by padding, not a minHeight floor.
+     */
+    badge: {
+      marginLeft: 5,
+      minWidth: 16,
+      textAlign: "center",
+      overflow: "hidden",
+      borderRadius: radii.pill,
+      paddingHorizontal: 5,
+      fontSize: 10,
+      lineHeight: 15,
+      fontWeight: "800",
+      color: "#ffffff",
+      backgroundColor: "#ef4444",
+    },
+    // On the active chip the gradient already carries the emphasis, so the badge
+    // steps back to a translucent wash rather than competing with it.
+    badgeActive: {
+      backgroundColor: "rgba(255,255,255,0.28)",
+      color: "#ffffff",
     },
     labelActive: {
       color: "#ffffff",

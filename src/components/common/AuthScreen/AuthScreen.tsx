@@ -66,14 +66,34 @@ export function AuthScreen({
         </Svg>
 
         <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+          {/* One keyboard mechanism per platform, deliberately not shared.
+              Stacking both would double-compensate and push the form off-screen
+              in the other direction.
+
+              ANDROID — `behavior="height"`. It previously passed `undefined`,
+              which leaves this component doing NOTHING and relies entirely on the
+              window resizing under `adjustResize`. That is the reported bug: with
+              no compensation here, the keyboard simply draws over the password
+              field. "height" resizes the view to the space above the keyboard and
+              works whether or not the window itself resizes.
+
+              iOS — `automaticallyAdjustKeyboardInsets` on the ScrollView below,
+              so this stays `undefined` here. That prop is iOS-only and a no-op
+              elsewhere, which is why it is set unconditionally. */}
           <KeyboardAvoidingView
             style={styles.keyboard}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "android" ? "height" : undefined}
           >
             <ScrollView
               contentContainerStyle={styles.scroll}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
+              // Scrolls the FOCUSED INPUT into view rather than padding the whole
+              // container — the behaviour a login form actually wants. Replaces
+              // the previous iOS `behavior="padding"`, which also double-counted
+              // the home-indicator inset already consumed by the SafeAreaView's
+              // `bottom` edge above.
+              automaticallyAdjustKeyboardInsets
             >
               <View style={styles.shell}>
                 {showBrand ? (

@@ -1,9 +1,9 @@
 import { useMemo } from "react"
 import { ActivityIndicator, ScrollView, Text, View } from "react-native"
 
-import { ApproveRejectBar } from "@/components/bookings/ApproveRejectBar/ApproveRejectBar"
+import { BookingActionBar } from "@/components/bookings/BookingActionBar/BookingActionBar"
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
-import { fmtPeso } from "@/lib/format"
+import { fmtPeso, statusLabel } from "@/lib/format"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./BookingDetail.styles"
 import { useBookingDetail } from "./useBookingDetail"
@@ -44,7 +44,7 @@ export function BookingDetail() {
           <Text
             style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}
           >
-            {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
+            {statusLabel(b.status)}
           </Text>
           <Text style={styles.headline}>{b.bookerName || "Unnamed booker"}</Text>
           {contact ? <Text style={styles.value}>{contact}</Text> : null}
@@ -77,7 +77,13 @@ export function BookingDetail() {
         </View>
       </ScrollView>
 
-      <ApproveRejectBar booking={b} onApprove={s.approve} onReject={s.reject} />
+      <BookingActionBar
+        booking={b}
+        onApprove={s.approve}
+        onReject={s.reject}
+        onFulfil={s.fulfil}
+        onFlag={s.flag}
+      />
     </View>
   )
 }

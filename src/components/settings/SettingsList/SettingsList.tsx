@@ -1,3 +1,4 @@
+import Constants from "expo-constants"
 import { useMemo } from "react"
 import { Pressable, ScrollView, Text, View } from "react-native"
 
@@ -15,6 +16,20 @@ const PUSH_LABELS: Record<PushState, string> = {
   granted: "On",
   unavailable: "Not ready yet",
 }
+
+// The running app's version, resolved once at module load — it cannot change
+// while the app is running, so it is a constant rather than state and needs no
+// hook.
+//
+// This IS the `package.json` version: `app.config.js` sets `expo.version` from
+// `package.json`, and `expo.version` is what `Constants.expoConfig` exposes. Read
+// through Constants rather than importing `package.json` directly, so the number
+// shown here is guaranteed to be the one the OS and the stores report — importing
+// the file would display a version the installed binary might not agree with.
+//
+// The fallback covers `expoConfig` being null, which happens in bare/edge runtime
+// cases. A dash is better than "undefined" in a support conversation.
+const APP_VERSION = Constants.expoConfig?.version ?? "—"
 
 export function SettingsList() {
   const { tokens } = useAppTheme()
@@ -145,6 +160,19 @@ export function SettingsList() {
           Registration, document verification and account deletion are handled on
           the web portal.
         </Text>
+      </View>
+
+      {/* Reuses the label/value row from the Vendor section — a non-interactive
+          pair with no press handler. No new styles: this is the same shape of
+          information, so it should not look like a different kind of thing. */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>About</Text>
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Version</Text>
+            <Text style={styles.rowValue}>{APP_VERSION}</Text>
+          </View>
+        </View>
       </View>
     </ScrollView>
   )

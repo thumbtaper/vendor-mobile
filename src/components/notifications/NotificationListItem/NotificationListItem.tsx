@@ -1,11 +1,16 @@
 import {
   Archive,
+  Bell,
   CalendarPlus,
   CircleAlert,
   CircleCheck,
+  CircleDollarSign,
   CircleX,
   CreditCard,
+  PackageCheck,
+  ShieldCheck,
   Trash2,
+  TriangleAlert,
   type LucideIcon,
 } from "lucide-react-native"
 import { useMemo } from "react"
@@ -27,6 +32,14 @@ import { makeStyles } from "./NotificationListItem.styles"
 // to `NotificationType` then becomes a compile error instead of a silently
 // icon-less row. Colours are per-type data, so they live here beside the glyph
 // rather than in the style file.
+//
+// The exhaustive Record is a COMPILE-time guard only. It cannot stop the database
+// emitting a type this binary has never heard of — a migration ships new
+// notification types to users running an older build, and no amount of typing
+// reaches an app that is already installed. Hence UNKNOWN_TYPE below.
+//
+// Colours match the status palette in theme/tokens.ts so a "flagged" notification
+// and a "flagged" booking read as the same event.
 const TYPE_ICON: Record<NotificationType, { icon: LucideIcon; color: string }> = {
   new_booking: { icon: CalendarPlus, color: "#3b82f6" },
   payment_confirmed: { icon: CreditCard, color: "#10b981" },
@@ -35,7 +48,22 @@ const TYPE_ICON: Record<NotificationType, { icon: LucideIcon; color: string }> =
   booking_cancelled: { icon: CircleAlert, color: "#f59e0b" },
   vendor_pending_approval: { icon: CircleCheck, color: "#3b82f6" },
   new_user_registration: { icon: CircleCheck, color: "#3b82f6" },
+  // Fulfilment types (20260801000007). Only the four inserted with
+  // `portal = 'vendor'` — see the note on NotificationType.
+  booking_returned: { icon: PackageCheck, color: "#f97316" },
+  booking_completed: { icon: CircleDollarSign, color: "#3b82f6" },
+  booking_disputed: { icon: TriangleAlert, color: "#e11d48" },
+  dispute_resolved: { icon: ShieldCheck, color: "#10b981" },
 }
+
+// Rendered when the row's type is not in TYPE_ICON. A generic bell is the correct
+// outcome for a notification we cannot classify: the title and body come from the
+// server and are still perfectly readable, so the row stays useful.
+//
+// This is load-bearing, not defensive padding. The lookup below is destructured,
+// and destructuring `undefined` throws a TypeError; there is no error boundary in
+// this app, so an unrecognised type would take the whole Notifications screen down.
+const UNKNOWN_TYPE = { icon: Bell, color: "#64748b" } as const
 
 interface Props {
   notification: AppNotification
@@ -58,7 +86,8 @@ export function NotificationListItem({
 }: Props) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
-  const { icon: TypeIcon, color: typeColor } = TYPE_ICON[notification.type]
+  const { icon: TypeIcon, color: typeColor } =
+    TYPE_ICON[notification.type] ?? UNKNOWN_TYPE
 
   const confirmDelete = () => {
     Alert.alert(

@@ -16,7 +16,7 @@
 // approval and RLS review.
 
 import { supabase } from "@/lib/supabase/client"
-import type { BookingStatus, Transaction } from "@/lib/types"
+import type { BookingStatus, PayoutStatus, Transaction } from "@/lib/types"
 import type { BookerContact } from "./bookings.service"
 import { sumTransactionTotals, type TotalsRow } from "./transactionTotals"
 
@@ -33,6 +33,7 @@ interface DbRow {
   platform_fee_percent: number
   platform_fee_amount: number
   payout_amount: number
+  payout_status: string
   created_at: string
   bookings: {
     booker_id: string
@@ -43,7 +44,8 @@ interface DbRow {
 }
 
 const SELECT_COLS = `
-  id, booking_id, amount_paid, platform_fee_percent, platform_fee_amount, payout_amount, created_at,
+  id, booking_id, amount_paid, platform_fee_percent, platform_fee_amount, payout_amount,
+  payout_status, created_at,
   bookings(booker_id, booked_date, status, offerings(name, code))
 `
 
@@ -86,6 +88,7 @@ function toTransaction(
     offeringCode: row.bookings?.offerings?.code ?? "",
     bookedDate: row.bookings?.booked_date ?? "",
     status: (row.bookings?.status ?? "confirmed") as BookingStatus,
+    payoutStatus: (row.payout_status ?? "held") as PayoutStatus,
     amountPaid: row.amount_paid,
     platformFeePercent: row.platform_fee_percent,
     platformFeeAmount: row.platform_fee_amount,
@@ -145,7 +148,7 @@ export async function getTransactionTotals(
 ): Promise<TransactionTotals> {
   const { data, error, count } = await supabase
     .from("booking_transactions")
-    .select("amount_paid, platform_fee_amount, payout_amount, bookings(status)", {
+    .select("amount_paid, platform_fee_amount, payout_amount, payout_status", {
       count: "exact",
     })
     .eq("vendor_id", vendorId)

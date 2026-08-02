@@ -128,11 +128,29 @@ const BTN_PRIMARY_SHADOW = shadow(
   6,
 )
 
-// statusStyle() in vendor/lib/utils.ts — same values, same statuses.
+// statusStyle() in vendor/lib/utils.ts — same values, all nine statuses.
+//
+// Hue encodes WHOSE MOVE IT IS, so a vendor can scan a list without reading every
+// pill (the rationale is stated at vendor/lib/utils.ts:9-11):
+//   amber        waiting on the vendor      pending
+//   green        agreed, not yet started    confirmed
+//   cyan/violet  waiting on the customer    fulfilled, in_progress
+//   teal         back with the vendor       returned
+//   blue         settled                    completed
+//   orange       needs attention            disputed
+//   red/indigo   ended                      cancelled, refunded
+//
+// One map serves BOTH themes (referenced by lightTokens and darkTokens alike) —
+// the backgrounds are low-alpha washes of the foreground hue, so they sit on a
+// light or dark ground without a second palette.
 const STATUS: Tokens["status"] = {
   pending: { bg: "rgba(245,158,11,0.12)", fg: "#f59e0b" },
   confirmed: { bg: "rgba(16,185,129,0.12)", fg: "#10b981" },
+  fulfilled: { bg: "rgba(6,182,212,0.12)", fg: "#06b6d4" },
+  in_progress: { bg: "rgba(139,92,246,0.12)", fg: "#8b5cf6" },
+  returned: { bg: "rgba(20,184,166,0.12)", fg: "#14b8a6" },
   completed: { bg: "rgba(59,130,246,0.12)", fg: "#3b82f6" },
+  disputed: { bg: "rgba(249,115,22,0.14)", fg: "#f97316" },
   cancelled: { bg: "rgba(239,68,68,0.1)", fg: "#ef4444" },
   refunded: { bg: "rgba(99,102,241,0.12)", fg: "#6366f1" },
 }

@@ -2,7 +2,6 @@
   "expo": {
     "name": "Ezzy Vendor",
     "slug": "ezzy-vendor-mobile",
-    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/brand/icon-ios.png",
     "scheme": "ezzyvendormobile",
@@ -29,6 +28,7 @@
     },
     "android": {
       "package": "com.ezzy.vendormobile",
+      "softwareKeyboardLayoutMode": "resize",
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"

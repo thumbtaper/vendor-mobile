@@ -1,16 +1,22 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
+import type { PayoutStatus } from "../lib/types.ts"
 import { sumTransactionTotals, type TotalsRow } from "./transactionTotals.ts"
 
-const row = (status: string | null, paid: number, fee: number, payout: number): TotalsRow => ({
+const row = (
+  payoutStatus: PayoutStatus | null,
+  paid: number,
+  fee: number,
+  payout: number,
+): TotalsRow => ({
   amount_paid: paid,
   platform_fee_amount: fee,
   payout_amount: payout,
-  bookings: status ? { status } : null,
+  payout_status: payoutStatus,
 })
 
-describe("sumTransactionTotals — the payable/total split (I5)", () => {
+describe("sumTransactionTotals — the payable/total split", () => {
   it("sums nothing for an empty ledger", () => {
     assert.deepEqual(sumTransactionTotals([]), {
       collected: 0,
@@ -22,8 +28,8 @@ describe("sumTransactionTotals — the payable/total split (I5)", () => {
 
   it("adds up payable rows", () => {
     const totals = sumTransactionTotals([
-      row("confirmed", 1000, 100, 900),
-      row("completed", 500, 50, 450),
+      row("releasable", 1000, 100, 900),
+      row("released", 500, 50, 450),
     ])
     assert.deepEqual(totals, {
       collected: 1500,
@@ -33,32 +39,41 @@ describe("sumTransactionTotals — the payable/total split (I5)", () => {
     })
   })
 
-  it("EXCLUDES refunded and cancelled from the money, though the payment happened", () => {
-    // The seed has exactly this shape — Citywide has 3 refunded and 2 cancelled
-    // among its 32 paid bookings. If these leaked into the totals the vendor
-    // would be told they are owed money that was returned to the booker.
+  it("EXCLUDES held — the booking is not yet mutually confirmed", () => {
+    // This is the case the whole dual-acknowledgement feature turns on. Under the
+    // old status-keyed rule a `confirmed` booking counted as payable, so a vendor
+    // was shown money for work they had not yet delivered.
+    const totals = sumTransactionTotals([row("held", 1000, 100, 900)])
+    assert.equal(totals.payableCount, 0)
+    assert.equal(totals.payout, 0)
+  })
+
+  it("EXCLUDES reversed, though the payment really happened", () => {
     const totals = sumTransactionTotals([
-      row("confirmed", 1000, 100, 900),
-      row("refunded", 999, 99, 900),
-      row("cancelled", 777, 77, 700),
+      row("releasable", 1000, 100, 900),
+      row("reversed", 999, 99, 900),
     ])
     assert.equal(totals.collected, 1000)
     assert.equal(totals.payout, 900)
     assert.equal(totals.payableCount, 1)
   })
 
-  it("EXCLUDES pending — paid, but not yet accepted by the vendor", () => {
-    const totals = sumTransactionTotals([row("pending", 1000, 100, 900)])
-    assert.equal(totals.payableCount, 0)
-    assert.equal(totals.payout, 0)
-  })
-
-  it("treats a missing booking join as confirmed, not as unpayable", () => {
-    // The ledger row only exists because a payment happened; defaulting to
-    // unpayable would understate the vendor whenever the join is dropped.
-    const totals = sumTransactionTotals([row(null, 1000, 100, 900)])
+  it("KEEPS released — money that has left is still the vendor's", () => {
+    // A payout released before a later refund stays released; the DB never
+    // downgrades it, and neither may the totals.
+    const totals = sumTransactionTotals([row("released", 1000, 100, 900)])
     assert.equal(totals.payableCount, 1)
     assert.equal(totals.payout, 900)
+  })
+
+  it("treats a missing payout_status as HELD, not as payable", () => {
+    // Inverted deliberately from the old rule, which defaulted a missing booking
+    // join to `confirmed` (payable). payout_status is `not null default 'held'`
+    // on the row itself, so an absent value means the column was not selected —
+    // a bug. "We don't know" must never resolve to "the vendor is owed it".
+    const totals = sumTransactionTotals([row(null, 1000, 100, 900)])
+    assert.equal(totals.payableCount, 0)
+    assert.equal(totals.payout, 0)
   })
 
   it("coerces numeric strings — Postgres numeric arrives as text over PostgREST", () => {
@@ -67,7 +82,7 @@ describe("sumTransactionTotals — the payable/total split (I5)", () => {
         amount_paid: "1000.50" as unknown as number,
         platform_fee_amount: "100.05" as unknown as number,
         payout_amount: "900.45" as unknown as number,
-        bookings: { status: "confirmed" },
+        payout_status: "releasable",
       },
     ])
     // String concatenation instead of addition would give "01000.50" here.
@@ -77,9 +92,9 @@ describe("sumTransactionTotals — the payable/total split (I5)", () => {
 
   it("keeps payableCount distinct from the row count", () => {
     const rows = [
-      row("confirmed", 100, 10, 90),
-      row("refunded", 100, 10, 90),
-      row("pending", 100, 10, 90),
+      row("releasable", 100, 10, 90),
+      row("reversed", 100, 10, 90),
+      row("held", 100, 10, 90),
     ]
     const totals = sumTransactionTotals(rows)
     assert.equal(rows.length, 3)

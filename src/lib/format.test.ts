@@ -14,38 +14,106 @@ import {
   isPayable,
   payoutExclusionReason,
   phCurrentMonthRange,
+  statusLabel,
   toPhDate,
 } from "./format.ts"
 
-describe("isPayable — the payout rule (I5)", () => {
-  it("counts confirmed and completed", () => {
-    assert.equal(isPayable("confirmed"), true)
-    assert.equal(isPayable("completed"), true)
+describe("statusLabel — no vendor ever sees a raw column value", () => {
+  it("names all nine statuses in human words", () => {
+    const expected: Record<string, string> = {
+      pending: "Pending",
+      confirmed: "Confirmed",
+      fulfilled: "Awaiting customer",
+      in_progress: "With customer",
+      returned: "Confirm return",
+      completed: "Completed",
+      disputed: "On hold",
+      cancelled: "Cancelled",
+      refunded: "Refunded",
+    }
+    for (const [status, label] of Object.entries(expected)) {
+      assert.equal(statusLabel(status as Parameters<typeof statusLabel>[0]), label)
+    }
   })
 
-  it("excludes pending — paid, but the vendor hasn't accepted yet", () => {
-    assert.equal(isPayable("pending"), false)
+  it("never leaks snake_case to the screen", () => {
+    // Three surfaces used to capitalise the column directly and render
+    // "In_progress". Underscores are the tell.
+    for (const status of ["in_progress", "fulfilled", "returned", "disputed"]) {
+      const label = statusLabel(status as Parameters<typeof statusLabel>[0])
+      assert.doesNotMatch(label, /_/, `"${status}" rendered as "${label}"`)
+    }
   })
 
-  it("excludes cancelled and refunded", () => {
-    assert.equal(isPayable("cancelled"), false)
-    assert.equal(isPayable("refunded"), false)
+  it("labels `returned` as the STATE, not as the button", () => {
+    // "Got it back" is the button (bookingActionCopy.vendor_confirm_return); the
+    // pill says where the booking is. Conflating them would put a call to action
+    // in a read-only badge.
+    assert.equal(statusLabel("returned"), "Confirm return")
+    assert.notEqual(statusLabel("returned"), "Got it back")
+  })
+
+  it("falls back to the raw value for an unrecognised status", () => {
+    // A newer migration can emit a status this binary predates — better a raw
+    // word than an empty pill.
+    const unknown = "teleported" as Parameters<typeof statusLabel>[0]
+    assert.equal(statusLabel(unknown), "teleported")
+  })
+})
+
+describe("isPayable — the payout rule, keyed on payout_status", () => {
+  // These assertions previously read `isPayable("confirmed") === true`, encoding
+  // the defect the dual-acknowledgement feature exists to remove: a confirmed
+  // booking is work the vendor has NOT yet delivered.
+  it("counts releasable and released", () => {
+    assert.equal(isPayable("releasable"), true)
+    assert.equal(isPayable("released"), true)
+  })
+
+  it("excludes held — paid by the booker, but not yet mutually confirmed", () => {
+    assert.equal(isPayable("held"), false)
+  })
+
+  it("excludes reversed", () => {
+    assert.equal(isPayable("reversed"), false)
+  })
+
+  it("REGRESSION: a booking status must never read as payable", () => {
+    // The old rule was keyed on BookingStatus, so `confirmed` returned true and
+    // vendors saw money for undelivered work. Nothing in the payout vocabulary
+    // shares a name with a booking status, so these must all fall through to
+    // false rather than matching a key by accident.
+    for (const stale of ["confirmed", "completed", "pending", "cancelled", "refunded"]) {
+      assert.equal(
+        isPayable(stale as unknown as Parameters<typeof isPayable>[0]),
+        false,
+        `booking status "${stale}" must not be payable`,
+      )
+    }
   })
 })
 
 describe("payoutExclusionReason — 'not yet' vs 'not ever'", () => {
   it("returns null when the payout counts", () => {
-    assert.equal(payoutExclusionReason("confirmed"), null)
+    assert.equal(payoutExclusionReason("releasable"), null)
+    assert.equal(payoutExclusionReason("released"), null)
   })
 
-  it("distinguishes pending from terminal exclusions", () => {
+  it("distinguishes held from reversed", () => {
     // Both render struck through, so without distinct copy they read as the
     // same verdict to the vendor.
-    const pending = payoutExclusionReason("pending")
-    const cancelled = payoutExclusionReason("cancelled")
-    assert.match(pending!, /Not counted yet/)
-    assert.match(cancelled!, /was cancelled/)
-    assert.notEqual(pending, cancelled)
+    const held = payoutExclusionReason("held")
+    const reversed = payoutExclusionReason("reversed")
+    assert.match(held!, /Not counted yet/)
+    assert.match(reversed!, /reversed/)
+    assert.notEqual(held, reversed)
+  })
+
+  it("never calls a reversed payout a refund", () => {
+    // The DB column comment is explicit: `reversed` means the vendor will not be
+    // paid, and says nothing about whether the booker got their money back —
+    // this system has no refund mechanism at all.
+    assert.doesNotMatch(payoutExclusionReason("reversed")!, /refund/i)
   })
 })
 

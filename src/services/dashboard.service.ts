@@ -9,7 +9,7 @@
 
 import { supabase } from "@/lib/supabase/client"
 import { isPayable, phCurrentMonthRange, phToday } from "@/lib/format"
-import type { BookingStatus } from "@/lib/types"
+import type { PayoutStatus } from "@/lib/types"
 
 export interface DashboardStats {
   pendingApprovals: number
@@ -43,7 +43,9 @@ function bookingsQuery(vendorId: string) {
 
 interface RevenueRow {
   payout_amount: number
-  bookings: { status: string } | null
+  // A direct column on booking_transactions — no booking embed needed, which is
+  // why the select below no longer joins.
+  payout_status: PayoutStatus | null
 }
 
 async function getMonthlyRevenue(
@@ -59,7 +61,7 @@ async function getMonthlyRevenue(
 
   const { data, error } = await supabase
     .from("booking_transactions")
-    .select("payout_amount, bookings(status)")
+    .select("payout_amount, payout_status")
     .eq("vendor_id", vendorId)
     .gte("created_at", `${from}T00:00:00Z`)
     .lt("created_at", `${upperExclusive}T00:00:00Z`)
@@ -68,10 +70,11 @@ async function getMonthlyRevenue(
 
   const rows = (data as unknown as RevenueRow[]) ?? []
   const total = rows.reduce((sum, row) => {
-    const status = (row.bookings?.status ?? "confirmed") as BookingStatus
-    // Same payable rule as the transactions page — a refunded or cancelled
-    // booking's payment really happened, but the vendor is not owed it.
-    return isPayable(status) ? sum + Number(row.payout_amount) : sum
+    // Same payable rule as the transactions page: the vendor is owed this only
+    // once both parties have confirmed the booking is complete. Defaults to
+    // `held` — never to payable — for the reasons in transactionTotals.ts.
+    const payoutStatus = row.payout_status ?? "held"
+    return isPayable(payoutStatus) ? sum + Number(row.payout_amount) : sum
   }, 0)
 
   return { total, available: true }

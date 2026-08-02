@@ -11,7 +11,11 @@ export function BookingsList() {
 
   return (
     <>
-      <BookingFilterTabs value={s.filter} onChange={s.setFilter} />
+      <BookingFilterTabs
+        value={s.filter}
+        onChange={s.setFilter}
+        counts={s.filterCounts}
+      />
       <StaleBanner
         dataUpdatedAt={s.dataUpdatedAt}
         isError={s.isError}

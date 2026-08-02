@@ -19,20 +19,41 @@ interface Props {
   bookerName: string
   onConfirm: (reason: string) => Promise<void> | void
   onClose: () => void
+  /** Defaults describe the REJECT case; the flag case overrides all of them. */
+  title?: string
+  body?: string
+  placeholder?: string
+  confirmLabel?: string
+  cancelLabel?: string
+  confirmHint?: string
+  /** Minimum trimmed length. `raise_booking_dispute` enforces 10 server-side. */
+  minLength?: number
 }
 
 // A bottom sheet rather than an alert: the reason is typed, and the booker reads
 // it. `Modal` is used instead of a sheet library because none is in the approved
 // dependency list and this is a single-step form.
+//
+// Serves TWO callers: rejecting a pending booking, and flagging one for Ezzy to
+// review (I9). Both collect a free-text reason behind a confirm step, so this is
+// parameterised rather than cloned — every prop defaults to the reject wording, so
+// the original call site is unchanged.
 export function RejectReasonSheet({
   visible,
   bookerName,
   onConfirm,
   onClose,
+  title,
+  body,
+  placeholder,
+  confirmLabel,
+  cancelLabel,
+  confirmHint,
+  minLength,
 }: Props) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
-  const s = useRejectReasonSheet(onConfirm, onClose)
+  const s = useRejectReasonSheet(onConfirm, onClose, minLength)
 
   return (
     <Modal
@@ -50,15 +71,17 @@ export function RejectReasonSheet({
           <Pressable onPress={() => {}} accessible={false}>
             <View style={styles.sheet}>
               <View style={styles.grabber} />
-              <Text style={styles.title}>Reject this booking?</Text>
+              <Text style={styles.title}>
+                {title ?? "Reject this booking?"}
+              </Text>
               <Text style={styles.body}>
-                {bookerName || "The booker"} will be told the booking was
-                rejected, and will see the reason you give here.
+                {body ??
+                  `${bookerName || "The booker"} will be told the booking was rejected, and will see the reason you give here.`}
               </Text>
               <TextInput
                 value={s.reason}
                 onChangeText={s.setReason}
-                placeholder="Why is this being rejected?"
+                placeholder={placeholder ?? "Why is this being rejected?"}
                 placeholderTextColor={tokens.text}
                 multiline
                 autoFocus
@@ -67,14 +90,16 @@ export function RejectReasonSheet({
               />
               <View style={styles.actions}>
                 <PrimaryButton
-                  label="Reject booking"
+                  label={confirmLabel ?? "Reject booking"}
                   onPress={s.confirm}
                   loading={s.submitting}
                   disabled={!s.canSubmit}
-                  accessibilityHint="Cancels the booking and notifies the booker"
+                  accessibilityHint={
+                    confirmHint ?? "Cancels the booking and notifies the booker"
+                  }
                 />
                 <PrimaryButton
-                  label="Keep it"
+                  label={cancelLabel ?? "Keep it"}
                   onPress={s.cancel}
                   variant="secondary"
                 />

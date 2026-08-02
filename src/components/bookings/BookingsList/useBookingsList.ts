@@ -1,23 +1,34 @@
 import { useRouter } from "expo-router"
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 
 import { useBookingsQuery, type BookingFilter } from "@/hooks/useBookingsQuery"
+import { statusesForFilter } from "@/lib/bookingFilters"
+import { useBookingFilterCounts } from "@/hooks/useBookingFilterCounts"
 import { useBookingsRealtime } from "@/hooks/useBookingsRealtime"
 import type { Booking } from "@/lib/types"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 
+// Per-filter copy, not one generic empty state (plan §5.1). Keyed by the six
+// lifecycle GROUPS, replacing the status-keyed scaffolding this map briefly held
+// between B2 and I8.
+//
+// An empty group is usually good news for a vendor, so the copy says so rather
+// than reporting an absence — "You're all caught up" beats "No bookings found".
 const EMPTY_COPY: Record<BookingFilter, { title: string; body?: string }> = {
-  // Per-filter copy, not one generic empty state (plan §5.1).
-  pending: {
+  needs_you: {
     title: "You're all caught up",
-    body: "No bookings are waiting for your approval.",
+    body: "Nothing is waiting on you right now.",
   },
-  confirmed: { title: "No confirmed bookings" },
-  completed: { title: "No completed bookings yet" },
-  cancelled: { title: "No cancelled bookings" },
-  // No chip offers this filter today, but `refunded` is a real booking status —
-  // the exhaustive map means adding the chip needs no second edit here.
-  refunded: { title: "No refunded bookings" },
+  active: {
+    title: "Nothing in progress",
+    body: "Bookings you've approved will appear here until they're finished.",
+  },
+  done: { title: "No completed bookings yet" },
+  issues: {
+    title: "No flagged bookings",
+    body: "Bookings put on hold for Ezzy to review would show up here.",
+  },
+  closed: { title: "Nothing cancelled or refunded" },
   all: {
     title: "No bookings yet",
     body: "New bookings from customers will appear here.",
@@ -28,10 +39,14 @@ export function useBookingsList() {
   const router = useRouter()
   const { gate } = useSessionGate()
   const vendorId = gate.selectedVendorId
-  const [filter, setFilter] = useState<BookingFilter>("pending")
+  const [filter, setFilter] = useState<BookingFilter>("needs_you")
 
-  const query = useBookingsQuery(vendorId, filter)
+  // The group -> statuses translation happens here, not in the service:
+  // grouping is a UI concern. `all` resolves to [], i.e. no filter.
+  const statuses = useMemo(() => statusesForFilter(filter), [filter])
+  const query = useBookingsQuery(vendorId, statuses)
   useBookingsRealtime(vendorId)
+  const filterCounts = useBookingFilterCounts(vendorId)
 
   const refresh = useCallback(async () => {
     await query.refetch()
@@ -64,6 +79,7 @@ export function useBookingsList() {
     loadMore,
     openBooking,
     empty: EMPTY_COPY[filter],
+    filterCounts,
     vendorName: gate.selectedVendorName,
   }
 }

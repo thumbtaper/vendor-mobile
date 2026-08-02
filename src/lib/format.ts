@@ -6,44 +6,77 @@
 // drift between clients; a change to either side must be mirrored. Hand-rolling
 // them with `Intl` is also why no date library is installed (plan §6).
 
-import type { BookingStatus } from "./types"
+import type { BookingStatus, PayoutStatus } from "./types"
 
-// Which booking statuses the vendor is actually owed money for.
+// Human labels for the nine booking statuses, ported verbatim from
+// `vendor/lib/utils.ts` STATUS_LABEL so both clients name a state identically.
+//
+// DB values are snake_case and several are meaningless to a vendor on their own —
+// "returned", by whom, to whom? — so nothing may render `booking.status` raw.
+// Before this existed, three surfaces capitalised the column and displayed
+// "In_progress".
+//
+// Note `returned` is "Confirm return", NOT "Got it back". "Got it back" is the
+// BUTTON (bookingActionCopy `vendor_confirm_return`); the pill states where the
+// booking is, the button states what tapping it does. `architecture/booking-flow.md`
+// tabulates the action per party, which is a different question from the label.
+const STATUS_LABEL: Record<BookingStatus, string> = {
+  pending: "Pending",
+  confirmed: "Confirmed",
+  fulfilled: "Awaiting customer",
+  in_progress: "With customer",
+  returned: "Confirm return",
+  completed: "Completed",
+  disputed: "On hold",
+  cancelled: "Cancelled",
+  refunded: "Refunded",
+}
+
+/** Display name for a booking status. Falls back to the raw value so an unknown
+ *  status from a newer migration degrades to something readable rather than blank. */
+export function statusLabel(s: BookingStatus): string {
+  return STATUS_LABEL[s] ?? s
+}
+
+// Whether the vendor is actually owed this money.
 //
 // SINGLE SOURCE OF TRUTH — used by both the payout totals and the per-row
 // strikethrough. Defining it in two places lets the list and the summary drift
 // apart and contradict each other on screen.
 //
-// Exhaustive over BookingStatus on purpose: adding a status forces a decision here
-// rather than silently defaulting to payable.
-//
-// `pending` is NOT payable: the booker pays at booking time, so a payment can land
-// before the vendor has accepted the booking. Counting it would show money in
-// "Total Payout" for work the vendor hasn't even agreed to yet — the same reason
-// cancelled is excluded. It becomes payable the moment the booking is confirmed.
-const PAYABLE_BY_STATUS: Record<BookingStatus, boolean> = {
-  pending: false, // paid, but the vendor hasn't accepted the booking yet
-  confirmed: true,
-  completed: true,
-  cancelled: false, // vendor cancelled — service not delivered
-  refunded: false, // money returned to the booker
+// ⚠️ Keyed on the LEDGER's payout_status, never on the booking status. Mirrors
+// `vendor/lib/utils.ts:124-133`, whose warning applies verbatim: the database is
+// authoritative and knows things the status alone does not — a payout already
+// released before a later refund stays `released`, because the money genuinely
+// left. Deriving this from BookingStatus is the bug the whole dual-acknowledgement
+// feature existed to remove: it counted `confirmed` (i.e. undelivered work) as
+// money owed.
+const PAYABLE_BY_PAYOUT: Record<PayoutStatus, boolean> = {
+  held: false, // not yet mutually completed
+  releasable: true, // both parties acknowledged — owed
+  released: true, // already disbursed — still the vendor's money
+  reversed: false, // the vendor will not be paid this
 }
 
-export function isPayable(status: BookingStatus): boolean {
-  return PAYABLE_BY_STATUS[status] ?? false
+export function isPayable(payoutStatus: PayoutStatus): boolean {
+  return PAYABLE_BY_PAYOUT[payoutStatus] ?? false
 }
 
-// Why a payout is not counted, or null when it is. Lives beside PAYABLE_BY_STATUS
+// Why a payout is not counted, or null when it is. Lives beside PAYABLE_BY_PAYOUT
 // so the explanation can't drift from the rule it explains.
 //
-// The distinction matters on screen: an excluded `pending` payout is "not yet",
-// while cancelled/refunded is "not ever". Both render struck through, so without
-// this the two read as the same verdict.
-export function payoutExclusionReason(status: BookingStatus): string | null {
-  if (isPayable(status)) return null
-  return status === "pending"
-    ? "Not counted yet — confirm the booking to include it in your payout"
-    : `Not counted — this booking was ${status}`
+// The distinction matters on screen: a `held` payout is "not yet", while
+// `reversed` is "not ever". Both render struck through, so without this the two
+// read as the same verdict.
+//
+// ⚠️ `reversed` is never described as refunded. The DB column comment is explicit:
+// it means the vendor's payout was cancelled and says nothing about whether the
+// booker got their money back — this system has no refund mechanism.
+export function payoutExclusionReason(payoutStatus: PayoutStatus): string | null {
+  if (isPayable(payoutStatus)) return null
+  return payoutStatus === "held"
+    ? "Not counted yet — released once you and the customer both confirm the booking is complete"
+    : "Not counted — this payout was reversed"
 }
 
 // `decimals` defaults to 2 for line items; summary cards pass 0, where centavos

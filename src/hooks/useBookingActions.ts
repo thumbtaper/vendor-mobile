@@ -7,11 +7,51 @@ import type { Booking, BookingStatus } from "@/lib/types"
 import { useSnackbar } from "@/providers/SnackbarProvider"
 import {
   approveBooking,
+  confirmReturn,
+  markFulfilled,
+  raiseDispute,
   rejectBooking,
   StaleBookingError,
+  startCustody,
+  undoFulfilment,
 } from "@/services/bookings.service"
 
 const UNDO_WINDOW_MS = 4000
+
+/**
+ * The four vendor fulfilment moves, as tables rather than four near-identical
+ * handlers — the action, its target status, its service call and its failure
+ * message then cannot drift apart. Mirrors `vendor/.../useAppShell.ts:26-47`.
+ */
+export type FulfilAction = "fulfil" | "start" | "confirm_return" | "undo"
+
+const FULFIL_TARGET: Record<FulfilAction, BookingStatus> = {
+  fulfil: "fulfilled",
+  start: "in_progress",
+  confirm_return: "completed",
+  undo: "confirmed",
+}
+
+const FULFIL_CALL: Record<FulfilAction, (id: string) => Promise<void>> = {
+  fulfil: markFulfilled,
+  start: startCustody,
+  confirm_return: confirmReturn,
+  undo: undoFulfilment,
+}
+
+const FULFIL_ERROR: Record<FulfilAction, string> = {
+  fulfil: "Couldn't mark this as done. Please try again.",
+  start: "Couldn't start this booking. Please try again.",
+  confirm_return: "Couldn't confirm the return. Please try again.",
+  undo: "Couldn't undo that. Please try again.",
+}
+
+const FULFIL_DONE: Record<FulfilAction, string> = {
+  fulfil: "Marked as done",
+  start: "Handed over",
+  confirm_return: "Confirmed — your payout is on the way",
+  undo: "Put back a step",
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Why approve DEFERS the write instead of writing then undoing.
@@ -169,7 +209,104 @@ export function useBookingActions(vendorId: string | null) {
     [patchCache, handleFailure, snackbar],
   )
 
+  /**
+   * Run one fulfilment move.
+   *
+   * Written immediately, unlike `approve`. The deferred-commit machinery above
+   * exists ONLY because `confirmed -> pending` is illegal, so an undo of approve
+   * could never be sent as a compensating write. Every transition here is legal in
+   * both directions the vendor can reach, so `undo` is just another forward write
+   * — copying the timer would add a second cache-patch path for no benefit.
+   */
+  const fulfil = useCallback(
+    async (booking: Booking, action: FulfilAction) => {
+      const target = FULFIL_TARGET[action]
+
+      // Capture BOTH fields before patching. Reverting `status` alone would leave
+      // a failed action showing the new timestamp against the old status.
+      const prevStatus = booking.status
+      const prevChangedAt = booking.statusChangedAt
+
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+
+      // ⚠️ `statusChangedAt` MUST be patched alongside `status`. It drives the
+      // 3-day auto-confirm countdown, so patching status alone leaves the screen
+      // counting down from the PREVIOUS transition — the same defect that shipped
+      // in booker and then in vendor web (vendor web I23). The optimistic value is
+      // approximate; the trigger sets the authoritative one and the next refetch
+      // corrects it.
+      patchCache(booking.id, {
+        status: target,
+        statusChangedAt: new Date().toISOString(),
+      })
+
+      try {
+        await FULFIL_CALL[action](booking.id)
+        snackbar.show({ message: FULFIL_DONE[action] })
+        // The optimistic patch above already moved the row, but it cannot move a
+        // COUNT — the filter-chip badges are server-side counts (they have to be:
+        // this list is paged). Without this they would keep showing the pre-action
+        // number until something else refetched. The patch supplies the instant
+        // feedback; this reconciles everything derived from the set.
+        invalidate()
+      } catch (error) {
+        patchCache(booking.id, {
+          status: prevStatus,
+          statusChangedAt: prevChangedAt,
+        })
+        // A stale row or a lost connection is reported by handleFailure; anything
+        // else is a transition the DB refused, which on this screen means the
+        // booking moved under us.
+        if (error instanceof StaleBookingError) {
+          handleFailure(error, booking.id, prevStatus)
+          return
+        }
+        snackbar.show({
+          message: FULFIL_ERROR[action],
+          tone: "error",
+          actionLabel: "Retry",
+          onAction: invalidate,
+        })
+      }
+    },
+    [patchCache, snackbar, handleFailure, invalidate],
+  )
+
+  /**
+   * Flag a booking for Ezzy to review.
+   *
+   * Not optimistic, unlike the other mutations. `raise_booking_dispute` can refuse
+   * for reasons the client cannot predict — an open flag already exists, the
+   * account is not active — and showing "On hold" before the server agrees would
+   * tell a vendor their payout is frozen when it is not. The refetch is the
+   * confirmation.
+   */
+  const flag = useCallback(
+    async (booking: Booking, reason: string) => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+      try {
+        await raiseDispute(booking.id, reason)
+        patchCache(booking.id, {
+          status: "disputed",
+          statusChangedAt: new Date().toISOString(),
+        })
+        snackbar.show({ message: "Flagged for Ezzy to review" })
+        invalidate()
+      } catch (error) {
+        // The RPC raises plain exceptions with vendor-readable text ("This
+        // booking already has an open flag"), so surface the message rather than
+        // a generic failure — it is more useful than anything written here.
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : "Couldn't flag this booking. Please try again."
+        snackbar.show({ message, tone: "error" })
+      }
+    },
+    [patchCache, snackbar, invalidate],
+  )
+
   const isPending = useCallback((id: string) => pending.current.has(id), [])
 
-  return { approve, reject, flush, isPending }
+  return { approve, reject, fulfil, flag, flush, isPending }
 }

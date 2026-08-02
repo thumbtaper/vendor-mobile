@@ -15,6 +15,14 @@ interface Props<T> extends Omit<FlashListProps<T>, "refreshControl"> {
   emptyTitle?: string
   emptyBody?: string
   loadingMore?: boolean
+  /**
+   * Overrides the content container's top padding only. `spacing.xl` is right
+   * when the list is the first thing under the screen header, but wrong when a
+   * control sits directly above it — bookings has a filter strip there, so the
+   * default 24 lands on top of the strip's own padding and does no work.
+   * Left-, right- and bottom padding are untouched, so cards keep their inset.
+   */
+  contentPaddingTop?: number
 }
 
 // Thin wrapper over FlashList v2 — no `estimatedItemSize`, which v2 removed in
@@ -28,6 +36,7 @@ export function RefreshableList<T>({
   emptyTitle = "Nothing here yet",
   emptyBody,
   loadingMore = false,
+  contentPaddingTop,
   data,
   contentContainerStyle,
   ItemSeparatorComponent,
@@ -50,6 +59,17 @@ export function RefreshableList<T>({
       },
     [ItemSeparatorComponent, styles],
   )
+
+  // Memoised because FlashList re-measures its content container when the style
+  // identity changes; a fresh array every render would fight the layout pass.
+  // FlashList v2 extends `ScrollViewProps`, so this is a plain
+  // `StyleProp<ViewStyle>` and an array is accepted.
+  const contentStyle = useMemo(() => {
+    const base = contentContainerStyle ?? styles.content
+    return contentPaddingTop === undefined
+      ? base
+      : [base, { paddingTop: contentPaddingTop }]
+  }, [contentContainerStyle, contentPaddingTop, styles])
 
   const isEmpty = !data || data.length === 0
 
@@ -83,7 +103,7 @@ export function RefreshableList<T>({
     <FlashList
       {...listProps}
       data={data}
-      contentContainerStyle={contentContainerStyle ?? styles.content}
+      contentContainerStyle={contentStyle}
       ItemSeparatorComponent={Separator}
       refreshControl={
         <RefreshControl

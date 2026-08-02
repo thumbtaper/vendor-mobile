@@ -272,7 +272,12 @@ export const MIN_TOUCH_TARGET = 44
 // Type scale. `size` is the base value; RN scales it with the OS font setting by
 // default, which is the behaviour we want (the web app's fixed `text-[11px]`
 // values are deliberately not carried over). Caps go on individual <Text> via
-// `maxFontSizeMultiplier` only where truncation would break meaning.
+// `maxFontSizeMultiplier` only where truncation would break meaning, or where a
+// control is sized by padding rather than a `minHeight` floor — a floor absorbs
+// scaled text for free, additive padding cannot, so an uncapped label there grows
+// the control without limit. `BookingFilterTabs` is the one instance (capped at
+// 1.3). Do not copy the cap onto controls that use a `minHeight` floor: they
+// degrade correctly by growing with the text, which is the behaviour we want.
 export const type = {
   caption: { size: 12, weight: "500" as const },
   body: { size: 15, weight: "400" as const },

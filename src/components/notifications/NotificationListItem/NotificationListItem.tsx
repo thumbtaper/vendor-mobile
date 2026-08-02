@@ -97,9 +97,15 @@ export function NotificationListItem({
       rightThreshold={64}
       renderLeftActions={renderLeftActions}
       renderRightActions={renderRightActions}
+      // `direction` is the direction the ROW MOVED, not the panel that opened.
+      // ReanimatedSwipeable reports `toValue > 0 ? RIGHT : LEFT`, and opening the
+      // *left* panel translates the row *right* — so a swipe-right reveals
+      // `renderLeftActions` (Archive) and arrives here as "right". Reading it as
+      // the panel side inverts both branches: the Archive icon prompted a delete,
+      // and the Delete icon archived with no confirmation at all.
       onSwipeableOpen={(direction) => {
-        if (direction === "left" && !archived) onArchive(notification)
-        if (direction === "right") confirmDelete()
+        if (direction === "right" && !archived) onArchive(notification)
+        if (direction === "left") confirmDelete()
       }}
     >
       <Pressable

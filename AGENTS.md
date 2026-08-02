@@ -45,6 +45,7 @@ authoritative record of scope, decisions (D1–D13), and per-phase status.
 | Phase | State |
 |---|---|
 | Ph0–Ph6 | ✅ Code complete — auth + deep-link password reset, vendor access gate, multi-vendor picker, tab shell + theming, dashboard stats, bookings with approve/reject, transactions, notifications with Realtime, settings |
+| **Fulfilment** | ✅ Shipped 2026-08-02 — the full vendor side of dual acknowledgement: hand over / mark as done / got it back / undo / flag, all nine statuses, six lifecycle filters with badges, an auto-confirm countdown, and the payout-status-driven payable rule. `.plans/2026-08-02-vendor-mobile-fulfilment-sync.md` |
 | Ph7 (push) | 🔄 Client and backbone code written; blocked on FCM/APNs credentials, the `device_push_tokens` migration, and the Edge Function deploy |
 | Ph8 (store) | 🔄 Config, declarations and **brand assets** done (icon + splash, 2026-07-30 — regenerate with `scripts/generate-brand-assets.js`); **B5** store listing assets (screenshots, descriptions), **B6** privacy policy + deletion route, **B7** Play account type block submission |
 
@@ -53,8 +54,12 @@ styling/branding parity with the vendor web portal
 (`.plans/2026-07-29-vendor-mobile-styling-branding.md`, COMPLETE), brand assets
 (`.plans/2026-07-30-vendor-mobile-brand-assets.md`, COMPLETE), and UI fixes
 (`.plans/2026-07-30-vendor-mobile-ui-fixes.md` + `.plans/2026-07-31-vendor-mobile-filter-density.md`).
-Next up and not yet started: booking status transitions beyond approve/reject
-(`.plans/2026-07-31-vendor-mobile-booking-status-actions.md`, DRAFT — decisions open).
+Booking status transitions beyond approve/reject **shipped 2026-08-02** via
+`.plans/2026-08-02-vendor-mobile-fulfilment-sync.md`. The earlier plan for that
+work (`.plans/2026-07-31-vendor-mobile-booking-status-actions.md`) is **✖ ABORTED**
+— it predated the feature by a day and proposed a transition the trigger now
+rejects. Also 2026-08-02: sign-in keyboard handling and the app version in Settings
+(`.plans/2026-08-02-vendor-mobile-keyboard-and-version.md`, COMPLETE).
 
 Verification status matters here: phases were verified on **Android**. **Nothing
 has been verified on iOS** — App Store Expo Go cannot open an SDK 57 project, so
@@ -172,6 +177,26 @@ them, don't re-litigate:
   absolutely (`ViewHolder.js:44`), so only `padding` applies. Row spacing goes
   through a **memoised** `ItemSeparatorComponent` (the cell memo compares it by
   identity, `:75`). See `RefreshableList`.
+- **`KeyboardAvoidingView` with `behavior={undefined}` does NOTHING.** `AuthScreen`
+  passed `undefined` on Android for months, which is only correct if the window
+  itself resizes; the keyboard drew straight over the password field. Each platform
+  now gets exactly one mechanism — Android `behavior="height"`, iOS
+  `automaticallyAdjustKeyboardInsets` on the ScrollView. **Do not add the second to
+  either platform:** stacking them double-compensates and pushes the form off the
+  other edge. `.plans/2026-08-02-vendor-mobile-keyboard-and-version.md` B1
+- **`justifyContent: "center"` on a ScrollView's `contentContainerStyle` is FINE**
+  — this was investigated and cleared. The well-known trap applies to the
+  ScrollView's own `style`. On the content container with `flexGrow: 1`, content
+  taller than the viewport grows the container, leaving no free space to
+  distribute, so it starts at the top and scrolls normally. Recorded because it
+  looks like a bug and "fixing" it would break the centring on all six `AuthScreen`
+  routes for no gain.
+- **An exhaustive `Record<Union, …>` is a COMPILE-time guard only.** The database
+  can emit a value newer than an installed binary, and no migration can recompile a
+  phone. `NotificationListItem` destructured its `TYPE_ICON` lookup, so the four
+  fulfilment notification types crashed the whole Notifications screen — there is
+  no error boundary in this app. Every such lookup needs a runtime fallback
+  (`?? UNKNOWN_TYPE`) as well as the type.
 - **Both of the above pass `tsc`, `expo lint`, `npm test` and `expo export`.** No
   machine check in this repo can see a style that is silently overridden — if a
   spacing change appears to do nothing on device, suspect the container and read

@@ -4,10 +4,13 @@ import { MIN_TOUCH_TARGET, spacing, type, type Tokens } from "@/theme/tokens"
 
 export const makeStyles = (t: Tokens) =>
   StyleSheet.create({
+    // `paddingBottom` is applied INLINE from `useDashboardView`'s
+    // `contentBottomPadding` — it depends on the device's safe-area inset, which a
+    // static stylesheet cannot see. Do not reinstate one here: the tab bar is
+    // `position: "absolute"` and floats over this content (I3).
     content: {
       padding: spacing.xl,
       gap: spacing.lg,
-      paddingBottom: spacing.xxl * 2,
     },
     grid: {
       flexDirection: "row",

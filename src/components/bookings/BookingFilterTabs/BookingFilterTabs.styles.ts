@@ -50,6 +50,13 @@ export const makeStyles = (t: Tokens) =>
      */
     container: {
       flexGrow: 0,
+      // Bled back out of the scrolling header's `spacing.xl` inset (B1). This is
+      // the ONE header piece that wants full width: it is a horizontally
+      // scrolling strip, and chips that stop 24pt short of both edges look
+      // clipped rather than scrollable. Its own `scroll.paddingHorizontal` below
+      // supplies the 24 at rest, so the visual result is unchanged — the
+      // difference is that a chip can now travel to the screen edge.
+      marginHorizontal: -spacing.xl,
     },
     scroll: {
       paddingHorizontal: spacing.xl,

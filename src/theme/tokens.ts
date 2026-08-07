@@ -287,6 +287,24 @@ export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as cons
 // ~24pt approve/reject buttons are NOT ported at their web size.
 export const MIN_TOUCH_TARGET = 44
 
+// Height of the tab bar's own body, EXCLUDING the bottom safe-area inset that
+// react-navigation adds beneath it. Any content that must clear the bar needs
+// `TAB_BAR_HEIGHT + insets.bottom`, not this value alone.
+//
+// Hardcoded because the correct API is unreachable: `useBottomTabBarHeight` is
+// vendored inside expo-router at
+// `build/react-navigation/bottom-tabs/utils/` and is NOT re-exported from the
+// public `expo-router/react-navigation` entry (which forwards only `./native`
+// and `./elements`). Installing `@react-navigation/bottom-tabs` to get it is
+// worse, not better — expo-router carries its own copy, so a second install
+// would bring a DIFFERENT `BottomTabBarHeightContext` that the tab navigator
+// never populates. That fix would look clean and silently return nothing.
+//
+// This constant exists because the number was previously written out at two
+// call sites that DISAGREED (49 in SnackbarProvider, 64 in DashboardView), and
+// a drift between them is invisible to every machine check in this repo.
+export const TAB_BAR_HEIGHT = 49
+
 // Type scale. `size` is the base value; RN scales it with the OS font setting by
 // default, which is the behaviour we want (the web app's fixed `text-[11px]`
 // values are deliberately not carried over). Caps go on individual <Text> via

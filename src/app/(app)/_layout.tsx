@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar"
 import { Bell, ClipboardList, House, Receipt } from "lucide-react-native"
 
 import { TabBarBackground } from "@/components/layout/TabBarBackground/TabBarBackground"
+import { useBookingsRealtime } from "@/hooks/useBookingsRealtime"
 import { useUnreadCount } from "@/hooks/useNotificationsQuery"
 import { useNotificationsRealtime } from "@/hooks/useNotificationsRealtime"
 import { PushProvider } from "@/providers/PushProvider"
@@ -29,12 +30,18 @@ export default function AppTabsLayout() {
 
 function AppTabs() {
   const { tokens, isDark } = useAppTheme()
-  const { session } = useSessionGate()
+  const { session, gate } = useSessionGate()
   const unread = useUnreadCount()
 
   // Mounted at the layout so the arrival toast and the badge work from whichever
   // tab the vendor is on, not only after Alerts has been opened.
   useNotificationsRealtime(session?.user.id ?? null)
+
+  // Same reasoning, applied to bookings (I1). This used to live inside
+  // `useBookingsList`, which meant the channel only existed once the Bookings tab
+  // had been opened — a vendor on Dashboard got no live rows at all, and the
+  // "Pending Approvals" card went stale silently.
+  useBookingsRealtime(gate.selectedVendorId)
 
   return (
     <>

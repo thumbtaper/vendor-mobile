@@ -13,6 +13,7 @@ import {
   Snackbar,
   type SnackbarMessage,
 } from "@/components/common/Snackbar/Snackbar"
+import { TAB_BAR_HEIGHT } from "@/theme/tokens"
 
 export interface ShowSnackbarInput {
   message: string
@@ -82,7 +83,9 @@ export function SnackbarProvider({ children }: { children: ReactNode }) {
   return (
     <SnackbarContext.Provider value={api}>
       {children}
-      {snack ? <Snackbar snack={snack} tabBarInset={49} /> : null}
+      {snack ? (
+        <Snackbar snack={snack} tabBarInset={TAB_BAR_HEIGHT} /> // was a bare 49
+      ) : null}
     </SnackbarContext.Provider>
   )
 }

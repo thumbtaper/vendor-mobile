@@ -1,13 +1,23 @@
-import { Platform, StyleSheet } from "react-native"
+import { StyleSheet } from "react-native"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
 export const makeStyles = (t: Tokens) =>
   StyleSheet.create({
+    // B1 — vertical padding is `md` (12), horizontal stays `lg` (16). NOT the same
+    // value on both axes, deliberately: the cards this bar sits under are inset
+    // `spacing.xl` (24) (`BookingDetail.styles.ts` `scroll`), so pulling the
+    // buttons in to 12 would leave them visibly out of line with the content
+    // above. The height came off the vertical axis, where nothing else is
+    // measuring against it — 16+44+16 = 76 became 12+44+12 = 68.
+    //
+    // If this still reads heavy on device the next notch is `spacing.sm` (8) →
+    // 60. Do not go below that: 60 is 44 of button and 16 of breathing room.
     bar: {
       flexDirection: "row",
-      gap: spacing.md,
-      padding: spacing.lg,
+      gap: spacing.sm,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: t.divider,
       backgroundColor: t.cardBg,
@@ -63,6 +73,10 @@ export const makeStyles = (t: Tokens) =>
     },
     // 44pt minimum, not the web's ~24pt buttons (plan §5.3). Porting those sizes
     // is the single most likely accessibility failure in this app.
+    //
+    // B1 lightened this bar and did NOT touch this floor. The label dropped
+    // 15 → 13 and the padding 16 → 12; the thing a thumb has to hit stayed 44.
+    // A shorter bar is bought with chrome, never with the target.
     button: {
       flex: 1,
       minHeight: MIN_TOUCH_TARGET,
@@ -75,9 +89,11 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: "rgba(16,185,129,0.12)",
       borderColor: "rgba(16,185,129,0.3)",
     },
+    // All five button labels are `type.label.size` (13), not `body` (15) — B1.
+    // The button is `minHeight`-floored, so this buys lightness, not height.
     approveLabel: {
       color: "#10b981",
-      fontSize: type.body.size,
+      fontSize: type.label.size,
       fontWeight: "700",
     },
     reject: {
@@ -86,7 +102,7 @@ export const makeStyles = (t: Tokens) =>
     },
     rejectLabel: {
       color: "#ef4444",
-      fontSize: type.body.size,
+      fontSize: type.label.size,
       fontWeight: "700",
     },
     // `bar` carries its own top divider so it can stand alone (the pending
@@ -105,7 +121,7 @@ export const makeStyles = (t: Tokens) =>
     },
     primaryLabel: {
       color: "#ffffff",
-      fontSize: type.body.size,
+      fontSize: type.label.size,
       fontWeight: "700",
     },
     // Undo is deliberately quiet. It is a correction, not a destination — giving
@@ -117,27 +133,22 @@ export const makeStyles = (t: Tokens) =>
     },
     ghostLabel: {
       color: t.text,
-      fontSize: type.body.size,
+      fontSize: type.label.size,
       fontWeight: "600",
-    },
-    // The "i" glyph. A serif italic reads unmistakably as an information mark at
-    // this size, where a sans-serif "i" is easily mistaken for a stray character
-    // or a lowercase L.
-    infoGlyph: {
-      color: t.text,
-      fontSize: type.body.size,
-      fontWeight: "700",
-      fontStyle: "italic",
-      fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     },
     // Flagging gets its own row beneath the main actions. It is an escalation,
     // not an alternative way to finish the booking, and side-by-side placement
     // would put a destructive-looking control a thumb-width from the primary one.
     // No top border: the row above already separated this block.
+    //
+    // `paddingHorizontal` MUST stay in step with `bar` — this row and the button
+    // row above it are read as one block, and 16 vs anything else shows up as a
+    // ragged left edge. `paddingBottom` follows `bar`'s vertical rhythm instead
+    // (B1: `lg` → `md`).
     flagRow: {
       flexDirection: "row",
       paddingHorizontal: spacing.lg,
-      paddingBottom: spacing.lg,
+      paddingBottom: spacing.md,
     },
     // Outlined rather than filled. This is a real escalation — Ezzy gets involved
     // and the payout freezes — but it is also the vendor's legitimate escape when
@@ -148,7 +159,7 @@ export const makeStyles = (t: Tokens) =>
     },
     dangerLabel: {
       color: "#e11d48",
-      fontSize: type.body.size,
+      fontSize: type.label.size,
       fontWeight: "600",
     },
     pressed: {

@@ -4,7 +4,6 @@ import { useCallback, useMemo, useState } from "react"
 import { useBookingsQuery, type BookingFilter } from "@/hooks/useBookingsQuery"
 import { statusesForFilter } from "@/lib/bookingFilters"
 import { useBookingFilterCounts } from "@/hooks/useBookingFilterCounts"
-import { useBookingsRealtime } from "@/hooks/useBookingsRealtime"
 import type { Booking } from "@/lib/types"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 
@@ -45,7 +44,10 @@ export function useBookingsList() {
   // grouping is a UI concern. `all` resolves to [], i.e. no filter.
   const statuses = useMemo(() => statusesForFilter(filter), [filter])
   const query = useBookingsQuery(vendorId, statuses)
-  useBookingsRealtime(vendorId)
+  // The bookings channel is NOT subscribed here. It lives at the tab layout
+  // (`app/(app)/_layout.tsx`) alongside the notifications one, so a vendor
+  // sitting on Dashboard still gets live rows (I1). Subscribing here as well
+  // would open a second channel on the same topic.
   const filterCounts = useBookingFilterCounts(vendorId)
 
   const refresh = useCallback(async () => {

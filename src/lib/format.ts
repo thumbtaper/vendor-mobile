@@ -146,3 +146,38 @@ export function phCurrentMonthRange(): { from: string; to: string } {
     to: `${year}-${mm}-${String(lastDay).padStart(2, "0")}`,
   }
 }
+
+/**
+ * When a booking actually happens, in the shape its offering is booked by.
+ *
+ * ⚠️ Reads the BOOKING's own span, never the schedule's window. The schedule can
+ * be edited after a booking is sold, and — since 20260803000003 — several
+ * bookings of one schedule occupy different slots. Rendering the schedule's
+ * `start_time` here showed every booking of a schedule the same time, which is
+ * the defect B8 removed across all three clients.
+ *
+ * Time-granular: "09:00 – 11:00".  Date-granular: "10 Aug – 12 Aug 2026".
+ * Falls back to the bare date when a booking carries neither, which is what a
+ * pre-migration row looks like.
+ */
+export function fmtBookingSpan(b: {
+  bookedDate: string
+  startTime: string
+  endTime: string
+  endDate: string
+}): string {
+  if (b.startTime) {
+    return b.endTime ? `${b.startTime} – ${b.endTime}` : b.startTime
+  }
+  if (b.endDate && b.endDate !== b.bookedDate) {
+    return `${fmtPhDate(b.bookedDate)} – ${fmtPhDate(b.endDate)}`
+  }
+  return fmtPhDate(b.bookedDate)
+}
+
+/** How many days a date-granular booking covers, inclusive. 0 when not date-granular. */
+export function bookingDayCount(b: { bookedDate: string; endDate: string }): number {
+  if (!b.endDate) return 0
+  const ms = new Date(b.endDate + "T00:00:00Z").getTime() - new Date(b.bookedDate + "T00:00:00Z").getTime()
+  return Math.max(1, Math.round(ms / 86_400_000) + 1)
+}

@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import { Pressable, Text, View } from "react-native"
 
 import { RefreshableList } from "@/components/common/RefreshableList/RefreshableList"
+import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
 import { StaleBanner } from "@/components/common/StaleBanner/StaleBanner"
 import { NotificationListItem } from "@/components/notifications/NotificationListItem/NotificationListItem"
 import { PushPermissionCard } from "@/components/notifications/PushPermissionCard/PushPermissionCard"
@@ -17,8 +18,12 @@ export function NotificationsList() {
   const s = useNotificationsList()
   const push = usePush()
 
-  return (
+  // Everything above the rows now scrolls (B1). Inline element, not a component —
+  // see `RefreshableList`'s `header` prop.
+  const header = (
     <>
+      <ScreenTitle />
+
       {/* Only shown on the Inbox — the prompt belongs where new alerts land. */}
       {s.archived ? null : (
         <PushPermissionCard state={push.state} onEnable={push.enable} />
@@ -74,8 +79,13 @@ export function NotificationsList() {
         isError={s.isError}
         isFetching={s.isFetching}
       />
+    </>
+  )
 
+  return (
+    <>
       <RefreshableList<AppNotification>
+        header={header}
         data={s.notifications}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (

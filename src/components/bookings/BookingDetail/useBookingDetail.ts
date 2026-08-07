@@ -1,17 +1,20 @@
 import { useQuery } from "@tanstack/react-query"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useCallback } from "react"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { useBookingActions, type FulfilAction } from "@/hooks/useBookingActions"
 import { useBookerContacts } from "@/hooks/useBookingsQuery"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 import { getBookingById, type BookerContact } from "@/services/bookings.service"
+import { TAB_BAR_HEIGHT } from "@/theme/tokens"
 
 export function useBookingDetail() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
   const { gate } = useSessionGate()
   const vendorId = gate.selectedVendorId
+  const insets = useSafeAreaInsets()
 
   const contacts = useBookerContacts(vendorId)
   const actions = useBookingActions(vendorId)
@@ -80,6 +83,17 @@ export function useBookingDetail() {
   )
 
   return {
+    // B1 — the action bar is pinned to the bottom of a `space-between` wrapper,
+    // and the tab bar is `position: "absolute"`, so it floats OVER that spot
+    // occupying no layout space. Without this the Approve/Reject row was drawn
+    // underneath it: ~73pt covered (49 bar + ~24 gesture inset) against a ~80pt
+    // bar, and fully covered on three-button navigation. The buttons were always
+    // there — nobody could see them.
+    //
+    // Read here rather than in `BookingDetail.tsx` so the render layer stays pure
+    // (component-separation): it receives a number and applies it inline, which
+    // is allowed precisely because the value is dynamic.
+    bottomInset: insets.bottom + TAB_BAR_HEIGHT,
     booking: query.data ?? null,
     isLoading: query.isLoading || contacts.isLoading,
     isError: query.isError || contacts.isError,

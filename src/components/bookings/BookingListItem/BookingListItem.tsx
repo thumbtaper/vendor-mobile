@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { Pressable, Text, View } from "react-native"
 
-import { fmtPeso, statusLabel } from "@/lib/format"
+import { fmtBookingSpan, fmtPeso, statusLabel } from "@/lib/format"
 import type { Booking } from "@/lib/types"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./BookingListItem.styles"
@@ -25,7 +25,11 @@ export function BookingListItem({
     fg: tokens.text,
   }
   const initials = initialsOf(booking.bookerName)
-  const meta = [booking.bookedDate, booking.startTime, booking.offeringName]
+  // The booking's own span, not the schedule's window — see fmtBookingSpan. For a
+  // multi-day booking the span already names both dates, so repeating bookedDate
+  // would read "10 Aug · 10 Aug – 12 Aug".
+  const when = fmtBookingSpan(booking)
+  const meta = [booking.startTime ? booking.bookedDate : "", when, booking.offeringName]
     .filter(Boolean)
     .join(" · ")
 

@@ -4,6 +4,10 @@ import { radii, spacing, type, type Tokens } from "@/theme/tokens"
 
 export const makeStyles = (t: Tokens) =>
   StyleSheet.create({
+    // `paddingBottom` is applied INLINE from `useBookingDetail`'s `bottomInset`,
+    // not here — it depends on the device's safe-area inset. Do not add a static
+    // one: `space-between` pins the action bar to the bottom edge, and the tab
+    // bar floats over that edge (B1).
     wrapper: {
       flex: 1,
       justifyContent: "space-between",

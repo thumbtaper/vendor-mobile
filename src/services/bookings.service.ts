@@ -30,7 +30,10 @@ type BookingRow = {
   is_paid: boolean
   status_changed_at: string | null
   offerings: { name: string; code: string } | null
-  schedules: { start_time: string } | null
+  start_time: string | null
+  end_time: string | null
+  end_date: string | null
+  quantity: number
 }
 
 // One definition for both the list and the detail query. They were byte-identical
@@ -40,8 +43,8 @@ type BookingRow = {
 const BOOKING_SELECT_COLS = `
   id, booker_id, booked_date, status, price_paid, notes, rejection_reason,
   fulfilment_pattern, is_paid, status_changed_at,
-  offerings(name, code),
-  schedules(start_time)
+  start_time, end_time, end_date, quantity,
+  offerings(name, code)
 `
 
 export interface BookerContact {
@@ -67,7 +70,10 @@ function toBooking(row: BookingRow, contact: BookerContact | undefined): Booking
     offeringName: row.offerings?.name ?? "",
     offeringCode: row.offerings?.code ?? "",
     bookedDate: row.booked_date,
-    startTime: row.schedules?.start_time ?? "",
+    startTime: row.start_time?.slice(0, 5) ?? "",
+    endTime:   row.end_time?.slice(0, 5) ?? "",
+    endDate:   row.end_date ?? "",
+    quantity:  row.quantity ?? 1,
     status: row.status as BookingStatus,
     pricePaid: row.price_paid,
     notes: row.notes ?? "",

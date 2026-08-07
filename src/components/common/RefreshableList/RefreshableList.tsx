@@ -1,6 +1,12 @@
 import { FlashList, type FlashListProps } from "@shopify/flash-list"
-import { useMemo } from "react"
-import { ActivityIndicator, RefreshControl, Text, View } from "react-native"
+import { useMemo, type ReactElement } from "react"
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native"
 
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./RefreshableList.styles"
@@ -16,10 +22,24 @@ interface Props<T> extends Omit<FlashListProps<T>, "refreshControl"> {
   emptyBody?: string
   loadingMore?: boolean
   /**
+   * Everything that scrolls above the rows — the screen title, a toolbar, filter
+   * chips, summary cards (B1).
+   *
+   * An **element**, not a component type, and that distinction is load-bearing.
+   * React reconciles an element by its `type`, so `header={<Toolbar />}` written
+   * inline is stable across renders and `Toolbar` keeps its state. A component —
+   * `ListHeaderComponent={() => <Toolbar />}` — is a NEW function identity every
+   * render, which remounts the whole subtree. The Transactions header contains a
+   * search field: remounting it drops focus and closes the keyboard on every
+   * keystroke. Same reference-identity rule as `ItemSeparatorComponent` below.
+   *
+   * Rendered in all four states, deliberately — see the state branches.
+   */
+  header?: ReactElement
+  /**
    * Overrides the content container's top padding only. `spacing.xl` is right
    * when the list is the first thing under the screen header, but wrong when a
-   * control sits directly above it — bookings has a filter strip there, so the
-   * default 24 lands on top of the strip's own padding and does no work.
+   * control sits directly above it.
    * Left-, right- and bottom padding are untouched, so cards keep their inset.
    */
   contentPaddingTop?: number
@@ -36,6 +56,7 @@ export function RefreshableList<T>({
   emptyTitle = "Nothing here yet",
   emptyBody,
   loadingMore = false,
+  header,
   contentPaddingTop,
   data,
   contentContainerStyle,
@@ -44,7 +65,8 @@ export function RefreshableList<T>({
 }: Props<T>) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
-  const { refreshing, refresh } = useRefreshableList(onRefresh)
+  const { refreshing, refresh, contentBottomPadding } =
+    useRefreshableList(onRefresh)
 
   // Defaulted here rather than per screen so bookings, transactions and
   // notifications cannot drift apart. Identity must be stable: FlashList's cell
@@ -64,38 +86,71 @@ export function RefreshableList<T>({
   // identity changes; a fresh array every render would fight the layout pass.
   // FlashList v2 extends `ScrollViewProps`, so this is a plain
   // `StyleProp<ViewStyle>` and an array is accepted.
+  //
+  // The bottom padding is appended LAST and unconditionally, including when a
+  // caller supplies its own `contentContainerStyle` — clearing the floating tab
+  // bar is not something a screen should be able to opt out of by accident (I1).
   const contentStyle = useMemo(() => {
     const base = contentContainerStyle ?? styles.content
-    return contentPaddingTop === undefined
-      ? base
-      : [base, { paddingTop: contentPaddingTop }]
-  }, [contentContainerStyle, contentPaddingTop, styles])
+    const overrides: { paddingBottom: number; paddingTop?: number } = {
+      paddingBottom: contentBottomPadding,
+    }
+    if (contentPaddingTop !== undefined) overrides.paddingTop = contentPaddingTop
+    return [base, overrides]
+  }, [contentContainerStyle, contentPaddingTop, contentBottomPadding, styles])
 
   const isEmpty = !data || data.length === 0
 
+  // The header renders in the loading and error states too, not only alongside
+  // rows. Without this the vendor loses the filter chips and date presets in
+  // exactly the two states where they need them most — to change the query that
+  // is failing or returning nothing. This component's whole job is that no screen
+  // ships only the populated state; a header that vanishes in half of them would
+  // break the same contract from the inside.
   if (loading && isEmpty) {
     return (
-      <View style={styles.centred}>
-        <ActivityIndicator color={tokens.text} />
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.stateContent}
+        scrollEnabled={header !== undefined}
+      >
+        {header}
+        <View style={styles.centred}>
+          <ActivityIndicator color={tokens.text} />
+        </View>
+      </ScrollView>
     )
   }
 
   if (error && isEmpty) {
     return (
-      <View style={styles.centred}>
-        <Text style={styles.messageTitle}>Couldn&apos;t load this</Text>
-        <Text style={styles.message}>{error}</Text>
-        {onRetry ? (
-          <Text
-            style={styles.messageTitle}
-            onPress={onRetry}
-            accessibilityRole="button"
-          >
-            Try again
-          </Text>
-        ) : null}
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.stateContent}
+        scrollEnabled={header !== undefined}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            tintColor={tokens.text}
+            colors={[tokens.strong]}
+            progressBackgroundColor={tokens.cardBg}
+          />
+        }
+      >
+        {header}
+        <View style={styles.centred}>
+          <Text style={styles.messageTitle}>Couldn&apos;t load this</Text>
+          <Text style={styles.message}>{error}</Text>
+          {onRetry ? (
+            <Text
+              style={styles.messageTitle}
+              onPress={onRetry}
+              accessibilityRole="button"
+            >
+              Try again
+            </Text>
+          ) : null}
+        </View>
+      </ScrollView>
     )
   }
 
@@ -104,6 +159,7 @@ export function RefreshableList<T>({
       {...listProps}
       data={data}
       contentContainerStyle={contentStyle}
+      ListHeaderComponent={header}
       ItemSeparatorComponent={Separator}
       refreshControl={
         <RefreshControl

@@ -13,6 +13,17 @@ import {
 } from "@/lib/bookingActionRules"
 import type { Booking } from "@/lib/types"
 
+// Constant for the life of the app — resolved once at module load rather than
+// memoised per booking. Both are stable references, which matters: they are
+// handed straight to `visibleActions` below, and a fresh array each render would
+// make that memo useless.
+const APPROVE_COPY = actionCopy("vendor_approve")
+const REJECT_COPY = actionCopy("vendor_reject")
+const APPROVAL_ACTIONS: readonly BookingActionCopy[] = [
+  APPROVE_COPY,
+  REJECT_COPY,
+]
+
 /**
  * State and handlers for the booking action bar.
  *
@@ -34,10 +45,10 @@ export function useBookingActionBar(
   // CONFIRMATION. One flag serving both would make the render layer guess which
   // question is being asked.
   const [confirmUnpaid, setConfirmUnpaid] = useState(false)
-  // Which action's explanation is open, or null. Holding the COPY rather than a
-  // boolean means one sheet serves every action — the alternative is a flag per
-  // action and a second lookup in the render layer.
-  const [infoFor, setInfoFor] = useState<BookingActionCopy | null>(null)
+  // Whether the explanation sheet is open. A plain boolean since D2: the sheet
+  // now lists EVERY action the bar is offering rather than one the vendor picked,
+  // so there is nothing to remember about which trigger was tapped.
+  const [infoOpen, setInfoOpen] = useState(false)
   const [flagOpen, setFlagOpen] = useState(false)
 
   const approve = useCallback(() => onApprove(booking), [onApprove, booking])
@@ -114,17 +125,28 @@ export function useBookingActionBar(
 
   const doUndo = useCallback(() => void run("undo"), [run])
 
-  const showInfo = useCallback(
-    (copy: BookingActionCopy) => setInfoFor(copy),
-    [],
-  )
-  const hideInfo = useCallback(() => setInfoFor(null), [])
+  const openInfo = useCallback(() => setInfoOpen(true), [])
+  const closeInfo = useCallback(() => setInfoOpen(false), [])
 
   // ── I9: flag ──────────────────────────────────────────────────────────────
   const flagCopy = useMemo(
     () => (canFlag(booking.status) ? actionCopy("vendor_dispute") : null),
     [booking.status],
   )
+  // ── D2: what the "i" sheet explains ───────────────────────────────────────
+  // Every action the bar is currently rendering, in the order it renders them.
+  //
+  // Derived HERE, from the same four values the render layer branches on, and
+  // deliberately not rebuilt in the `.tsx`. Two lists assembled from the same
+  // inputs drift the moment a branch changes: the sheet would describe a button
+  // that isn't on screen, or miss one that is. This is the single source.
+  const visibleActions = useMemo<readonly BookingActionCopy[]>(() => {
+    if (booking.status === "pending") return APPROVAL_ACTIONS
+    return [fulfilCopy, undoCopy, flagCopy].filter(
+      (copy): copy is BookingActionCopy => copy !== null,
+    )
+  }, [booking.status, fulfilCopy, undoCopy, flagCopy])
+
   const openFlag = useCallback(() => setFlagOpen(true), [])
   const closeFlag = useCallback(() => setFlagOpen(false), [])
   const confirmFlag = useCallback(
@@ -148,9 +170,14 @@ export function useBookingActionBar(
     confirmUnpaidFulfil,
     cancelUnpaidFulfil,
     autoConfirm,
-    infoFor,
-    showInfo,
-    hideInfo,
+    // Exposed so the two buttons can take their accessibility hints from the copy
+    // table instead of repeating the sentences as literals (I2).
+    approveCopy: APPROVE_COPY,
+    rejectCopy: REJECT_COPY,
+    visibleActions,
+    infoOpen,
+    openInfo,
+    closeInfo,
     flagCopy,
     flagOpen,
     openFlag,

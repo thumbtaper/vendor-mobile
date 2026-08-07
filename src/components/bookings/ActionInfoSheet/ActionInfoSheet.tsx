@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { Modal, Pressable, Text, View } from "react-native"
+import { Modal, Pressable, ScrollView, Text, View } from "react-native"
 
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
 import type { BookingActionCopy } from "@/lib/bookingActionCopy"
@@ -8,31 +8,41 @@ import { makeStyles } from "./ActionInfoSheet.styles"
 
 interface Props {
   visible: boolean
-  /** The action being explained. Null renders nothing. */
-  copy: BookingActionCopy | null
+  /**
+   * Every action the bar is currently offering, in the order it renders them.
+   * Supplied by `useBookingActionBar` from the same values the bar branches on —
+   * never rebuilt here, or the sheet could describe a button that isn't on screen.
+   */
+  actions: readonly BookingActionCopy[]
   onClose: () => void
 }
 
 /**
- * Explains what a booking action does — specifically, what it does to the
+ * Explains what the booking actions do — specifically, what they do to the
  * vendor's money.
  *
  * D1 chose a bottom sheet. The web portal uses a hover popover, which has no
  * phone equivalent; an inline expanding caption was rejected because it reflows
  * the action bar at the bottom of the screen, where reflow is most disorienting.
  *
- * The body is the `meaning` string from `bookingActionCopy.ts` VERBATIM — that
+ * D2 then made it one sheet per BAR rather than one per action. The bar had
+ * grown a per-action trigger that only ever appeared beside the fulfilment
+ * button, so Approve, Reject, Undo and Flag had no sighted explanation at all —
+ * and adding a trigger to each would have put up to four extra 44pt controls in
+ * a row that was already too heavy.
+ *
+ * Each body is the `meaning` string from `bookingActionCopy.ts` VERBATIM — that
  * table exists so the button, this sheet and the web portal cannot drift apart on
  * the wording that tells someone when they get paid.
  *
  * Pure display: it holds no state, so it has no companion hook. Visibility is
  * owned by `useBookingActionBar`.
  */
-export function ActionInfoSheet({ visible, copy, onClose }: Props) {
+export function ActionInfoSheet({ visible, actions, onClose }: Props) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
 
-  if (!copy) return null
+  if (actions.length === 0) return null
 
   return (
     <Modal
@@ -48,12 +58,30 @@ export function ActionInfoSheet({ visible, copy, onClose }: Props) {
         accessibilityRole="button"
         accessibilityLabel="Close"
       >
-        {/* Stops a tap inside the sheet from dismissing it. */}
-        <Pressable onPress={() => {}} accessible={false}>
+        {/* Stops a tap inside the sheet from dismissing it. Also carries the
+            height bound — see `sheetWrap` in the stylesheet for why it has to be
+            this element and not the sheet itself. */}
+        <Pressable
+          style={styles.sheetWrap}
+          onPress={() => {}}
+          accessible={false}
+        >
           <View style={styles.sheet}>
             <View style={styles.grabber} />
-            <Text style={styles.title}>{copy.label}</Text>
-            <Text style={styles.body}>{copy.meaning}</Text>
+            <Text style={styles.title}>What these do</Text>
+
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.scrollContent}
+            >
+              {actions.map((action) => (
+                <View key={action.key} style={styles.entry}>
+                  <Text style={styles.entryLabel}>{action.label}</Text>
+                  <Text style={styles.body}>{action.meaning}</Text>
+                </View>
+              ))}
+            </ScrollView>
+
             {/* An explicit button, not swipe-to-dismiss only: a gesture may be a
                 shortcut but never the only way out (mobile-dev §2). */}
             <PrimaryButton label="Got it" onPress={onClose} variant="secondary" />

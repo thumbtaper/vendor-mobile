@@ -8,7 +8,9 @@ import { useMemo } from "react"
 import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native"
 
 import { BookingListItem } from "@/components/bookings/BookingListItem/BookingListItem"
+import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
 import { StaleBanner } from "@/components/common/StaleBanner/StaleBanner"
+import { GuideCard } from "@/components/dashboard/GuideCard/GuideCard"
 import { StatCard } from "@/components/dashboard/StatCard/StatCard"
 import { useRefreshableList } from "@/components/common/RefreshableList/useRefreshableList"
 import { fmtPeso } from "@/lib/format"
@@ -26,13 +28,11 @@ export function DashboardView() {
 
   return (
     <>
-      <StaleBanner
-        dataUpdatedAt={s.dataUpdatedAt}
-        isError={s.isError}
-        isFetching={s.isFetching}
-      />
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: s.contentBottomPadding },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -43,6 +43,16 @@ export function DashboardView() {
           />
         }
       >
+        {/* Both inside the scroll content now (B1) — the title so it scrolls away
+            with everything else, the banner because it annotates the data below it
+            and pinning it would rebuild the fixed block this change removes. */}
+        <ScreenTitle />
+        <StaleBanner
+          dataUpdatedAt={s.dataUpdatedAt}
+          isError={s.isError}
+          isFetching={s.isFetching}
+        />
+
         {s.isError && !stats ? (
           <Text style={styles.errorText}>
             Couldn&apos;t load your stats. Pull down to try again.
@@ -97,6 +107,13 @@ export function DashboardView() {
             iconBg="rgba(99,102,241,0.12)"
           />
         </View>
+
+        {/* Below the stats, not above them: the numbers are what a returning
+            vendor opens the app for, and a guide they have read fifty times
+            should not push them below the fold. A first-time vendor still
+            reaches it with one short scroll. Owns its own shown/hidden state, so
+            `useDashboardView` is untouched. */}
+        <GuideCard />
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Waiting for approval</Text>

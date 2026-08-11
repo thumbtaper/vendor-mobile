@@ -8,6 +8,8 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
 import {
+  bookingDayCount,
+  fmtBookingSpan,
   fmtPeso,
   fmtPhDate,
   fmtRelativeTime,
@@ -190,5 +192,37 @@ describe("fmtRelativeTime", () => {
     assert.equal(fmtRelativeTime(ago(3 * 3_600_000)), "3h ago")
     assert.equal(fmtRelativeTime(ago(2 * 86_400_000)), "2d ago")
     assert.equal(fmtRelativeTime(ago(14 * 86_400_000)), "2w ago")
+  })
+})
+
+describe("fmtBookingSpan", () => {
+  it("renders a time-granular booking as its own span", () => {
+    assert.equal(
+      fmtBookingSpan({ bookedDate: "2026-08-10", startTime: "09:00", endTime: "11:00", endDate: "" }),
+      "09:00 – 11:00",
+    )
+  })
+
+  it("renders a multi-day booking as a date range", () => {
+    assert.equal(
+      fmtBookingSpan({ bookedDate: "2026-08-10", startTime: "", endTime: "", endDate: "2026-08-12" }),
+      "10 Aug 2026 – 12 Aug 2026",
+    )
+  })
+
+  // What a row created before 20260803000003 looks like.
+  it("falls back to the bare date when a booking has no span", () => {
+    assert.equal(
+      fmtBookingSpan({ bookedDate: "2026-08-10", startTime: "", endTime: "", endDate: "" }),
+      "10 Aug 2026",
+    )
+  })
+})
+
+describe("bookingDayCount", () => {
+  it("counts inclusively", () => {
+    assert.equal(bookingDayCount({ bookedDate: "2026-08-10", endDate: "2026-08-12" }), 3)
+    assert.equal(bookingDayCount({ bookedDate: "2026-08-10", endDate: "2026-08-10" }), 1)
+    assert.equal(bookingDayCount({ bookedDate: "2026-08-10", endDate: "" }), 0)
   })
 })

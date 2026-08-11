@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import { useIsFocused } from "expo-router"
 import { useMemo } from "react"
 
 import type { BookingFilterKey } from "@/lib/bookingFilters"
@@ -13,6 +14,28 @@ import {
 // GROUP, not a status. It used to be `BookingStatus | "all"`, which meant widening
 // BookingStatus silently widened the filter too.
 export type BookingFilter = BookingFilterKey
+
+// I5 — backstop for a degraded socket (D1: 60s).
+//
+// Realtime is the PRIMARY mechanism; this exists because a phone loses long-lived
+// sockets in ways that produce no `CHANNEL_ERROR` at all — carrier NAT timeouts,
+// captive portals, Doze. Without it the only recovery is app foreground or a
+// manual pull, which is the failure this plan set out to remove.
+//
+// Two things bound the cost, and both matter:
+//   - SCREEN focus, via `useIsFocused` — a mounted-but-hidden tab does not poll,
+//     and expo-router keeps tabs mounted once visited, so this is not optional
+//   - APP focus, via TanStack's own `refetchInterval` check against
+//     `focusManager` (wired to AppState in `lib/queryClient.ts`). A backgrounded
+//     app therefore does not poll, and `refetchIntervalInBackground` is left at
+//     its default `false` deliberately — push (Ph7) is the background channel
+//
+// Known cost: refetching an infinite query refetches EVERY page already loaded,
+// so a vendor who has scrolled to page 3 spends 4 requests per tick rather than
+// 1. Accepted rather than engineered around — the list is ordered `created_at
+// desc`, so new bookings land on page 0 and deep paging is both rare and
+// short-lived. If it ever shows up in practice, `maxPages` is the lever.
+export const POLL_MS = 60_000
 
 export function bookingsQueryKey(vendorId: string, statuses: BookingStatus[]) {
   // First element matches `PERSISTED_KEYS` in lib/queryClient.ts, so the bookings
@@ -58,9 +81,14 @@ export function useBookingsQuery(
   statuses: BookingStatus[],
 ) {
   const contacts = useBookerContacts(vendorId)
+  // Scoped to the SCREEN this hook is mounted in, which is what makes one poll
+  // per minute the whole-app cost: the Bookings tab and the Dashboard preview
+  // each call this hook, but only the focused one ticks.
+  const isFocused = useIsFocused()
 
   const query = useInfiniteQuery({
     queryKey: bookingsQueryKey(vendorId ?? "", statuses),
+    refetchInterval: isFocused ? POLL_MS : false,
     // Waiting for contacts keeps a page from rendering with blank booker names
     // and then filling in — a visible flash of anonymous rows.
     enabled: Boolean(vendorId) && contacts.isSuccess,

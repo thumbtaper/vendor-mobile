@@ -3,7 +3,8 @@ import { ActivityIndicator, ScrollView, Text, View } from "react-native"
 
 import { BookingActionBar } from "@/components/bookings/BookingActionBar/BookingActionBar"
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
-import { fmtPeso, statusLabel } from "@/lib/format"
+import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
+import { bookingDayCount, fmtBookingSpan, fmtPeso, statusLabel } from "@/lib/format"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./BookingDetail.styles"
 import { useBookingDetail } from "./useBookingDetail"
@@ -34,12 +35,20 @@ export function BookingDetail() {
   }
 
   const b = s.booking
+  // Inclusive day count for a multi-day booking; 0 for time-granular ones.
+  const days = bookingDayCount(b)
   const status = tokens.status[b.status] ?? { bg: tokens.pillBg, fg: tokens.text }
   const contact = [b.bookerEmail, b.bookerPhone].filter(Boolean).join(" · ")
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { paddingBottom: s.bottomInset }]}>
       <ScrollView contentContainerStyle={styles.scroll}>
+        {/* B1 — this screen passes no header action, so `ScreenShell` pins
+            nothing. Without this the "Booking" title would not render at all,
+            because the title now lives wherever the screen puts it rather than in
+            a fixed header. */}
+        <ScreenTitle />
+
         <View style={styles.card}>
           <Text
             style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}
@@ -59,9 +68,10 @@ export function BookingDetail() {
             </Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>Date</Text>
+            <Text style={styles.label}>{b.startTime ? "Date & time" : "Dates"}</Text>
             <Text style={styles.value}>
-              {[b.bookedDate, b.startTime].filter(Boolean).join(" · ") || "—"}
+              {[b.startTime ? b.bookedDate : "", fmtBookingSpan(b)].filter(Boolean).join(" · ") || "—"}
+              {days > 1 ? ` (${days} days)` : ""}
             </Text>
           </View>
           <View style={styles.field}>

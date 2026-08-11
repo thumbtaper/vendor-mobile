@@ -2,13 +2,13 @@ import { useMemo } from "react"
 import { Pressable, Text, View } from "react-native"
 
 import { ActionInfoSheet } from "@/components/bookings/ActionInfoSheet/ActionInfoSheet"
+import { ActionInfoTrigger } from "@/components/bookings/ActionInfoTrigger/ActionInfoTrigger"
 import { RejectReasonSheet } from "@/components/bookings/RejectReasonSheet/RejectReasonSheet"
 import type { FulfilAction } from "@/hooks/useBookingActions"
 import { statusLabel } from "@/lib/format"
 import type { Booking } from "@/lib/types"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./BookingActionBar.styles"
-import { makeTriggerStyles } from "@/components/bookings/ActionInfoSheet/ActionInfoSheet.styles"
 import { useBookingActionBar } from "./useBookingActionBar"
 
 interface Props {
@@ -37,12 +37,13 @@ export function BookingActionBar({
 }: Props) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
-  const trigger = useMemo(() => makeTriggerStyles(tokens), [tokens])
   const s = useBookingActionBar(booking, onApprove, onReject, onFulfil, onFlag)
 
   // ── pending: approve or reject ────────────────────────────────────────────
-  // Unchanged from the original component, deliberately. Approve's 4-second
-  // deferred commit and the reason sheet both still run through the same props.
+  // Approve's 4-second deferred commit and the reason sheet still run through the
+  // same props. What changed in B2 is that this branch finally has an "i" — it is
+  // the commonest screen in the app and had no sighted explanation of either
+  // button until then.
   if (booking.status === "pending") {
     return (
       <>
@@ -52,7 +53,11 @@ export function BookingActionBar({
             onPress={s.approve}
             accessibilityRole="button"
             accessibilityLabel="Approve booking"
-            accessibilityHint="Confirms the booking. You can undo for a few seconds."
+            // I2 — from the copy table, not a literal. Every other button in this
+            // file already did this; these two held a second copy of sentences
+            // that also live in `bookingActionCopy.ts`, which is precisely the
+            // drift that table exists to prevent.
+            accessibilityHint={s.approveCopy.meaning}
             style={({ pressed }) => [
               styles.button,
               styles.approve,
@@ -66,7 +71,7 @@ export function BookingActionBar({
             onPress={s.openSheet}
             accessibilityRole="button"
             accessibilityLabel="Reject booking"
-            accessibilityHint="Asks for a reason, then cancels the booking"
+            accessibilityHint={s.rejectCopy.meaning}
             style={({ pressed }) => [
               styles.button,
               styles.reject,
@@ -75,7 +80,15 @@ export function BookingActionBar({
           >
             <Text style={styles.rejectLabel}>Reject</Text>
           </Pressable>
+
+          <ActionInfoTrigger onPress={s.openInfo} />
         </View>
+
+        <ActionInfoSheet
+          visible={s.infoOpen}
+          actions={s.visibleActions}
+          onClose={s.closeInfo}
+        />
 
         <RejectReasonSheet
           visible={s.sheetOpen}
@@ -140,10 +153,6 @@ export function BookingActionBar({
       )
     }
 
-    // Captured so the info trigger's closure keeps the narrowing without a
-    // non-null assertion.
-    const fulfilCopy = s.fulfilCopy
-
     return (
       <View style={styles.stack}>
         {/* I6 — only where the database actually runs a timer. `in_progress`
@@ -181,8 +190,9 @@ export function BookingActionBar({
               accessibilityRole="button"
               accessibilityLabel={s.fulfilCopy.label}
               // The `meaning` doubles as the accessibility hint. A screen-reader
-              // user gets the consequence for their money spoken aloud, which is
-              // the same thing the "i" sheet will show sighted users in I4.
+              // user gets the consequence for their money spoken aloud — the same
+              // sentence the "i" sheet shows sighted users, so neither audience
+              // has to reach the other's affordance to learn what this does.
               accessibilityHint={s.fulfilCopy.meaning}
               accessibilityState={{ disabled: s.working }}
               style={({ pressed }) => [
@@ -193,23 +203,6 @@ export function BookingActionBar({
               ]}
             >
               <Text style={styles.primaryLabel}>{s.fulfilCopy.label}</Text>
-            </Pressable>
-          ) : null}
-
-          {/* D1: tap-to-open explanation. Sits beside the action it explains
-              rather than in a header, so "what does this do to my money" is
-              answered at the point the vendor is about to commit. */}
-          {fulfilCopy ? (
-            <Pressable
-              onPress={() => s.showInfo(fulfilCopy)}
-              accessibilityRole="button"
-              accessibilityLabel={`What does "${fulfilCopy.label}" mean?`}
-              style={({ pressed }) => [
-                trigger.trigger,
-                pressed && trigger.pressed,
-              ]}
-            >
-              <Text style={styles.infoGlyph}>i</Text>
             </Pressable>
           ) : null}
 
@@ -231,6 +224,13 @@ export function BookingActionBar({
               <Text style={styles.ghostLabel}>{s.undoCopy.label}</Text>
             </Pressable>
           ) : null}
+
+          {/* D2 — one trigger for the whole bar, at the END of the row rather
+              than beside a particular action. It was previously rendered only
+              when there was a fulfilment button, which meant a booking offering
+              just Undo, or just Flag, explained nothing. Fixed position so it is
+              in the same place whatever the booking's status. */}
+          <ActionInfoTrigger onPress={s.openInfo} />
         </View>
 
         {/* I9 — its own row, not squeezed beside the primary action. Flagging is
@@ -255,9 +255,9 @@ export function BookingActionBar({
         ) : null}
 
         <ActionInfoSheet
-          visible={s.infoFor !== null}
-          copy={s.infoFor}
-          onClose={s.hideInfo}
+          visible={s.infoOpen}
+          actions={s.visibleActions}
+          onClose={s.closeInfo}
         />
 
         <RejectReasonSheet

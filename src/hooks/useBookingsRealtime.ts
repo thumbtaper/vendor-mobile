@@ -1,8 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import { AppState } from "react-native"
 
 import { supabase } from "@/lib/supabase/client"
+import { logChannelPayload, logChannelStatus } from "@/lib/realtimeLog"
+import { contactsQueryKey } from "./useBookingsQuery"
+
+const TAG = "bookings-realtime"
 
 // Ports the bookings subscription from `useAppShell.ts:180-225` with the mobile
 // lifecycle the web has no equivalent for (I6).
@@ -20,18 +24,73 @@ import { supabase } from "@/lib/supabase/client"
 // schedule and RPC-sourced contact fields in any case.
 export function useBookingsRealtime(vendorId: string | null) {
   const queryClient = useQueryClient()
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   useEffect(() => {
     if (!vendorId) return
 
+    // Every cache a booking change can invalidate, in one list so a new query key
+    // is added in exactly one place. All three are PREFIXES:
+    //   - ["bookings", id]       list pages (all filter combinations) + chip counts
+    //   - ["booking", id]        whichever detail screen is open (I3). A separate
+    //                            first element, so the bookings prefix does NOT
+    //                            reach it — an open booking used to never update
+    //   - ["dashboard-stats", id] the stat tiles (I2), which until now were
+    //                            invalidated by nothing at all, not even by the
+    //                            vendor's own approve
     const invalidate = () => {
-      queryClient.invalidateQueries({ queryKey: ["bookings", vendorId] })
+      for (const key of [
+        ["bookings", vendorId],
+        ["booking", vendorId],
+        ["dashboard-stats", vendorId],
+      ]) {
+        queryClient.invalidateQueries({ queryKey: key })
+      }
     }
 
-    const subscribe = () => {
-      if (channelRef.current) return
-      const channel = supabase
+    const onChange = (payload: {
+      eventType: string
+      new: Record<string, unknown>
+    }) => {
+      logChannelPayload(TAG, payload.eventType, payload.new?.id)
+
+      // I4 — an INSERT can come from a booker the contacts map has never seen,
+      // and the row renders its name from that map (`bookings.service.ts:64`
+      // falls back to ""). Ordering is not optional here: `useBookingsQuery`
+      // CLOSES OVER `contacts.data`, and React Query does not re-run a query
+      // when its queryFn identity changes — so invalidating both at once races,
+      // the list usually wins, and the new row paints with a blank name that
+      // reads as corrupt data rather than as loading.
+      //
+      // `.finally`, not `.then`: a contacts failure must not strand the list on
+      // stale data. UPDATE skips this — it cannot introduce a new booker.
+      if (payload.eventType === "INSERT") {
+        queryClient
+          .invalidateQueries({ queryKey: contactsQueryKey(vendorId) })
+          .finally(invalidate)
+        return
+      }
+      invalidate()
+    }
+
+    // ── B2: serialise create/remove so they can never overlap ────────────────
+    //
+    // `removeChannel` is ASYNCHRONOUS. The previous code nulled the ref and let
+    // the next foreground call `supabase.channel()` with the same topic while the
+    // old channel was still `leaving` — realtime-js then holds two channels on one
+    // topic and the survivor can settle in a state that never delivers. On Android
+    // this path fires on every permission dialog, notification shade pull and app
+    // switch, so "worked, then quietly stopped" is the expected failure.
+    //
+    // `desired` records intent synchronously; `sync()` queues the reconciliation
+    // onto a single chain. A rapid background→foreground collapses correctly
+    // because by the time a queued step runs, `desired` already holds the latest
+    // intent and the step becomes a no-op.
+    let desired = false
+    let current: ReturnType<typeof supabase.channel> | null = null
+    let chain: Promise<void> = Promise.resolve()
+
+    const open = () => {
+      return supabase
         .channel(`bookings-${vendorId}`)
         .on(
           "postgres_changes",
@@ -41,7 +100,7 @@ export function useBookingsRealtime(vendorId: string | null) {
             table: "bookings",
             filter: `vendor_id=eq.${vendorId}`,
           },
-          invalidate,
+          onChange,
         )
         .on(
           "postgres_changes",
@@ -51,32 +110,34 @@ export function useBookingsRealtime(vendorId: string | null) {
             table: "bookings",
             filter: `vendor_id=eq.${vendorId}`,
           },
-          invalidate,
+          onChange,
         )
-        .subscribe((status) => {
-          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            console.warn("bookings realtime:", status)
-          }
-        })
-      channelRef.current = channel
+        .subscribe((status, error) => logChannelStatus(TAG, status, error))
     }
 
-    const unsubscribe = () => {
-      if (!channelRef.current) return
-      supabase.removeChannel(channelRef.current)
-      channelRef.current = null
+    const sync = () => {
+      chain = chain.then(async () => {
+        if (desired && !current) {
+          current = open()
+        } else if (!desired && current) {
+          await supabase.removeChannel(current)
+          current = null
+        }
+      })
     }
 
-    subscribe()
+    desired = true
+    sync()
 
     const sub = AppState.addEventListener("change", (state) => {
-      if (state === "active") subscribe()
-      else unsubscribe()
+      desired = state === "active"
+      sync()
     })
 
     return () => {
       sub.remove()
-      unsubscribe()
+      desired = false
+      sync()
     }
   }, [vendorId, queryClient])
 }

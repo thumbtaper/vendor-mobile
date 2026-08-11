@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import { Pressable, Text, View } from "react-native"
 
 import { RefreshableList } from "@/components/common/RefreshableList/RefreshableList"
+import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
 import { SearchField } from "@/components/common/SearchField/SearchField"
 import { StaleBanner } from "@/components/common/StaleBanner/StaleBanner"
 import { TransactionListItem } from "@/components/transactions/TransactionListItem/TransactionListItem"
@@ -17,8 +18,14 @@ export function TransactionsView() {
   const styles = useMemo(() => makeStyles(tokens), [tokens])
   const s = useTransactionsView()
 
-  return (
+  // Everything that used to be pinned above the list (B1). Written inline: React
+  // reconciles by element type, so the SearchField below keeps its focus and its
+  // text across renders. Passing a component instead would remount it on every
+  // keystroke — see `RefreshableList`'s `header` prop.
+  const header = (
     <>
+      <ScreenTitle />
+
       <View style={styles.toolbar}>
         <View style={styles.presets} accessibilityRole="tablist">
           {WINDOW_PRESETS.map((preset) => {
@@ -65,8 +72,13 @@ export function TransactionsView() {
       {s.searchScopeNote ? (
         <Text style={styles.note}>{s.searchScopeNote}</Text>
       ) : null}
+    </>
+  )
 
+  return (
+    <>
       <RefreshableList<Transaction>
+        header={header}
         data={s.transactions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <TransactionListItem transaction={item} />}

@@ -59,7 +59,13 @@ Booking status transitions beyond approve/reject **shipped 2026-08-02** via
 work (`.plans/2026-07-31-vendor-mobile-booking-status-actions.md`) is **✖ ABORTED**
 — it predated the feature by a day and proposed a transition the trigger now
 rejects. Also 2026-08-02: sign-in keyboard handling and the app version in Settings
-(`.plans/2026-08-02-vendor-mobile-keyboard-and-version.md`, COMPLETE).
+(`.plans/2026-08-02-vendor-mobile-keyboard-and-version.md`, COMPLETE). Then the
+action-button sizing, the action-info "i" sheet and the dashboard getting-started
+guide (`.plans/2026-08-03-vendor-mobile-action-ui-and-guide.md`, COMPLETE,
+device-verified), and the full-page scroll model — `ScreenShell` pins only the
+action row, each screen renders its own `<ScreenTitle />`
+(`.plans/2026-08-05-vendor-mobile-scroll-header-and-fee.md`, **IN PROGRESS**: B1
+coded 2026-08-06 and unverified on device; B2, B3a, B3b and I2 not started).
 
 Verification status matters here: phases were verified on **Android**. **Nothing
 has been verified on iOS** — App Store Expo Go cannot open an SDK 57 project, so
@@ -177,6 +183,27 @@ them, don't re-litigate:
   absolutely (`ViewHolder.js:44`), so only `padding` applies. Row spacing goes
   through a **memoised** `ItemSeparatorComponent` (the cell memo compares it by
   identity, `:75`). See `RefreshableList`.
+- **A list header must be an ELEMENT, never a component type.** Same identity rule
+  as `ItemSeparatorComponent`, worse symptom. React reconciles by element `type`,
+  so `header={<Toolbar />}` is stable across renders; `ListHeaderComponent={() =>
+  <Toolbar />}` is a new function identity every render and remounts the whole
+  header subtree. `RefreshableList` types `header` as `ReactElement` so the wrong
+  form is a type error. Found via the Transactions search field, which lost focus
+  and closed the keyboard on every keystroke while the list itself looked fine.
+  `.plans/2026-08-05-vendor-mobile-scroll-header-and-fee.md` B1
+- **The tab bar's height is a constant, not a hook.** Use `TAB_BAR_HEIGHT +
+  insets.bottom` from `theme/tokens.ts`. `useBottomTabBarHeight` is vendored inside
+  expo-router (`build/react-navigation/bottom-tabs/utils/`) and NOT re-exported;
+  installing `@react-navigation/bottom-tabs` to get it is worse, not better — that
+  brings a *second* `BottomTabBarHeightContext` the tab navigator never populates,
+  so it looks clean and silently returns nothing. The constant exists because two
+  call sites had disagreed (49 in `SnackbarProvider`, 64 in `DashboardView`).
+- **A screen must render its own `<ScreenTitle />`.** `ScreenShell` pins only the
+  action row; the title comes down through `ScreenTitleContext` and belongs inside
+  the screen's own scroll container. Omit it and the title vanishes with no error —
+  the context defaults to `null` on purpose, because throwing here would kill the
+  screen in a release build. `bookings/[id]` nearly hit this: it passes no header
+  action, so `ScreenShell` pins nothing there at all.
 - **`KeyboardAvoidingView` with `behavior={undefined}` does NOTHING.** `AuthScreen`
   passed `undefined` on Android for months, which is only correct if the window
   itself resizes; the keyboard drew straight over the password field. Each platform
@@ -197,7 +224,7 @@ them, don't re-litigate:
   fulfilment notification types crashed the whole Notifications screen — there is
   no error boundary in this app. Every such lookup needs a runtime fallback
   (`?? UNKNOWN_TYPE`) as well as the type.
-- **Both of the above pass `tsc`, `expo lint`, `npm test` and `expo export`.** No
+- **All of the layout traps above pass `tsc`, `expo lint`, `npm test` and `expo export`.** No
   machine check in this repo can see a style that is silently overridden — if a
   spacing change appears to do nothing on device, suspect the container and read
   the library source before re-tuning the value. Ask for a screenshot early.

@@ -1,8 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import { AppState } from "react-native"
 
 import { PORTAL } from "@/lib/constants"
+import { logChannelPayload, logChannelStatus } from "@/lib/realtimeLog"
 import { supabase } from "@/lib/supabase/client"
 import type { AppNotification } from "@/lib/types"
 import { useSnackbar } from "@/providers/SnackbarProvider"
@@ -10,6 +11,8 @@ import {
   notificationsQueryKey,
   unreadCountQueryKey,
 } from "./useNotificationsQuery"
+
+const TAG = "notifications-realtime"
 
 // Ports the notifications subscription from `useAppShell.ts:238-265`, including
 // its client-side portal check: postgres_changes accepts a single filter
@@ -21,14 +24,20 @@ import {
 export function useNotificationsRealtime(userId: string | null) {
   const queryClient = useQueryClient()
   const snackbar = useSnackbar()
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   useEffect(() => {
     if (!userId) return
 
-    const subscribe = () => {
-      if (channelRef.current) return
-      const channel = supabase
+    // B2 — identical create/remove serialisation to `useBookingsRealtime`; see
+    // the full reasoning there. Kept inline rather than extracted into a shared
+    // `useRealtimeChannel`: that is a structural refactor of the exact code B1 is
+    // still diagnosing, so it waits (plan I6).
+    let desired = false
+    let current: ReturnType<typeof supabase.channel> | null = null
+    let chain: Promise<void> = Promise.resolve()
+
+    const open = () => {
+      return supabase
         .channel(`notifications-${userId}`)
         .on(
           "postgres_changes",
@@ -40,6 +49,10 @@ export function useNotificationsRealtime(userId: string | null) {
           },
           (payload) => {
             const row = payload.new as AppNotification
+            // Logged BEFORE the portal check: a booker-portal row arriving here
+            // is proof the channel is alive, which is exactly what B1 needs to
+            // know. Logging after the early return would hide that.
+            logChannelPayload(TAG, "INSERT", row.id)
             if (row.portal !== PORTAL) return
 
             queryClient.invalidateQueries({
@@ -53,30 +66,32 @@ export function useNotificationsRealtime(userId: string | null) {
             snackbar.show({ message: row.title })
           },
         )
-        .subscribe((status) => {
-          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            console.warn("notifications realtime:", status)
-          }
-        })
-      channelRef.current = channel
+        .subscribe((status, error) => logChannelStatus(TAG, status, error))
     }
 
-    const unsubscribe = () => {
-      if (!channelRef.current) return
-      supabase.removeChannel(channelRef.current)
-      channelRef.current = null
+    const sync = () => {
+      chain = chain.then(async () => {
+        if (desired && !current) {
+          current = open()
+        } else if (!desired && current) {
+          await supabase.removeChannel(current)
+          current = null
+        }
+      })
     }
 
-    subscribe()
+    desired = true
+    sync()
 
     const sub = AppState.addEventListener("change", (state) => {
-      if (state === "active") subscribe()
-      else unsubscribe()
+      desired = state === "active"
+      sync()
     })
 
     return () => {
       sub.remove()
-      unsubscribe()
+      desired = false
+      sync()
     }
   }, [userId, queryClient, snackbar])
 }

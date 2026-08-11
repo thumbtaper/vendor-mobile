@@ -4,12 +4,34 @@ import { spacing, type, type Tokens } from "@/theme/tokens"
 
 export const makeStyles = (t: Tokens) =>
   StyleSheet.create({
+    // The `spacing.xl` inset here is what every scrolling-header piece relies on
+    // (B1). FlashList v2 never reads `contentContainerStyle` itself — it is not in
+    // the prop list `RecyclerView` destructures, so it falls through to the
+    // underlying ScrollView, whose content container wraps the header along with
+    // the cells. Anything rendered in `header` is therefore inset by this padding
+    // and must NOT carry a horizontal inset of its own; `BookingFilterTabs` is the
+    // single exception and bleeds back out with a negative margin of its own.
+    //
+    // No `gap` here — FlashList lays every cell out absolutely
+    // (`ViewHolder`: `position: "absolute"`), so a flex gap on the content
+    // container is silently inert. Row spacing is the `separator` below,
+    // handed to `ItemSeparatorComponent`. `padding` *is* honoured.
     content: {
-      // No `gap` here — FlashList lays every cell out absolutely
-      // (`ViewHolder`: `position: "absolute"`), so a flex gap on the content
-      // container is silently inert. Row spacing is the `separator` below,
-      // handed to `ItemSeparatorComponent`. `padding` *is* honoured.
       padding: spacing.xl,
+    },
+    // The loading and error states scroll (B1). The header can be tall — on
+    // Transactions it is a preset row, a search field and four summary cards — so
+    // on a small phone a non-scrolling state view would push the spinner or the
+    // retry control off the bottom, out of reach.
+    //
+    // It must carry the SAME horizontal inset as `content` above: header pieces
+    // no longer bring their own, and `BookingFilterTabs` bleeds against exactly
+    // this value. Miss it and the header sits flush to both edges in precisely the
+    // two states where the vendor is trying to read it.
+    stateContent: {
+      flexGrow: 1,
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.xl,
     },
     separator: {
       height: spacing.md,

@@ -44,7 +44,14 @@ export interface Booking {
   offeringName: string
   offeringCode: string
   bookedDate: string
-  startTime: string
+  // The booking's OWN span, snapshotted at creation (20260803000003/4) — not the
+  // schedule's window. A schedule can be edited after a booking is sold, and two
+  // bookings of the same schedule now occupy different slots, so reading the
+  // schedule here would show every booking the same time.
+  startTime: string        // "" for date-granular bookings
+  endTime: string          // "" for date-granular bookings
+  endDate: string          // "" for time-granular bookings
+  quantity: number
   status: BookingStatus
   pricePaid: number
   notes: string

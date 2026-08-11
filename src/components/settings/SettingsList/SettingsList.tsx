@@ -2,6 +2,7 @@ import Constants from "expo-constants"
 import { useMemo } from "react"
 import { Pressable, ScrollView, Text, View } from "react-native"
 
+import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
 import type { PushState } from "@/hooks/usePushRegistration"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./SettingsList.styles"
@@ -38,6 +39,11 @@ export function SettingsList() {
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
+      {/* Scrolls with the content (B1). Settings passes no header action, so
+          there is no pinned row above this — the title is the first thing on the
+          screen and simply scrolls away like everything else. */}
+      <ScreenTitle />
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Appearance</Text>
         <View style={styles.segmented} accessibilityRole="radiogroup">

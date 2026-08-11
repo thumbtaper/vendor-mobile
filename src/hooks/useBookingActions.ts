@@ -108,8 +108,20 @@ export function useBookingActions(vendorId: string | null) {
     [queryClient, vendorId],
   )
 
+  // `dashboard-stats` rides along (I2). The optimistic patch above moves the ROW,
+  // but the stat tiles are a separate server-side aggregate under their own key —
+  // without this, a vendor who acts here and switches to Dashboard sees the old
+  // "Pending Approvals" number until a focus refetch or a manual pull. That was
+  // true of the vendor's OWN action, not just of someone else's.
+  //
+  // Called by all four mutations. `approve` and `reject` did not call it at all
+  // until I7, which left both the stat tiles AND the filter-chip counts stale
+  // after the two most common actions in the app.
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["bookings", vendorId ?? ""] })
+    queryClient.invalidateQueries({
+      queryKey: ["dashboard-stats", vendorId ?? ""],
+    })
   }, [queryClient, vendorId])
 
   const handleFailure = useCallback(
@@ -170,6 +182,11 @@ export function useBookingActions(vendorId: string | null) {
         pending.current.delete(booking.id)
         try {
           await approveBooking(booking.id)
+          // I7 — reconciles what the optimistic patch cannot: the filter-chip
+          // counts and the dashboard tiles are server-side aggregates, not rows.
+          // Safe to fire here because the undo window has already closed by the
+          // time a commit runs.
+          invalidate()
         } catch (error) {
           handleFailure(error, booking.id, "pending")
         }
@@ -192,7 +209,7 @@ export function useBookingActions(vendorId: string | null) {
         },
       })
     },
-    [patchCache, handleFailure, snackbar],
+    [patchCache, handleFailure, snackbar, invalidate],
   )
 
   const reject = useCallback(
@@ -202,11 +219,12 @@ export function useBookingActions(vendorId: string | null) {
       try {
         await rejectBooking(booking.id, reason)
         snackbar.show({ message: `Rejected ${booking.bookerName || "booking"}` })
+        invalidate() // I7 — see the note on `invalidate`
       } catch (error) {
         handleFailure(error, booking.id, booking.status)
       }
     },
-    [patchCache, handleFailure, snackbar],
+    [patchCache, handleFailure, snackbar, invalidate],
   )
 
   /**

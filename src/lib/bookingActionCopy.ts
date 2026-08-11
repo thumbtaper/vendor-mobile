@@ -18,6 +18,8 @@
 import type { FulfilmentPattern } from "./types"
 
 export type BookingActionKey =
+  | "vendor_approve"
+  | "vendor_reject"
   | "vendor_start"
   | "vendor_fulfil"
   | "vendor_confirm_return"
@@ -35,15 +37,40 @@ export interface BookingActionCopy {
   meaning: string
   /** Which fulfilment shape this action belongs to. */
   pattern: FulfilmentPattern | "both"
+  /**
+   * Which part of a booking's life this action belongs to. Lets a surface list
+   * the fulfilment glossary without the approval actions leaking into it — the
+   * web dashboard's "Completing a Booking" guide item is exactly that case.
+   */
+  stage: "approval" | "fulfilment"
 }
 
 export const BOOKING_ACTIONS: readonly BookingActionCopy[] = [
+  // Chronological: approval first, then the fulfilment moves. `stage` is what
+  // callers filter on — do not rely on this ordering.
+  {
+    key: "vendor_approve",
+    label: "Approve",
+    meaning:
+      "Confirms the booking and tells the customer. You have a few seconds to undo it — after that it can't be sent back to pending.",
+    pattern: "both",
+    stage: "approval",
+  },
+  {
+    key: "vendor_reject",
+    label: "Reject",
+    meaning:
+      "Asks you for a reason, then cancels the booking and tells the customer why. This can't be undone.",
+    pattern: "both",
+    stage: "approval",
+  },
   {
     key: "vendor_start",
     label: "Hand over",
     meaning:
       "Starts the booking. The item or space is with the customer until they return it.",
     pattern: "custody",
+    stage: "fulfilment",
   },
   {
     key: "vendor_fulfil",
@@ -51,6 +78,7 @@ export const BOOKING_ACTIONS: readonly BookingActionCopy[] = [
     meaning:
       "Tells the customer you've finished. They'll be asked to confirm — if they don't within 3 days, it confirms automatically.",
     pattern: "session",
+    stage: "fulfilment",
   },
   {
     key: "vendor_confirm_return",
@@ -58,6 +86,7 @@ export const BOOKING_ACTIONS: readonly BookingActionCopy[] = [
     meaning:
       "Confirms everything came back as expected. This is the last step — your payout becomes available once you tap it.",
     pattern: "custody",
+    stage: "fulfilment",
   },
   {
     key: "vendor_undo",
@@ -65,6 +94,7 @@ export const BOOKING_ACTIONS: readonly BookingActionCopy[] = [
     meaning:
       "Puts this back a step. You can redo it anytime, but the customer's 3-day window starts over.",
     pattern: "both",
+    stage: "fulfilment",
   },
   {
     key: "vendor_dispute",
@@ -72,6 +102,7 @@ export const BOOKING_ACTIONS: readonly BookingActionCopy[] = [
     meaning:
       "Puts the booking on hold and asks Ezzy to step in. No payout is released until it's sorted.",
     pattern: "both",
+    stage: "fulfilment",
   },
 ]
 

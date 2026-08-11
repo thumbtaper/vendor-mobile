@@ -4,11 +4,12 @@ import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tok
 
 export const makeStyles = (t: Tokens) =>
   StyleSheet.create({
+    // No horizontal inset (B1) — rendered inside the list's scrolling header,
+    // which already sits within the content container's `spacing.xl` padding.
     toolbar: {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
-      paddingHorizontal: spacing.xl,
       paddingBottom: spacing.sm,
     },
     segmented: {

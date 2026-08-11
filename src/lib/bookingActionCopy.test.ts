@@ -47,6 +47,28 @@ describe("bookingActionCopy — wording invariants", () => {
     }
   })
 
+  it("assigns every action a stage", () => {
+    // The stage is what surfaces filter on to keep the approval actions out of a
+    // fulfilment glossary — the web dashboard's "Completing a Booking" item maps
+    // this table and would otherwise list Approve and Reject under it.
+    for (const a of BOOKING_ACTIONS) {
+      assert.ok(
+        ["approval", "fulfilment"].includes(a.stage),
+        `${a.key} has an invalid stage: ${a.stage}`,
+      )
+    }
+  })
+
+  it("tells the vendor which approval decisions are reversible", () => {
+    // Approve is held locally for ~4s and only then written, because
+    // `validate_booking_status_transition` permits `pending -> confirmed` but not
+    // the reverse (useBookingActions.ts). Reject has no undo path at all — no
+    // rule in bookingActionRules.ts offers an action from `cancelled`. Both facts
+    // have to survive a copy edit, because a vendor reads them before committing.
+    assert.match(actionCopy("vendor_approve").meaning, /few seconds to undo/)
+    assert.match(actionCopy("vendor_reject").meaning, /can't be undone/)
+  })
+
   it("names the 3-day window wherever the auto-confirm timer applies", () => {
     // `vendor_fulfil` starts the booker's 3-day clock and `vendor_undo` restarts
     // it. A vendor deciding whether to tap either one is really asking "when does

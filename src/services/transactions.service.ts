@@ -16,15 +16,27 @@
 // approval and RLS review.
 
 import { supabase } from "@/lib/supabase/client"
-import type { BookingStatus, PayoutStatus, Transaction } from "@/lib/types"
+import type {
+  BookingStatus,
+  DateWindow,
+  PayoutStatus,
+  Transaction,
+} from "@/lib/types"
 import type { BookerContact } from "./bookings.service"
 import { sumTransactionTotals, type TotalsRow } from "./transactionTotals"
 
 export const TRANSACTIONS_PAGE_SIZE = 20
 
-// Ceiling for the totals query. Beyond this the summary reports itself as
-// partial rather than quietly understating the vendor's money.
-const TOTALS_MAX_ROWS = 2000
+// Ceiling for money-aggregate queries over `booking_transactions`. Beyond this the
+// figure reports itself as partial rather than quietly understating the vendor's
+// money.
+//
+// Exported because `dashboard.service.ts`'s revenue figure aggregates the SAME
+// table on the same payable rule and must use the SAME ceiling — two unexplained
+// ceilings in one app is how they drift (unbounded-queries plan C3). If a third
+// aggregate ever needs it, that is the signal to give the app one shared constant
+// module rather than passing this one around further.
+export const TOTALS_MAX_ROWS = 2000
 
 interface DbRow {
   id: string
@@ -48,13 +60,6 @@ const SELECT_COLS = `
   payout_status, created_at,
   bookings(booker_id, booked_date, status, offerings(name, code))
 `
-
-export interface DateWindow {
-  /** Inclusive PH calendar day, YYYY-MM-DD. */
-  from: string
-  /** Inclusive PH calendar day, YYYY-MM-DD. */
-  to: string
-}
 
 export interface TransactionsPage {
   transactions: Transaction[]

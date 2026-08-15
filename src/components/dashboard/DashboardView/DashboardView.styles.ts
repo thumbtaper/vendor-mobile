@@ -49,4 +49,12 @@ export const makeStyles = (t: Tokens) =>
       color: "#ef4444",
       fontSize: type.body.size,
     },
+    // Matches the transactions summary's `warning` (amber, caption, wrapping) —
+    // same meaning, same voice. Deliberately NO `numberOfLines`: at the largest
+    // accessibility font a truncated money warning is worse than none.
+    warning: {
+      color: "#f59e0b",
+      fontSize: type.caption.size,
+      lineHeight: 18,
+    },
   })

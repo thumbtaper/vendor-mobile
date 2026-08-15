@@ -1,18 +1,37 @@
 // The getting-started guide's content.
 //
-// Ported from `vendor/components/dashboard/GuidePanel/guideItems.ts` — but NOT
-// copied. The web list covers *Schedule Management*, *Offerings & Staff*, "the
-// Schedule page" and "the booker booking wizard". **None of those screens exist
-// in this app.** Its tabs are Dashboard, Bookings, Transactions, Notifications
-// and Settings, and a guide that sends a vendor looking for a Schedule page is
-// worse than no guide at all. So the list below is scoped to what the phone
-// actually does, and the closing note points at the portal for the rest — which
-// is the same thing Settings already tells them.
+// ⚠️ THIS IS DOCUMENTATION, AND IT DESCRIBES SCREENS THAT CHANGE. The web's
+// equivalent states the rule this file now follows too: *when the UI changes,
+// change this in the same commit.* It was not followed for the dashboard period
+// work — the period control and the drill-down shipped in Stages 3–6 while this
+// file still described the screens as they were before, and two of its claims had
+// become false. Every claim below was re-checked against the code on 2026-08-14.
+//
+// Reference, NOT source: `vendor/components/dashboard/GuideModal/guideItems.ts`
+// (it was `GuidePanel/` until vendor commit `fd7a62b` moved the web guide into a
+// modal — this app keeps its hide/show panel, D3).
+//
+// SCOPED TO WHAT THE PHONE DOES, deliberately. The web list covers *Offerings*,
+// *Staff* and *Schedule Management*, and tells vendors to "create sessions on the
+// Schedule page" and that transaction "summary cards recount themselves from
+// whatever the filters leave on screen". None of that is true here: those three
+// screens do not exist in this app, and this app's totals come from a separate
+// server query over the selected period rather than from the rows left on screen.
+// A guide that sends a vendor looking for a Schedule page, or that describes
+// numbers behaving in a way they do not, is worse than no guide. The closing note
+// points at the portal for the rest — the same thing Settings already says.
 //
 // No React import: this is a data module, and the render layer is `GuideCard`.
 
 import type { LucideIcon } from "lucide-react-native"
-import { Bell, BookOpen, CircleCheckBig, Clock, Wallet } from "lucide-react-native"
+import {
+  Bell,
+  BookOpen,
+  CircleCheckBig,
+  Clock,
+  LayoutDashboard,
+  Wallet,
+} from "lucide-react-native"
 
 import { BOOKING_ACTIONS } from "@/lib/bookingActionCopy"
 
@@ -30,6 +49,33 @@ export interface GuideItem {
 
 export const GUIDE_ITEMS: GuideItem[] = [
   {
+    Icon: LayoutDashboard,
+    title: "This screen",
+    color: "#3b82f6",
+    // Deliberately NOT web's Dashboard wording. Web describes seven cards in two
+    // labelled groups and a Gross/Fee/Net/Payout split; this app has four flat
+    // cards (dashboard range plan D4 kept it that way), and its "Today's" card
+    // opens Bookings, where web's opens a Calendar this app does not have.
+    body: "Your four numbers at a glance. The period chips at the top change what two of them cover — tap a card to open the screen behind it.",
+    actions: [
+      {
+        label: "Pending Approvals and Today's Bookings",
+        meaning:
+          "Ignore the period on purpose. Hiding a request because of a date filter would hide work you still have to do, and today is today.",
+      },
+      {
+        label: "Completed and Revenue",
+        meaning:
+          "Follow the period you pick. The date under each number always says which range it covers.",
+      },
+      {
+        label: "Tapping a card",
+        meaning:
+          "Opens the matching screen with the same period applied. Pending Approvals opens the Needs you group, which also holds returns waiting on you, so that list can be longer than the number you tapped.",
+      },
+    ],
+  },
+  {
     Icon: Clock,
     title: "Pending approvals",
     color: "#f59e0b",
@@ -39,7 +85,21 @@ export const GUIDE_ITEMS: GuideItem[] = [
     Icon: BookOpen,
     title: "Bookings and filters",
     color: "#10b981",
-    body: "Every booking lives under the Bookings tab. The chips across the top filter by the stage a booking is at, and the badge on each one counts how many are waiting on you.",
+    // Rewritten: there are TWO chip rows here now, and the old single sentence
+    // described neither the split nor the date row.
+    body: "Every booking lives under the Bookings tab, under two rows of chips.",
+    actions: [
+      {
+        label: "Top row — the stage a booking is at",
+        meaning:
+          "Groups bookings by what you have to do about them. The red badges count everything outstanding, whatever date filter is set, so they can never tell you there is less waiting than there is.",
+      },
+      {
+        label: "Second row — the date it is booked for",
+        meaning:
+          "Starts on All dates, which is every booking. Pick a period to narrow it, or go back to All dates to see the lot again.",
+      },
+    ],
   },
   {
     Icon: CircleCheckBig,
@@ -62,7 +122,13 @@ export const GUIDE_ITEMS: GuideItem[] = [
     // shows `payout_amount` under the sub-label "After platform fee"
     // (`TransactionSummaryCards.tsx`), and the service selects
     // `platform_fee_amount` and `payout_amount` separately.
-    body: "What each payable booking earned you, after the platform fee. The totals at the top match the payout figure on your dashboard.",
+    //
+    // The dashboard-agreement claim is now QUALIFIED. It used to read "The totals
+    // at the top match the payout figure on your dashboard", which held only
+    // because both screens were always locked to the current month. Each carries
+    // its own period now, so the two agree when the periods agree — and a claim
+    // about money agreeing between screens is not one to leave approximately true.
+    body: "What each payable booking earned you, after the platform fee. Its period chips work like the dashboard's, and Your payout matches the dashboard's Revenue whenever both are set to the same range.",
   },
   {
     Icon: Bell,

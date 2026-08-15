@@ -134,10 +134,14 @@ export function phToday(): string {
   return toPhDate(new Date().toISOString())
 }
 
-// First and last PH calendar day of the current month, inclusive — the range
-// behind D2-A's "Completed This Month" and "Monthly Revenue" stats.
-export function phCurrentMonthRange(): { from: string; to: string } {
-  const today = phToday()
+// First and last PH calendar day of the month containing `day`, inclusive — the
+// range behind D2-A's "Completed This Month" and "Monthly Revenue" stats.
+//
+// `day` defaults to today in Manila, which is every production caller. It is a
+// parameter so the preset table in `dateWindows.ts` can be computed against ONE
+// reference day: resolving "today" separately per preset would let a strip built
+// across midnight mix two days, and it would make the whole table untestable.
+export function phCurrentMonthRange(today: string = phToday()): { from: string; to: string } {
   const [year, month] = today.split("-").map(Number)
   const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate()
   const mm = String(month).padStart(2, "0")

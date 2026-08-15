@@ -1,13 +1,13 @@
 import { useMemo } from "react"
-import { Pressable, Text, View } from "react-native"
+import { Text, View } from "react-native"
 
+import { PeriodFilter } from "@/components/common/PeriodFilter/PeriodFilter"
 import { RefreshableList } from "@/components/common/RefreshableList/RefreshableList"
 import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
 import { SearchField } from "@/components/common/SearchField/SearchField"
 import { StaleBanner } from "@/components/common/StaleBanner/StaleBanner"
 import { TransactionListItem } from "@/components/transactions/TransactionListItem/TransactionListItem"
 import { TransactionSummaryCards } from "@/components/transactions/TransactionSummaryCards/TransactionSummaryCards"
-import { WINDOW_PRESETS } from "@/hooks/useTransactionsQuery"
 import type { Transaction } from "@/lib/types"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./TransactionsView.styles"
@@ -27,29 +27,12 @@ export function TransactionsView() {
       <ScreenTitle />
 
       <View style={styles.toolbar}>
-        <View style={styles.presets} accessibilityRole="tablist">
-          {WINDOW_PRESETS.map((preset) => {
-            const active = preset.value === s.preset
-            return (
-              <Pressable
-                key={preset.value}
-                onPress={() => s.setPreset(preset.value)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
-                style={[styles.preset, active && styles.presetActive]}
-              >
-                <Text
-                  style={[
-                    styles.presetLabel,
-                    active && styles.presetLabelActive,
-                  ]}
-                >
-                  {preset.label}
-                </Text>
-              </Pressable>
-            )
-          })}
-        </View>
+        {/* Was a three-segment control built inline here. It becomes the shared
+            chip strip because the preset set is now five (D3) — five equal-width
+            segments would be unreadably narrow, where the strip scrolls. No
+            `allowAll`: this screen's totals must always cover a bounded range
+            (F9), and the three presets it shipped with are all still present. */}
+        <PeriodFilter value={s.window} onChange={s.setWindow} />
 
         <SearchField
           placeholder="Search booker or offering"

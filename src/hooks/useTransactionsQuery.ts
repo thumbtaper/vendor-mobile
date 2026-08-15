@@ -1,47 +1,34 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
 
-import { phCurrentMonthRange, phToday } from "@/lib/format"
-import type { Transaction } from "@/lib/types"
+import type { DateWindow, Transaction } from "@/lib/types"
 import { useBookerContacts } from "./useBookingsQuery"
 import type { BookerContact } from "@/services/bookings.service"
 import {
   getTransactionTotals,
   getTransactionsPage,
-  type DateWindow,
 } from "@/services/transactions.service"
 
-export type WindowPreset = "this-month" | "last-3-months" | "last-12-months"
-
-export const WINDOW_PRESETS: { value: WindowPreset; label: string }[] = [
-  { value: "this-month", label: "This month" },
-  { value: "last-3-months", label: "3 months" },
-  { value: "last-12-months", label: "12 months" },
-]
-
-// No "all time" preset: an unbounded window is exactly what D9 avoids. The
-// longest option is a year, which is bounded and predictable.
-export function windowFor(preset: WindowPreset): DateWindow {
-  const to = phToday()
-  if (preset === "this-month") return phCurrentMonthRange()
-
-  const months = preset === "last-3-months" ? 3 : 12
-  const d = new Date(`${to}T00:00:00Z`)
-  d.setUTCMonth(d.getUTCMonth() - months)
-  return { from: d.toISOString().slice(0, 10), to }
-}
-
+// Takes a WINDOW, not a preset name (dashboard range plan D1c). The preset table
+// and its arithmetic — including the "no all time" refusal that used to live here
+// — moved to `lib/dateWindows.ts`, where they are shared with the dashboard and
+// the bookings list and are unit-testable. A carried-in window from a dashboard
+// drill-down could not be represented while this took a preset name.
 export function useTransactionsQuery(
   vendorId: string | null,
-  preset: WindowPreset,
+  window: DateWindow,
 ) {
-  const window = useMemo(() => windowFor(preset), [preset])
   const contacts = useBookerContacts(vendorId)
 
   const list = useInfiniteQuery({
     // First key element matches `PERSISTED_KEYS` so the first page survives a
     // cold offline open (D11).
-    queryKey: ["transactions-first-page", vendorId ?? "", preset],
+    //
+    // ⚠️ Keyed by the window's BOUNDS, where it used to be keyed by a preset
+    // name. One-time cost, worth stating: every persisted entry written by an
+    // older build misses after this update, so the first open refetches. No wrong
+    // data — a miss, not a stale hit.
+    queryKey: ["transactions-first-page", vendorId ?? "", window.from, window.to],
     enabled: Boolean(vendorId) && contacts.isSuccess,
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
@@ -55,7 +42,7 @@ export function useTransactionsQuery(
   })
 
   const totals = useQuery({
-    queryKey: ["transaction-totals", vendorId ?? "", preset],
+    queryKey: ["transaction-totals", vendorId ?? "", window.from, window.to],
     enabled: Boolean(vendorId),
     queryFn: () => getTransactionTotals(vendorId!, window),
   })

@@ -3,7 +3,7 @@ import { useIsFocused } from "expo-router"
 import { useMemo } from "react"
 
 import type { BookingFilterKey } from "@/lib/bookingFilters"
-import type { Booking, BookingStatus } from "@/lib/types"
+import type { Booking, BookingStatus, DateWindow } from "@/lib/types"
 import {
   getBookerContacts,
   getBookingsPage,
@@ -37,7 +37,11 @@ export type BookingFilter = BookingFilterKey
 // short-lived. If it ever shows up in practice, `maxPages` is the lever.
 export const POLL_MS = 60_000
 
-export function bookingsQueryKey(vendorId: string, statuses: BookingStatus[]) {
+export function bookingsQueryKey(
+  vendorId: string,
+  statuses: BookingStatus[],
+  window?: DateWindow | null,
+) {
   // First element matches `PERSISTED_KEYS` in lib/queryClient.ts, so the bookings
   // list survives a cold start (D11). Keeping the ["bookings", vendorId] PREFIX
   // intact also matters for correctness, not just tidiness: `useBookingsRealtime`
@@ -46,7 +50,14 @@ export function bookingsQueryKey(vendorId: string, statuses: BookingStatus[]) {
   //
   // The statuses are joined into one stable string rather than nested as an array
   // so that ["pending"] and ["pending"] from two call sites hash identically.
-  return ["bookings", vendorId, statuses.join(",") || "all"] as const
+  const base = ["bookings", vendorId, statuses.join(",") || "all"] as const
+
+  // The window is APPENDED, never substituted — otherwise a period's cached page
+  // would be served for a different one. Absent when there is no date filter,
+  // which keeps the unfiltered list's key byte-identical to what it was before
+  // periods existed, so no cache is orphaned by this change and
+  // `isDefaultWindowKey` reads it as "no window" and persists it as before.
+  return window ? ([...base, window.from, window.to] as const) : base
 }
 
 export function contactsQueryKey(vendorId: string) {
@@ -75,10 +86,14 @@ export function useBookerContacts(vendorId: string | null) {
  * heading and disagree with the number printed above them.
  *
  * An empty array means no status filter at all.
+ *
+ * `window` is optional for the same reason: the dashboard's pending preview and a
+ * drill-down from "Pending Approvals" both want the live queue, not a period.
  */
 export function useBookingsQuery(
   vendorId: string | null,
   statuses: BookingStatus[],
+  window?: DateWindow | null,
 ) {
   const contacts = useBookerContacts(vendorId)
   // Scoped to the SCREEN this hook is mounted in, which is what makes one poll
@@ -87,7 +102,7 @@ export function useBookingsQuery(
   const isFocused = useIsFocused()
 
   const query = useInfiniteQuery({
-    queryKey: bookingsQueryKey(vendorId ?? "", statuses),
+    queryKey: bookingsQueryKey(vendorId ?? "", statuses, window),
     refetchInterval: isFocused ? POLL_MS : false,
     // Waiting for contacts keeps a page from rendering with blank booker names
     // and then filling in — a visible flash of anonymous rows.
@@ -99,6 +114,7 @@ export function useBookingsQuery(
         pageParam,
         statuses,
         contacts.data ?? new Map<string, BookerContact>(),
+        window,
       ),
     getNextPageParam: (lastPage) => lastPage.nextPage,
   })

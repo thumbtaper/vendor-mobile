@@ -1,5 +1,6 @@
 import { BookingFilterTabs } from "@/components/bookings/BookingFilterTabs/BookingFilterTabs"
 import { BookingListItem } from "@/components/bookings/BookingListItem/BookingListItem"
+import { PeriodFilter } from "@/components/common/PeriodFilter/PeriodFilter"
 import { RefreshableList } from "@/components/common/RefreshableList/RefreshableList"
 import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
 import { StaleBanner } from "@/components/common/StaleBanner/StaleBanner"
@@ -20,6 +21,13 @@ export function BookingsList() {
         onChange={s.setFilter}
         counts={s.filterCounts}
       />
+      {/* A SECOND strip rather than a seventh chip in the one above (D6):
+          `lib/bookingFilters.ts` names that strip the constrained resource and
+          asks for a secondary control instead. Both stay visible, which is what
+          lets a drill-down explain why the list it landed on looks narrower than
+          the tab usually does. `allowAll` because this list has no period by
+          default and must be able to get back to that. */}
+      <PeriodFilter value={s.window} onChange={s.setWindow} allowAll />
       <StaleBanner
         dataUpdatedAt={s.dataUpdatedAt}
         isError={s.isError}

@@ -22,7 +22,7 @@ import type {
   PayoutStatus,
   Transaction,
 } from "@/lib/types"
-import type { BookerContact } from "./bookings.service"
+import { getBookerContactsFor, type BookerContact } from "./bookings.service"
 import { sumTransactionTotals, type TotalsRow } from "./transactionTotals"
 
 export const TRANSACTIONS_PAGE_SIZE = 20
@@ -64,6 +64,17 @@ const SELECT_COLS = `
 export interface TransactionsPage {
   transactions: Transaction[]
   nextPage: number | null
+  /**
+   * True when this page's booker contacts could not be read.
+   *
+   * A DEGRADED state, not a failure: the money on the page is still correct, only
+   * the names are blank and search cannot match them. The transactions screen has
+   * always made this trade — breaking the whole ledger because a name lookup
+   * failed would be the wrong direction — so the flag rides along per page rather
+   * than the error propagating. The bookings list makes the opposite call for the
+   * opposite reason; see `getBookingsPage`.
+   */
+  contactsFailed: boolean
 }
 
 export interface TransactionTotals {
@@ -115,7 +126,6 @@ export async function getTransactionsPage(
   vendorId: string,
   page: number,
   window: DateWindow,
-  contacts: Map<string, BookerContact>,
 ): Promise<TransactionsPage> {
   const from = page * TRANSACTIONS_PAGE_SIZE
   const to = from + TRANSACTIONS_PAGE_SIZE - 1
@@ -136,11 +146,32 @@ export async function getTransactionsPage(
   if (error) throw error
 
   const rows = (data as unknown as DbRow[]) ?? []
+
+  // Contacts for THIS PAGE's bookers only — at most 20 ids, so the RPC's
+  // `max_rows` cap is unreachable. It used to receive a map of every contact the
+  // vendor has, which silently truncated past 1000 distinct bookers and rendered
+  // affected rows anonymous (unbounded-queries plan B2).
+  //
+  // ⚠️ CAUGHT, not propagated, and that asymmetry with `getBookingsPage` is
+  // deliberate: here the money is right without the names, so failing the ledger
+  // over a name lookup would be the wrong trade. The caller is told instead.
+  let contacts = new Map<string, BookerContact>()
+  let contactsFailed = false
+  try {
+    contacts = await getBookerContactsFor(
+      vendorId,
+      rows.map((row) => row.bookings?.booker_id ?? ""),
+    )
+  } catch {
+    contactsFailed = true
+  }
+
   return {
     transactions: rows.map((row) =>
       toTransaction(row, contacts.get(row.bookings?.booker_id ?? "")),
     ),
     nextPage: rows.length === TRANSACTIONS_PAGE_SIZE ? page + 1 : null,
+    contactsFailed,
   }
 }
 

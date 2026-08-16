@@ -1,33 +1,26 @@
 import { useQuery } from "@tanstack/react-query"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useCallback } from "react"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { useBookingActions, type FulfilAction } from "@/hooks/useBookingActions"
-import { useBookerContacts } from "@/hooks/useBookingsQuery"
+import { useBottomInset } from "@/hooks/useBottomInset"
 import { useSessionGate } from "@/providers/SessionGateProvider"
-import { getBookingById, type BookerContact } from "@/services/bookings.service"
-import { TAB_BAR_HEIGHT } from "@/theme/tokens"
+import { getBookingById } from "@/services/bookings.service"
 
 export function useBookingDetail() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
   const { gate } = useSessionGate()
   const vendorId = gate.selectedVendorId
-  const insets = useSafeAreaInsets()
+  const bottomInset = useBottomInset({ tabBar: true, extra: 0 })
 
-  const contacts = useBookerContacts(vendorId)
   const actions = useBookingActions(vendorId)
 
   const query = useQuery({
     queryKey: ["booking", vendorId ?? "", id],
-    enabled: Boolean(vendorId) && Boolean(id) && contacts.isSuccess,
-    queryFn: () =>
-      getBookingById(
-        vendorId!,
-        id!,
-        contacts.data ?? new Map<string, BookerContact>(),
-      ),
+    // No contacts gate: `getBookingById` resolves its one booker itself.
+    enabled: Boolean(vendorId) && Boolean(id),
+    queryFn: () => getBookingById(vendorId!, id!),
   })
 
   const goBack = useCallback(() => {
@@ -93,10 +86,16 @@ export function useBookingDetail() {
     // Read here rather than in `BookingDetail.tsx` so the render layer stays pure
     // (component-separation): it receives a number and applies it inline, which
     // is allowed precisely because the value is dynamic.
-    bottomInset: insets.bottom + TAB_BAR_HEIGHT,
+    //
+    // ⚠️ `extra: 0` preserves this screen's ORIGINAL value exactly. Every other
+    // caller adds `spacing.xl` of design breathing room on top; this one never
+    // did, because the action bar is meant to sit against the bar rather than
+    // float above it. Taking the hook's default here would silently move the
+    // action bar 24pt up — a change nobody asked for, hidden inside a refactor.
+    bottomInset,
     booking: query.data ?? null,
-    isLoading: query.isLoading || contacts.isLoading,
-    isError: query.isError || contacts.isError,
+    isLoading: query.isLoading,
+    isError: query.isError,
     refetch: query.refetch,
     approve: approveBookingFromBar,
     reject,

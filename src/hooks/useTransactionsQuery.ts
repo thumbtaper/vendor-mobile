@@ -2,8 +2,6 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
 
 import type { DateWindow, Transaction } from "@/lib/types"
-import { useBookerContacts } from "./useBookingsQuery"
-import type { BookerContact } from "@/services/bookings.service"
 import {
   getTransactionTotals,
   getTransactionsPage,
@@ -18,8 +16,6 @@ export function useTransactionsQuery(
   vendorId: string | null,
   window: DateWindow,
 ) {
-  const contacts = useBookerContacts(vendorId)
-
   const list = useInfiniteQuery({
     // First key element matches `PERSISTED_KEYS` so the first page survives a
     // cold offline open (D11).
@@ -29,15 +25,9 @@ export function useTransactionsQuery(
     // older build misses after this update, so the first open refetches. No wrong
     // data — a miss, not a stale hit.
     queryKey: ["transactions-first-page", vendorId ?? "", window.from, window.to],
-    enabled: Boolean(vendorId) && contacts.isSuccess,
+    enabled: Boolean(vendorId),
     initialPageParam: 0,
-    queryFn: ({ pageParam }) =>
-      getTransactionsPage(
-        vendorId!,
-        pageParam,
-        window,
-        contacts.data ?? new Map<string, BookerContact>(),
-      ),
+    queryFn: ({ pageParam }) => getTransactionsPage(vendorId!, pageParam, window),
     getNextPageParam: (lastPage) => lastPage.nextPage,
   })
 
@@ -60,7 +50,11 @@ export function useTransactionsQuery(
     // A contacts failure degrades search rather than breaking the page: the money
     // is still correct, but booker names are blank and searching by booker
     // matches nothing. The web reports this separately for the same reason.
-    contactsFailed: contacts.isError,
+    //
+    // Now reported PER PAGE by the service, since contacts are resolved there
+    // (unbounded-queries B2). Any affected page raises the notice — one page of
+    // anonymous rows is enough to make a search misleading.
+    contactsFailed: list.data?.pages.some((p) => p.contactsFailed) ?? false,
     window,
   }
 }

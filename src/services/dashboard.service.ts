@@ -11,8 +11,9 @@ import { supabase } from "@/lib/supabase/client"
 import { rangeLabel } from "@/lib/dateWindows"
 import { phToday } from "@/lib/format"
 import type { DateWindow } from "@/lib/types"
+import { summariseFinancials, type FinancialTotals } from "./financials"
 import { TOTALS_MAX_ROWS } from "./transactions.service"
-import { sumTransactionTotals, type TotalsRow } from "./transactionTotals"
+import type { TotalsRow } from "./transactionTotals"
 
 export interface DashboardStats {
   /**
@@ -25,22 +26,28 @@ export interface DashboardStats {
   todaysBookings: number
   /** Scoped to the selected period. */
   completed: number
-  /** Scoped to the selected period. */
-  revenue: number
   /**
-   * False when the payment ledger could not be read — currently the case whenever
-   * `booking_transactions` is absent from the deployed schema (plan B1). The card
-   * then shows "unavailable" instead of a confident ₱ 0, which would be a lie.
+   * The Earnings group's four figures, scoped to the selected period — or `null`
+   * when the ledger could not be read.
+   *
+   * ⚠️ `null`, NEVER zeroed totals. A vendor who earned money this period must not
+   * be shown a confident ₱ 0 because a fetch failed; the cards render "—" instead.
+   * That is why this is a nullable object rather than flat fields with an
+   * `available` flag beside them — the flag can be ignored, a null cannot.
+   *
+   * Replaced the single payable-only `revenue` number. `earnings.payout` is that
+   * same figure, unchanged: it is the one member computed on the payable-only
+   * rule, which `financials.test.ts` asserts against `sumTransactionTotals`.
    */
-  revenueAvailable: boolean
+  earnings: FinancialTotals | null
   /**
    * False when the period holds more payments than one query may total
-   * (`TOTALS_MAX_ROWS`), so the revenue figure covers the most recent
-   * `TOTALS_MAX_ROWS` and the real total is HIGHER. Surfaced on the dashboard —
-   * a silently short money figure is the defect this flag exists to prevent
+   * (`TOTALS_MAX_ROWS`), so the figures cover the most recent `TOTALS_MAX_ROWS`
+   * and the real totals are HIGHER. Surfaced in the Earnings caption — a silently
+   * short money figure is the defect this flag exists to prevent
    * (unbounded-queries plan B1/I1).
    */
-  revenueComplete: boolean
+  earningsComplete: boolean
   /**
    * How the period reads on screen ("Aug 2026", "Today", "14 May – 14 Aug 2026").
    *
@@ -69,10 +76,15 @@ function bookingsQuery(vendorId: string) {
 
 // Named for the window, not for a month: the period is selectable, so
 // "getMonthlyRevenue" would have been wrong on four of the five presets.
-async function getRevenueForWindow(
+//
+// Returns the FULL decomposition rather than one number. ⚠️ The query is
+// unchanged — it already selected all four money columns, because the payable
+// reducer needed them. The Earnings group is therefore four figures at the cost of
+// zero extra network work; only the reduction changed.
+async function getEarningsForWindow(
   vendorId: string,
   { from, to }: DateWindow,
-): Promise<{ total: number; available: boolean; complete: boolean }> {
+): Promise<{ totals: FinancialTotals | null; complete: boolean }> {
   // `to` is an inclusive calendar day but created_at is a timestamptz, so the
   // upper bound is the start of the following day rather than `to` itself —
   // otherwise every payment made after midnight on the last day of the period is
@@ -98,22 +110,26 @@ async function getRevenueForWindow(
     .order("created_at", { ascending: false })
     .range(0, TOTALS_MAX_ROWS - 1)
 
-  // An unreadable ledger stays "unavailable", not a confident ₱ 0 — and not
-  // "partial" either, so the card shows one honest state rather than two.
-  if (error) return { total: 0, available: false, complete: true }
+  // An unreadable ledger yields NULL totals, not zeroed ones — and not "partial"
+  // either, so the cards show one honest state ("—") rather than two.
+  if (error) return { totals: null, complete: true }
 
   const rows = (data as unknown as TotalsRow[]) ?? []
 
-  // The payable rule is NOT re-implemented here. `sumTransactionTotals` is the
-  // app's single, unit-tested home for it (`transactionTotals.test.ts`), and the
-  // rule it encodes — an absent payout_status defaults to `held`, never to payable
-  // — is the one piece of arithmetic that must not exist twice. Its `payout` is
-  // exactly this card's figure; the two extra money columns it also sums are the
-  // price of that reuse, and they are two numerics per row.
-  const total = sumTransactionTotals(rows).payout
+  // The arithmetic is NOT re-implemented here. `summariseFinancials` is its single
+  // unit-tested home (`financials.test.ts`), including the rule that an absent
+  // payout_status defaults to `held` and never to payable.
+  //
+  // ⚠️ Its `payout` is byte-for-byte what the old single `revenue` figure was —
+  // `sumTransactionTotals(rows).payout` — which is asserted directly in
+  // `financials.test.ts`. The card is being renamed to "Payout Released", not
+  // recalculated. The other three figures are NEW and sit on a wider,
+  // non-reversed basis; the Earnings caption states that, because on that basis
+  // `gross` can exceed the Transactions screen's "Collected" for the same period.
+  const totals = summariseFinancials(rows)
 
   const totalCount = count ?? rows.length
-  return { total, available: true, complete: totalCount <= TOTALS_MAX_ROWS }
+  return { totals, complete: totalCount <= TOTALS_MAX_ROWS }
 }
 
 function nextDay(isoDate: string): string {
@@ -123,15 +139,16 @@ function nextDay(isoDate: string): string {
 }
 
 /**
- * The four dashboard figures for one period.
+ * Every dashboard figure for one period — three Operations counts plus the
+ * Earnings decomposition.
  *
- * ⚠️ Only TWO of them take the window. `pendingApprovals` and `todaysBookings` are
+ * ⚠️ Only TWO of the counts take the window. `pendingApprovals` and `todaysBookings` are
  * deliberately unscoped — see the interface above. If a future change scopes them
  * "for consistency", it is hiding work from the vendor.
  *
  * `booked_date` is a `date` column, so the window's inclusive calendar days apply
  * to it directly. The revenue query bounds a timestamptz and needs the extra step;
- * that is handled inside `getRevenueForWindow`, not here.
+ * that is handled inside `getEarningsForWindow`, not here.
  */
 export async function getDashboardStats(
   vendorId: string,
@@ -140,7 +157,7 @@ export async function getDashboardStats(
   const today = phToday()
   const { from, to } = window
 
-  const [pendingApprovals, todaysBookings, completed, revenue] =
+  const [pendingApprovals, todaysBookings, completed, earnings] =
     await Promise.all([
       countBookings(vendorId, (q) => q.eq("status", "pending")),
       // Excludes cancelled: a cancelled booking is not something the vendor is
@@ -151,16 +168,15 @@ export async function getDashboardStats(
       countBookings(vendorId, (q) =>
         q.eq("status", "completed").gte("booked_date", from).lte("booked_date", to),
       ),
-      getRevenueForWindow(vendorId, window),
+      getEarningsForWindow(vendorId, window),
     ])
 
   return {
     pendingApprovals,
     todaysBookings,
     completed,
-    revenue: revenue.total,
-    revenueAvailable: revenue.available,
-    revenueComplete: revenue.complete,
+    earnings: earnings.totals,
+    earningsComplete: earnings.complete,
     periodLabel: rangeLabel(window),
   }
 }

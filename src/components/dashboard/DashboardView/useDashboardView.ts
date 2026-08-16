@@ -1,24 +1,66 @@
 import { useQuery } from "@tanstack/react-query"
 import { useRouter } from "expo-router"
-import { useCallback, useState } from "react"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
+import type { ScrollView } from "react-native"
 
 import { useBookingsQuery } from "@/hooks/useBookingsQuery"
-import { defaultWindow, windowFor } from "@/lib/dateWindows"
+import { useBottomInset } from "@/hooks/useBottomInset"
+import { defaultWindow, rangeDatesLabel, windowFor } from "@/lib/dateWindows"
+import { fmtPeso } from "@/lib/format"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 import { getDashboardStats } from "@/services/dashboard.service"
 import type { Booking, BookingStatus, DateWindow } from "@/lib/types"
-import { spacing, TAB_BAR_HEIGHT } from "@/theme/tokens"
 
 // Module-level constant, not an inline literal: a fresh array on every render
 // would be a new query key each time and refetch forever.
 const PENDING_ONLY: BookingStatus[] = ["pending"]
 
-export function useDashboardView() {
+/**
+ * @param scrollRef The dashboard's own ScrollView, created by the render layer.
+ *
+ * ⚠️ It is created THERE and passed in, rather than created here and handed back,
+ * and that is not a style preference: `reactCompiler` is enabled
+ * (`app.json` → `experiments`), and returning a ref — or even a callback ref —
+ * from a hook makes the compiler lint treat every property read on this hook's
+ * result as a ref access during render. That produced **52 errors across
+ * `DashboardView`**, none of which mentioned the ref. Passing the handle in is
+ * the shape the compiler understands, and the render layer still holds no logic:
+ * an inert handle, with the effect that uses it living here.
+ */
+export function useDashboardView(
+  guideHidden: boolean | null,
+  scrollRef: RefObject<ScrollView | null>,
+) {
   const router = useRouter()
   const { gate } = useSessionGate()
   const vendorId = gate.selectedVendorId
-  const insets = useSafeAreaInsets()
+  const contentBottomPadding = useBottomInset({ tabBar: true })
+
+  // ── Bringing the guide into view when the header reveals it (I5) ────────────
+  //
+  // The card renders BELOW the stat grid, so on a phone a vendor who taps the
+  // header button while scrolled down sees nothing happen: the card appears,
+  // correctly, off-screen. That is the "did my tap work" failure the whole point
+  // of moving the trigger was to avoid.
+  const guideY = useRef(0)
+  const onGuideLayout = useCallback((y: number) => {
+    guideY.current = y
+  }, [])
+
+  // ⚠️ Only on a TRUE → FALSE transition. `hidden` also goes `null → false` on
+  // every cold start for the majority of vendors, who have never hidden the
+  // guide — scrolling on that would yank the dashboard down each time the app
+  // opens. The ref is what distinguishes "was hidden, now revealed" from "we have
+  // just learned it was never hidden".
+  const wasHidden = useRef(false)
+  useEffect(() => {
+    if (wasHidden.current && guideHidden === false) {
+      scrollRef.current?.scrollTo({ y: guideY.current, animated: true })
+    }
+    if (guideHidden !== null) wasHidden.current = guideHidden
+    // `scrollRef` is listed because it is a prop now; a ref object is stable, so
+    // it never actually re-runs this.
+  }, [guideHidden, scrollRef])
 
   // Lazy initialiser, not `useState(defaultWindow())`: the eager form would
   // recompute the current month on every render and throw the result away.
@@ -109,7 +151,46 @@ export function useDashboardView() {
     [router, window],
   )
 
-  const openRevenue = useCallback(
+  // ── The two clocks, stated in words (I2) ────────────────────────────────────
+  //
+  // ⚠️ These captions are what make ONE period control over TWO groups honest.
+  // Operations counts by `bookings.booked_date` (the day a job is booked FOR);
+  // Earnings counts by `booking_transactions.created_at` (the day money was
+  // PAID). The same dates select different rows, so the groups can disagree
+  // without either being wrong — and nothing else on screen says so.
+  const opsCaption = `Bookings serviced ${rangeDatesLabel(window)}`
+
+  // Built from the data rather than fixed, because two of its clauses are
+  // properties of the fetch. The truncation warning that used to sit under the
+  // grid folds in here: the caption is directly above the money it qualifies, and
+  // two separate places saying "this period is incomplete" is worse than one.
+  //
+  // ⚠️ THE BASIS CLAUSE IS LOAD-BEARING, not boilerplate. Three of the four cards
+  // are computed over non-reversed rows while Payout Released is payable-only, so
+  // `gross` here can legitimately EXCEED the Transactions screen's "Collected" for
+  // the same period. Two screens showing different totals for one month reads as a
+  // bug unless something says why — and a drill-down puts them one tap apart.
+  const earnings = stats.data?.earnings
+  const earningsCaption = [
+    `Payments received ${rangeDatesLabel(window)}`,
+    earnings ? "Excludes reversed payouts · Payout is released & releasable only" : null,
+    stats.data && !stats.data.earnings ? "payment ledger unavailable" : null,
+    stats.data?.earningsComplete === false
+      ? "only the most recent payments are counted — the real totals are higher"
+      : null,
+    // Named rather than silently dropped: a vendor whose figures look light is
+    // owed the reason. Only shown when there is one.
+    earnings && earnings.reversedCount > 0
+      ? `${earnings.reversedCount} reversed payout${earnings.reversedCount === 1 ? "" : "s"} excluded`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ")
+
+  // ONE destination for all four Earnings cards: they count the same ledger over
+  // the same period, so a per-card callback would be four ways to express one
+  // navigation. Same reasoning as the web portal's single `onViewTransactions`.
+  const openTransactions = useCallback(
     () =>
       router.push({
         pathname: "/transactions",
@@ -121,10 +202,22 @@ export function useDashboardView() {
   return {
     // I3 — this screen's scroll content used a STATIC bottom pad, so it cleared
     // the tab bar's body but not the safe-area strip beneath it: short by ~24 on
-    // gesture navigation and ~48 on three-button. Same composition as
-    // `useRefreshableList`, so every scroll surface in the app now clears the bar
-    // by the same 24 rather than each guessing.
-    contentBottomPadding: TAB_BAR_HEIGHT + insets.bottom + spacing.xl,
+    // gesture navigation and ~48 on three-button. The composition now lives in
+    // `useBottomInset`, shared with every other bottom-anchored surface; the value
+    // is unchanged.
+    contentBottomPadding,
+    onGuideLayout,
+    opsCaption,
+    earningsCaption,
+    // Derived here rather than repeated in four `unavailable={...}` expressions:
+    // the render layer should not be re-deriving one condition per card.
+    earningsUnavailable: Boolean(stats.data) && !stats.data?.earnings,
+    // Names money still held rather than leaving it missing from the figure. The
+    // fallback states the basis instead, so the sub-line is never empty.
+    payoutSub:
+      earnings && earnings.onHold > 0
+        ? `${fmtPeso(earnings.onHold, 0)} still on hold`
+        : "Released & releasable",
     window,
     setWindow,
     stats: stats.data ?? null,
@@ -143,7 +236,7 @@ export function useDashboardView() {
     openPending,
     openToday,
     openCompleted,
-    openRevenue,
+    openTransactions,
     vendorName: gate.selectedVendorName,
   }
 }

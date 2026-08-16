@@ -8,6 +8,7 @@ import {
   isDefaultWindowKey,
   parseWindowParam,
   presetForWindow,
+  rangeDatesLabel,
   rangeLabel,
   windowFor,
 } from "./dateWindows.ts"
@@ -154,6 +155,41 @@ describe("rangeLabel", () => {
     assert.equal(
       rangeLabel({ from: "2026-08-01", to: "2026-08-14" }, TODAY),
       "01 Aug – 14 Aug 2026",
+    )
+  })
+})
+
+describe("rangeDatesLabel — the section caption's span", () => {
+  it("spells a whole month out, where rangeLabel compacts it", () => {
+    const month = windowFor("this-month", TODAY)
+    // The distinction that justifies having both: a caption directly above a card
+    // must not repeat the card's own words.
+    assert.equal(rangeLabel(month, TODAY), "Aug 2026")
+    assert.equal(rangeDatesLabel(month), "01–31 Aug 2026")
+  })
+
+  it("prints a single day once", () => {
+    assert.equal(rangeDatesLabel({ from: TODAY, to: TODAY }), "14 Aug 2026")
+  })
+
+  it("prints month and year once for a same-month span", () => {
+    assert.equal(
+      rangeDatesLabel({ from: "2026-08-01", to: "2026-08-14" }),
+      "01–14 Aug 2026",
+    )
+  })
+
+  it("prints the year once for a same-year span", () => {
+    assert.equal(
+      rangeDatesLabel({ from: "2026-05-14", to: "2026-08-14" }),
+      "14 May – 14 Aug 2026",
+    )
+  })
+
+  it("prints both years when the span crosses one", () => {
+    assert.equal(
+      rangeDatesLabel({ from: "2025-08-14", to: "2026-08-14" }),
+      "14 Aug 2025 – 14 Aug 2026",
     )
   })
 })

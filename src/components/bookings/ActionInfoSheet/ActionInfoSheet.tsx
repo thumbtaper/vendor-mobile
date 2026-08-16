@@ -5,6 +5,7 @@ import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
 import type { BookingActionCopy } from "@/lib/bookingActionCopy"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./ActionInfoSheet.styles"
+import { useActionInfoSheet } from "./useActionInfoSheet"
 
 interface Props {
   visible: boolean
@@ -41,6 +42,7 @@ interface Props {
 export function ActionInfoSheet({ visible, actions, onClose }: Props) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
+  const s = useActionInfoSheet()
 
   if (actions.length === 0) return null
 
@@ -66,7 +68,12 @@ export function ActionInfoSheet({ visible, actions, onClose }: Props) {
           onPress={() => {}}
           accessible={false}
         >
-          <View style={styles.sheet}>
+          {/* Bottom inset applied inline because it is a runtime value — the one
+              case the render layer may carry a style object (B1). It sits on the
+              sheet rather than on `sheetWrap` so the `maxHeight: "70%"` bound
+              above still measures the same box: growing the WRAP would let the
+              sheet exceed 70% of the screen by the size of the inset. */}
+          <View style={[styles.sheet, { paddingBottom: s.bottomInset }]}>
             <View style={styles.grabber} />
             <Text style={styles.title}>What these do</Text>
 

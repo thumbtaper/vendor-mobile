@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react"
 
+import { useBottomInset } from "@/hooks/useBottomInset"
+
 // The web records `rejection_reason` and lets it be blank. Mobile requires a
 // short one: a rejection with no reason becomes a support ticket later, and the
 // booker sees this text.
@@ -16,6 +18,11 @@ export function useRejectReasonSheet(
 ) {
   const [reason, setReason] = useState("")
   const [submitting, setSubmitting] = useState(false)
+
+  // `tabBar: false` — a Modal covers the tab bar, so only the system inset
+  // applies. The sheet had NO bottom inset at all, which put Cancel and Confirm
+  // under Android's navigation bar (plan B1).
+  const bottomInset = useBottomInset({ tabBar: false })
 
   const trimmed = reason.trim()
   const canSubmit = trimmed.length >= minLength && !submitting
@@ -37,5 +44,5 @@ export function useRejectReasonSheet(
     onClose()
   }, [onClose])
 
-  return { reason, setReason, canSubmit, submitting, confirm, cancel }
+  return { reason, setReason, canSubmit, submitting, confirm, cancel, bottomInset }
 }

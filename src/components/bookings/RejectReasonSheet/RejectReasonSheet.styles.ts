@@ -9,6 +9,11 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: "rgba(0,0,0,0.45)",
       justifyContent: "flex-end",
     },
+    // `paddingBottom` is applied INLINE from `useRejectReasonSheet`'s
+    // `bottomInset` — it depends on the device's safe-area inset, which a static
+    // stylesheet cannot see. Do not reinstate a static one here: this sheet is
+    // anchored to the bottom edge, and on edge-to-edge Android that edge is behind
+    // the system navigation.
     sheet: {
       gap: spacing.lg,
       padding: spacing.xl,

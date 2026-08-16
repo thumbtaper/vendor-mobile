@@ -40,5 +40,18 @@ export function useGuideCard() {
     AsyncStorage.setItem(HIDDEN_KEY, "false")
   }, [])
 
-  return { hidden, hide, show }
+  // The header's guide button is a toggle, so it needs one handler rather than a
+  // caller deciding which of the two to call.
+  //
+  // ⚠️ `null` (preference not read yet) is treated as "currently showing", so the
+  // first tap hides. That matches what is on screen: the card defaults to visible,
+  // and a tap that appeared to do nothing would be worse than one that acts on the
+  // visible state. The window where this matters is the few milliseconds before
+  // AsyncStorage resolves.
+  const toggle = useCallback(() => {
+    if (hidden) show()
+    else hide()
+  }, [hidden, show, hide])
+
+  return { hidden, hide, show, toggle }
 }

@@ -1,6 +1,7 @@
 import * as WebBrowser from "expo-web-browser"
 import { useCallback, useState } from "react"
 
+import { useBottomInset } from "@/hooks/useBottomInset"
 import { WEB_PORTAL_URL } from "@/lib/constants"
 import { usePush } from "@/providers/PushProvider"
 import { useSessionGate } from "@/providers/SessionGateProvider"
@@ -18,6 +19,7 @@ export function useSettingsList() {
   const { preference, setPreference } = useAppTheme()
   const push = usePush()
   const [signingOut, setSigningOut] = useState(false)
+  const bottomInset = useBottomInset({ tabBar: true })
 
   const handleSignOut = useCallback(async () => {
     setSigningOut(true)
@@ -47,6 +49,13 @@ export function useSettingsList() {
   }, [])
 
   return {
+    // `tabBar: true` — Settings is inside the tab navigator. `href: null`
+    // (`app/(app)/_layout.tsx`) only hides it FROM the bar; the bar still renders
+    // over it, and `position: "absolute"` means it takes no layout space. Without
+    // this the last rows — sign out among them — sat under the floating bar plus
+    // the system navigation (plan B2). Every other scroll surface in the app
+    // already composed this; this one never did.
+    bottomInset,
     preference,
     setPreference,
     pushState: push.state,

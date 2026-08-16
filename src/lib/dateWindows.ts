@@ -142,6 +142,36 @@ export function rangeLabel(
 }
 
 /**
+ * The window as explicit DATES — for a section caption, where `rangeLabel`'s
+ * compaction would be wrong.
+ *
+ * The two are deliberately different granularities, and both earn their place:
+ * `rangeLabel` gives a stat card's sub-line the shortest true name for the period
+ * ("Aug 2026", "Today"), while this always spells the span out ("01–31 Aug 2026").
+ * A caption that repeated the card's own words would be noise directly above it;
+ * what the caption adds is the exact span, and — at its call site — which CLOCK the
+ * figures below are counted on.
+ */
+export function rangeDatesLabel(window: DateWindow): string {
+  const { from, to } = window
+
+  if (from === to) return fmtPhDate(from)
+
+  // Same month: the month and year are printed once, at the end —
+  // "01–31 Aug 2026". Tight enough for a caption line on a narrow phone.
+  if (from.slice(0, 7) === to.slice(0, 7)) {
+    return `${from.slice(8, 10)}–${fmtPhDate(to)}`
+  }
+
+  // Same year: the year is printed once. Matches `rangeLabel`'s spacing, which
+  // uses a spaced en dash for cross-month spans and a tight one within a month.
+  if (from.slice(0, 4) === to.slice(0, 4)) {
+    return `${dayMonth(from)} – ${fmtPhDate(to)}`
+  }
+  return `${fmtPhDate(from)} – ${fmtPhDate(to)}`
+}
+
+/**
  * Whether a React Query key carries no window, or carries the DEFAULT one.
  *
  * This is the offline-persistence gate. `queryClient.ts` matches persisted queries

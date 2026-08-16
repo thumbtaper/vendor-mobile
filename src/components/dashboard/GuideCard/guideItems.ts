@@ -52,11 +52,10 @@ export const GUIDE_ITEMS: GuideItem[] = [
     Icon: LayoutDashboard,
     title: "This screen",
     color: "#3b82f6",
-    // Deliberately NOT web's Dashboard wording. Web describes seven cards in two
-    // labelled groups and a Gross/Fee/Net/Payout split; this app has four flat
-    // cards (dashboard range plan D4 kept it that way), and its "Today's" card
-    // opens Bookings, where web's opens a Calendar this app does not have.
-    body: "Your four numbers at a glance. The period chips at the top change what two of them cover — tap a card to open the screen behind it.",
+    // Now MATCHES web's two labelled groups and its Gross/Fee/Net/Payout split
+    // (parity plan D1). Still not web's wording: its "Today's" card opens a
+    // Calendar this app does not have, so mobile's opens Bookings instead.
+    body: "Your numbers at a glance, in two groups. The period chips at the top drive both — except the two cards that say they ignore them. Tap any card to open the screen behind it.",
     actions: [
       {
         label: "Pending Approvals and Today's Bookings",
@@ -64,9 +63,9 @@ export const GUIDE_ITEMS: GuideItem[] = [
           "Ignore the period on purpose. Hiding a request because of a date filter would hide work you still have to do, and today is today.",
       },
       {
-        label: "Completed and Revenue",
+        label: "Completed, and everything under Earnings",
         meaning:
-          "Follow the period you pick. The date under each number always says which range it covers.",
+          "Follow the period you pick. Each group says which dates it counts by — Operations counts bookings by the day they are serviced, Earnings counts payments by the day the money came in, so the same dates can show different numbers without either being wrong.",
       },
       {
         label: "Tapping a card",
@@ -128,7 +127,12 @@ export const GUIDE_ITEMS: GuideItem[] = [
     // because both screens were always locked to the current month. Each carries
     // its own period now, so the two agree when the periods agree — and a claim
     // about money agreeing between screens is not one to leave approximately true.
-    body: "What each payable booking earned you, after the platform fee. Its period chips work like the dashboard's, and Your payout matches the dashboard's Revenue whenever both are set to the same range.",
+    // ⚠️ Names "Payout Released" specifically, not the Earnings group. Gross
+    // Income is computed on a WIDER basis than this screen's Collected — it counts
+    // money still held — so claiming the two screens agree in general would be
+    // false. The one figure that does match exactly is the payout, which
+    // `financials.test.ts` asserts.
+    body: "What each payable booking earned you, after the platform fee. Its period chips work like the dashboard's, and Your payout matches the dashboard's Payout Released whenever both are set to the same range. Gross Income there is a bigger number on purpose — it also counts payments still on hold.",
   },
   {
     Icon: Bell,

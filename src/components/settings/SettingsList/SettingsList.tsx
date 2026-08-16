@@ -38,7 +38,9 @@ export function SettingsList() {
   const s = useSettingsList()
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView
+      contentContainerStyle={[styles.content, { paddingBottom: s.bottomInset }]}
+    >
       {/* Scrolls with the content (B1). Settings passes no header action, so
           there is no pinned row above this — the title is the first thing on the
           screen and simply scrolls away like everything else. */}

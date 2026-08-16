@@ -58,8 +58,34 @@ const IOS_MARK_W = 635;
 const ANDROID_SAFE_CIRCLE = 626;
 const ANDROID_MARK_W = 483;
 
-/** Supplied generously so every generated density bucket downsamples, never up. */
-const SPLASH_MARK_W = 1024;
+/**
+ * SPLASH — and the whole reason this is not just a tight crop.
+ *
+ * On Android 12+ the splash icon goes through the platform SplashScreen API:
+ * `expo-splash-screen`'s plugin writes it as `windowSplashScreenAnimatedIcon`
+ * (`withAndroidSplashStyles.js:44-45`), and **the OS masks that drawable to a
+ * circle**. No icon background colour is set, so this is the 288dp-canvas case
+ * where only the inner two thirds survives the mask.
+ *
+ * The mark used to be written tight-cropped, so its left and right extremes sat
+ * outside that circle and were cut off — the logo appeared to be "inside a
+ * circle". Padding it into a square canvas whose content is inscribed in the safe
+ * circle is the fix; there is no flag that turns the mask off, because it belongs
+ * to the OS rather than to Expo.
+ *
+ * The mark is inscribed by its DIAGONAL, not its width: a rectangle only fits a
+ * circle when its corners do.
+ */
+const SPLASH_CANVAS = 1024;
+const SPLASH_SAFE_CIRCLE = Math.round((SPLASH_CANVAS * 2) / 3); // 683px
+
+/**
+ * In-app logo — white on transparency, tight-cropped, for the loading screen's
+ * `BrandMark`. Not masked by anything, so it needs no padding; separate from the
+ * Android foreground icon (which is padded for launcher masks) so that changing
+ * one cannot silently resize the other.
+ */
+const MARK_WHITE_W = 1024;
 
 const SOURCE_SVG = path.join(brandDir, "ezzy-mark-source.svg"); // supplier file, untouched
 const CLEAN_SVG = path.join(brandDir, "ezzy-mark.svg"); // artifact stripped
@@ -70,6 +96,7 @@ const OUT = {
   androidFg: path.join(brandDir, "icon-android-foreground.png"),
   androidMono: path.join(brandDir, "icon-android-monochrome.png"),
   splash: path.join(brandDir, "splash-mark.png"),
+  markWhite: path.join(brandDir, "mark-white.png"),
 };
 
 function loadJimp() {
@@ -240,11 +267,26 @@ async function derive() {
   await centred(new Jimp(CANVAS, CANVAS, 0x00000000),
     recolour(mark.clone(), MARK_WHITE), ANDROID_MARK_W).writeAsync(OUT.androidMono);
 
-  // Splash — brand blue on transparent, tight-cropped so `imageWidth` in app.json
-  // means the mark's width rather than the width of some padded canvas.
-  await recolour(mark.clone(), BRAND_BLUE)
-    .resize(SPLASH_MARK_W, Jimp.AUTO)
-    .writeAsync(OUT.splash);
+  // Splash — brand blue on a transparent SQUARE canvas, with the mark inscribed
+  // in the Android 12 safe circle by its diagonal (see SPLASH_SAFE_CIRCLE).
+  //
+  // ⚠️ `imageWidth` in app.json therefore sizes the CANVAS, not the mark: the mark
+  // renders at `imageWidth * (splashMarkW / SPLASH_CANVAS)`. Change one without
+  // the other and the logo silently changes size.
+  const splashMarkW = Math.floor(
+    SPLASH_SAFE_CIRCLE / Math.sqrt(1 + (box.h / box.w) ** 2),
+  );
+  console.log(
+    `  splash: mark ${splashMarkW}px inscribed in the ${SPLASH_SAFE_CIRCLE}px safe circle ` +
+      `(${((splashMarkW / SPLASH_CANVAS) * 100).toFixed(1)}% of canvas)`,
+  );
+  await centred(new Jimp(SPLASH_CANVAS, SPLASH_CANVAS, 0x00000000),
+    recolour(mark.clone(), BRAND_BLUE), splashMarkW).writeAsync(OUT.splash);
+
+  // In-app logo — white, tight-cropped, no padding: nothing masks this one.
+  await recolour(mark.clone(), MARK_WHITE)
+    .resize(MARK_WHITE_W, Jimp.AUTO)
+    .writeAsync(OUT.markWhite);
 
   for (const p of Object.values(OUT)) console.log(`  wrote ${rel(p)}`);
 }
@@ -293,6 +335,31 @@ async function assertOutputs() {
     fail.push(`Android foreground reaches ${worst.toFixed(1)}px from centre, outside the ${r}px safe radius — launchers will crop it.`);
   }
   console.log(`  safe-circle check: furthest pixel ${worst.toFixed(1)}px of ${r}px allowed`);
+
+  // The same check for the splash, against the OS mask rather than a launcher's.
+  // This is the assertion that would have caught the clipped logo before it
+  // shipped: the drawable was tight-cropped, so its corners sat well outside the
+  // circle Android 12+ masks it to.
+  const splash = await Jimp.read(OUT.splash);
+  if (splash.bitmap.width !== splash.bitmap.height) {
+    fail.push(`splash-mark.png is ${splash.bitmap.width}x${splash.bitmap.height}; it must be SQUARE, or the Android 12 circular mask crops the long axis.`);
+  }
+  {
+    const { width: sw, height: sh, data: sd } = splash.bitmap;
+    const scx = sw / 2, scy = sh / 2, sr = (SPLASH_SAFE_CIRCLE / SPLASH_CANVAS) * (sw / 2);
+    let sWorst = 0;
+    for (let y = 0; y < sh; y++) {
+      for (let x = 0; x < sw; x++) {
+        if (sd[(y * sw + x) * 4 + 3] < 16) continue;
+        const d = Math.hypot(x + 0.5 - scx, y + 0.5 - scy);
+        if (d > sWorst) sWorst = d;
+      }
+    }
+    if (sWorst > sr) {
+      fail.push(`Splash mark reaches ${sWorst.toFixed(1)}px from centre, outside the ${sr.toFixed(1)}px Android 12 mask radius — the logo will be clipped into a circle.`);
+    }
+    console.log(`  splash mask check: furthest pixel ${sWorst.toFixed(1)}px of ${sr.toFixed(1)}px allowed`);
+  }
 
   if (fail.length) {
     throw new Error("Asset assertions failed:\n  - " + fail.join("\n  - "));

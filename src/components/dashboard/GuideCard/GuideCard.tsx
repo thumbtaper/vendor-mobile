@@ -5,7 +5,6 @@ import { Pressable, Text, View } from "react-native"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./GuideCard.styles"
 import { GUIDE_FOOTNOTE, GUIDE_ITEMS, GUIDE_TIP } from "./guideItems"
-import { useGuideCard } from "./useGuideCard"
 
 /**
  * The getting-started guide, mirroring the vendor web portal's `GuidePanel`.
@@ -18,35 +17,30 @@ import { useGuideCard } from "./useGuideCard"
  * asynchronous thing about it is the stored preference, which `useGuideCard`
  * handles by rendering nothing until the read lands.
  *
- * Pure render layer: `useGuideCard` owns the state. The per-item accent colours
- * are the only inline styles, and they qualify — they are genuinely dynamic
- * one-off values, exactly as they are in the web component.
+ * Pure render layer, and now a CONTROLLED one: `useGuideCard`'s state moved up to
+ * the dashboard route, because the guide's entry point is a header button that
+ * this component is not an ancestor of. The per-item accent colours are the only
+ * inline styles, and they qualify — they are genuinely dynamic one-off values,
+ * exactly as they are in the web component.
+ *
+ * ⚠️ The old "Show guide" row is GONE. It was the second way in, and the request
+ * that moved the trigger to the header was explicit about not leaving two. Hidden
+ * now renders nothing at all — the header button is the single entry point.
  */
-export function GuideCard() {
+export function GuideCard({
+  hidden,
+  onHide,
+}: {
+  /** `null` = preference not read yet. Renders nothing, same as hidden. */
+  hidden: boolean | null
+  onHide: () => void
+}) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
-  const s = useGuideCard()
 
   // `null` is "preference not read yet", not "visible". Rendering the card here
   // would flash it on every cold start at a vendor who hid it.
-  if (s.hidden === null) return null
-
-  if (s.hidden) {
-    return (
-      <View style={styles.showRow}>
-        <Pressable
-          onPress={s.show}
-          accessibilityRole="button"
-          accessibilityLabel="Show the getting-started guide"
-          accessibilityState={{ expanded: false }}
-          style={styles.toggle}
-        >
-          <Compass size={13} color={tokens.text} />
-          <Text style={styles.toggleLabel}>Show guide</Text>
-        </Pressable>
-      </View>
-    )
-  }
+  if (hidden === null || hidden) return null
 
   return (
     <View style={styles.card}>
@@ -70,8 +64,11 @@ export function GuideCard() {
           </View>
         </View>
 
+        {/* Kept alongside the header button: this is in-context dismissal, not a
+            second entry point — one way in, two ways out, which is the normal
+            shape for a dismissible panel. */}
         <Pressable
-          onPress={s.hide}
+          onPress={onHide}
           accessibilityRole="button"
           // Not a bare "Hide" — out of context that announces as an orphan.
           accessibilityLabel="Hide the getting-started guide"

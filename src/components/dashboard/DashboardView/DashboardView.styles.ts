@@ -49,4 +49,7 @@ export const makeStyles = (t: Tokens) =>
       color: "#ef4444",
       fontSize: type.body.size,
     },
+    // The `warning` style went with the standalone truncation notice it dressed —
+    // that message now lives in the Earnings section caption (I2), which has its
+    // own style in `DashboardSection.styles.ts`.
   })

@@ -1,14 +1,10 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { useIsFocused } from "expo-router"
 import { useMemo } from "react"
 
 import type { BookingFilterKey } from "@/lib/bookingFilters"
-import type { Booking, BookingStatus } from "@/lib/types"
-import {
-  getBookerContacts,
-  getBookingsPage,
-  type BookerContact,
-} from "@/services/bookings.service"
+import type { Booking, BookingStatus, DateWindow } from "@/lib/types"
+import { getBookingsPage } from "@/services/bookings.service"
 
 // Re-exported so the filter chips keep a name for what they select: a lifecycle
 // GROUP, not a status. It used to be `BookingStatus | "all"`, which meant widening
@@ -37,7 +33,11 @@ export type BookingFilter = BookingFilterKey
 // short-lived. If it ever shows up in practice, `maxPages` is the lever.
 export const POLL_MS = 60_000
 
-export function bookingsQueryKey(vendorId: string, statuses: BookingStatus[]) {
+export function bookingsQueryKey(
+  vendorId: string,
+  statuses: BookingStatus[],
+  window?: DateWindow | null,
+) {
   // First element matches `PERSISTED_KEYS` in lib/queryClient.ts, so the bookings
   // list survives a cold start (D11). Keeping the ["bookings", vendorId] PREFIX
   // intact also matters for correctness, not just tidiness: `useBookingsRealtime`
@@ -46,23 +46,24 @@ export function bookingsQueryKey(vendorId: string, statuses: BookingStatus[]) {
   //
   // The statuses are joined into one stable string rather than nested as an array
   // so that ["pending"] and ["pending"] from two call sites hash identically.
-  return ["bookings", vendorId, statuses.join(",") || "all"] as const
+  const base = ["bookings", vendorId, statuses.join(",") || "all"] as const
+
+  // The window is APPENDED, never substituted — otherwise a period's cached page
+  // would be served for a different one. Absent when there is no date filter,
+  // which keeps the unfiltered list's key byte-identical to what it was before
+  // periods existed, so no cache is orphaned by this change and
+  // `isDefaultWindowKey` reads it as "no window" and persists it as before.
+  return window ? ([...base, window.from, window.to] as const) : base
 }
 
-export function contactsQueryKey(vendorId: string) {
-  return ["booker-contacts", vendorId] as const
-}
-
-// Contacts are fetched once per vendor and shared by every page and the detail
-// screen. They change far less often than bookings do.
-export function useBookerContacts(vendorId: string | null) {
-  return useQuery({
-    queryKey: contactsQueryKey(vendorId ?? ""),
-    queryFn: () => getBookerContacts(vendorId!),
-    enabled: Boolean(vendorId),
-    staleTime: 5 * 60_000,
-  })
-}
+// `contactsQueryKey` and `useBookerContacts` are GONE (unbounded-queries B2).
+//
+// They cached one unfiltered fetch of every contact a vendor has and threaded the
+// resulting map into every page. That is what hit PostgREST's 1000-row cap on the
+// RPC: past 1000 distinct bookers the map was short and affected rows rendered
+// anonymous. Each page now resolves contacts for its own ≤20 bookers inside
+// `getBookingsPage`, so there is no shared map to cache, no cap to reach, and no
+// `enabled` gate waiting on a second query.
 
 /**
  * Bookings for a vendor, filtered by an explicit list of statuses.
@@ -75,31 +76,31 @@ export function useBookerContacts(vendorId: string | null) {
  * heading and disagree with the number printed above them.
  *
  * An empty array means no status filter at all.
+ *
+ * `window` is optional for the same reason: the dashboard's pending preview and a
+ * drill-down from "Pending Approvals" both want the live queue, not a period.
  */
 export function useBookingsQuery(
   vendorId: string | null,
   statuses: BookingStatus[],
+  window?: DateWindow | null,
 ) {
-  const contacts = useBookerContacts(vendorId)
   // Scoped to the SCREEN this hook is mounted in, which is what makes one poll
   // per minute the whole-app cost: the Bookings tab and the Dashboard preview
   // each call this hook, but only the focused one ticks.
   const isFocused = useIsFocused()
 
   const query = useInfiniteQuery({
-    queryKey: bookingsQueryKey(vendorId ?? "", statuses),
+    queryKey: bookingsQueryKey(vendorId ?? "", statuses, window),
     refetchInterval: isFocused ? POLL_MS : false,
-    // Waiting for contacts keeps a page from rendering with blank booker names
-    // and then filling in — a visible flash of anonymous rows.
-    enabled: Boolean(vendorId) && contacts.isSuccess,
+    // No longer gated on a contacts query. The page resolves its own contacts
+    // before resolving, so a row never renders anonymous and then fills in — the
+    // flash the old `enabled` gate existed to prevent is now impossible by
+    // construction rather than by sequencing.
+    enabled: Boolean(vendorId),
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
-      getBookingsPage(
-        vendorId!,
-        pageParam,
-        statuses,
-        contacts.data ?? new Map<string, BookerContact>(),
-      ),
+      getBookingsPage(vendorId!, pageParam, statuses, window),
     getNextPageParam: (lastPage) => lastPage.nextPage,
   })
 
@@ -111,10 +112,11 @@ export function useBookingsQuery(
   return {
     ...query,
     bookings,
-    // A contacts failure is a load failure: without it the list would render
-    // every booker as blank, which looks like corrupt data rather than an error.
-    isError: query.isError || contacts.isError,
-    error: query.error ?? contacts.error,
-    isLoading: query.isLoading || contacts.isLoading,
+    // A contacts failure is still a load failure — it now arrives as the page
+    // query's own error, because `getBookingsPage` lets it throw. The merging
+    // that used to combine two queries' states is gone with the second query.
+    isError: query.isError,
+    error: query.error,
+    isLoading: query.isLoading,
   }
 }

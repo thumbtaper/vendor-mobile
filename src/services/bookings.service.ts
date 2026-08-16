@@ -4,14 +4,26 @@
 //  1. Bookings are fetched a page at a time (`range`) for infinite scroll,
 //     instead of the web's fetch-everything. Numbered pagination is a desktop
 //     affordance (plan §5.2).
-//  2. Booker contacts are a SEPARATE call rather than a parallel fetch merged in
-//     the service. The contacts RPC returns every contact for the vendor, so
-//     re-running it per page would be pure waste; the query hook fetches it once
-//     and merges. profiles RLS still blocks a direct join — the RPC is the only
-//     way to read booker name/email/phone as a vendor-admin.
+//  2. Booker contacts are merged in HERE, per page, from a filtered RPC call.
+//     profiles RLS blocks a direct join, so the RPC is the only way to read booker
+//     name/email/phone as a vendor-admin.
+//
+//     ⚠️ This used to be one unfiltered fetch of every contact the vendor has,
+//     cached by the query hook and threaded into each page — the note here argued
+//     that re-running it per page "would be pure waste". That reasoning did not
+//     survive contact with `max_rows`: the RPC returns a TABLE, so past 1000
+//     distinct bookers the map silently came back short and bookings rendered
+//     anonymous. Per-page filtering makes the cap unreachable and stops a phone
+//     holding thousands of contacts it will never display. See
+//     `getBookerContactsFor`.
 
 import { supabase } from "@/lib/supabase/client"
-import type { Booking, BookingStatus, FulfilmentPattern } from "@/lib/types"
+import type {
+  Booking,
+  BookingStatus,
+  DateWindow,
+  FulfilmentPattern,
+} from "@/lib/types"
 import { classifyBookingError } from "./bookingErrors"
 
 export { StaleBookingError } from "./bookingErrors"
@@ -88,12 +100,38 @@ function toBooking(row: BookingRow, contact: BookerContact | undefined): Booking
   }
 }
 
-export async function getBookerContacts(
+/**
+ * Contacts for a SPECIFIC set of bookers — the ones a page just loaded.
+ *
+ * ⚠️ This replaced an unbounded `getBookerContacts(vendorId)` that fetched every
+ * contact the vendor has ever had. The RPC returns a TABLE, so PostgREST's
+ * `max_rows` cap applied to it: past **1000 distinct bookers** the map came back
+ * short and every affected booking rendered with a blank name, email and phone on
+ * every page. The rows still appeared, merely anonymous, so nothing looked broken
+ * (unbounded-queries plan B2/F6/F10).
+ *
+ * Filtering server-side is what removes the cap rather than raising it: a page
+ * holds at most `BOOKINGS_PAGE_SIZE` rows, so this asks for ≤20 ids and the
+ * ceiling is unreachable by construction — it does not matter how many customers
+ * the vendor has. It also stops a phone holding thousands of contacts it will
+ * never show, which is what the app's own paging philosophy already implied.
+ *
+ * Cost, stated rather than hidden: one RPC per page instead of one per vendor.
+ * That is the trade the plan's D1 accepted.
+ */
+export async function getBookerContactsFor(
   vendorId: string,
+  bookerIds: string[],
 ): Promise<Map<string, BookerContact>> {
-  const { data, error } = await supabase.rpc("get_booker_contacts", {
-    p_vendor_id: vendorId,
-  })
+  // No ids means no request. An empty `.in()` would ask PostgREST to match
+  // nothing, which is a round trip to learn what the caller already knows.
+  const unique = [...new Set(bookerIds.filter(Boolean))]
+  if (unique.length === 0) return new Map()
+
+  const { data, error } = await supabase
+    .rpc("get_booker_contacts", { p_vendor_id: vendorId })
+    .in("booker_id", unique)
+
   if (error) throw error
   const contacts = (data as BookerContact[] | null) ?? []
   return new Map(contacts.map((c) => [c.booker_id, c]))
@@ -106,12 +144,16 @@ export async function getBookerContacts(
  * must do (see `lib/bookingFilters.ts`); an empty list means no status filter at
  * all. The service takes statuses rather than a filter key on purpose — the
  * grouping is a UI concern and does not belong behind the data layer.
+ *
+ * `window` is OPTIONAL and omitting it means no date filter — which is this
+ * screen's long-standing behaviour and what a drill-down from "Pending Approvals"
+ * relies on.
  */
 export async function getBookingsPage(
   vendorId: string,
   page: number,
   statuses: BookingStatus[],
-  contacts: Map<string, BookerContact>,
+  window?: DateWindow | null,
 ): Promise<BookingsPage> {
   const from = page * BOOKINGS_PAGE_SIZE
   const to = from + BOOKINGS_PAGE_SIZE - 1
@@ -132,10 +174,38 @@ export async function getBookingsPage(
   // one-liner.
   if (statuses.length > 0) query = query.in("status", statuses)
 
+  // `booked_date` is a `date` column, so the window's inclusive calendar days
+  // apply directly — no start-of-next-day conversion, unlike the timestamptz
+  // bounds in `dashboard.service.ts` and `transactions.service.ts`.
+  //
+  // ⚠️ It is NOT the column the page is ordered by. Ordering is `created_at, id`
+  // (when the booking was made); the filter is about when the job IS. So matching
+  // rows are scattered through the pages rather than forming a contiguous run —
+  // do not "optimise" this into an early stop on the first out-of-range row.
+  if (window) {
+    query = query.gte("booked_date", window.from).lte("booked_date", window.to)
+  }
+
   const { data, error } = await query
   if (error) throw error
 
   const rows = (data as unknown as BookingRow[]) ?? []
+
+  // Contacts are resolved HERE, for this page's bookers only, rather than being
+  // threaded in by the hook. Sequential rather than parallel on purpose: the ids
+  // to ask for are not known until the rows arrive.
+  //
+  // ⚠️ A contacts failure THROWS, failing the page. That is the pre-existing
+  // behaviour and it is deliberate — `useBookingsQuery` recorded it as *"a
+  // contacts failure is a load failure: without it the list would render every
+  // booker as blank, which looks like corrupt data rather than an error."*
+  // Transactions makes the opposite trade, because there the money is still
+  // correct without names; see `getTransactionsPage`.
+  const contacts = await getBookerContactsFor(
+    vendorId,
+    rows.map((row) => row.booker_id),
+  )
+
   return {
     bookings: rows.map((row) => toBooking(row, contacts.get(row.booker_id))),
     nextPage: rows.length === BOOKINGS_PAGE_SIZE ? page + 1 : null,
@@ -153,6 +223,11 @@ export async function getBookingsPage(
  * one page at a time for infinite scroll, so counting what is loaded would report
  * "3 need you" when the truth is 30 — and under-reporting work waiting on the
  * vendor is the worst direction to be wrong in.
+ *
+ * ⚠️ TAKES NO DATE WINDOW, deliberately, and must not gain one. These feed the
+ * chip badges, which count WORK OUTSTANDING — a badge scoped to whatever period
+ * the vendor happens to be looking at would hide approvals that are still waiting
+ * on them. Same direction-of-error rule as the paragraph above.
  */
 export async function countBookingsWithStatuses(
   vendorId: string,
@@ -173,7 +248,6 @@ export async function countBookingsWithStatuses(
 export async function getBookingById(
   vendorId: string,
   id: string,
-  contacts: Map<string, BookerContact>,
 ): Promise<Booking | null> {
   const { data, error } = await supabase
     .from("bookings")
@@ -186,6 +260,9 @@ export async function getBookingById(
   if (!data) return null
 
   const row = data as unknown as BookingRow
+  // One booker, one filtered lookup — the detail screen never needed the whole
+  // contact book, which is what it used to be handed.
+  const contacts = await getBookerContactsFor(vendorId, [row.booker_id])
   return toBooking(row, contacts.get(row.booker_id))
 }
 

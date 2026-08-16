@@ -59,8 +59,12 @@ export const makeStyles = (t: Tokens) =>
       fontSize: type.caption.size,
       marginTop: 2,
     },
-    // Hide and Show are both real 44pt targets. The web's equivalents are ~24pt
-    // text buttons; porting that size is the failure `tokens.ts` warns about.
+    // Hide is a real 44pt target. The web's equivalent is a ~24pt text button;
+    // porting that size is the failure `tokens.ts` warns about.
+    //
+    // Its "Show" counterpart is gone with the row it lived in — revealing the
+    // guide is the header button's job now, and two entry points was the
+    // confusion that move set out to remove.
     toggle: {
       flexDirection: "row",
       alignItems: "center",
@@ -78,12 +82,6 @@ export const makeStyles = (t: Tokens) =>
       color: t.text,
       fontSize: type.caption.size,
       fontWeight: "600",
-    },
-    // The "Show guide" button when the card is hidden. Right-aligned in the slot
-    // the card would have occupied, mirroring the web portal.
-    showRow: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
     },
     body: {
       padding: spacing.lg,

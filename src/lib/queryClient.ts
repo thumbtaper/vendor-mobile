@@ -3,6 +3,8 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import { QueryClient, focusManager, onlineManager } from "@tanstack/react-query"
 import { AppState, type AppStateStatus } from "react-native"
 
+import { isDefaultWindowKey } from "./dateWindows"
+
 // Query keys that survive a cold start (D11). Everything else is memory-only.
 //
 // The persisted cache is a convenience for opening the app offline, not a
@@ -57,8 +59,20 @@ export const persistOptions = {
   persister,
   maxAge: ONE_DAY_MS,
   dehydrateOptions: {
+    // Two gates, and the second one is new.
+    //
+    // The first element decides WHICH caches are worth restoring offline. The
+    // second decides which PERIOD of them: once a date window joins a query key,
+    // matching on the first element alone would persist every period the vendor
+    // browsed — six booking filters times five presets is thirty pages of rows in
+    // one AsyncStorage blob. The offline promise is "a cold open shows your normal
+    // view", not "every period you have ever opened".
+    //
+    // Keys carrying no window are unaffected: `isDefaultWindowKey` returns true
+    // for them, so contacts and every pre-existing cache persist as before.
     shouldDehydrateQuery: (query: { queryKey: readonly unknown[] }) =>
-      PERSISTED_KEYS.includes(String(query.queryKey[0])),
+      PERSISTED_KEYS.includes(String(query.queryKey[0])) &&
+      isDefaultWindowKey(query.queryKey),
   },
 } as const
 

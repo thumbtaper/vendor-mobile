@@ -4,6 +4,10 @@ import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tok
 
 export const makeStyles = (t: Tokens) =>
   StyleSheet.create({
+    // `paddingBottom` is applied INLINE from `useSettingsList`'s `bottomInset`
+    // and deliberately overrides the shorthand `padding` below — this screen sits
+    // under the floating tab bar, which occupies no layout space (B2). Do not
+    // reinstate a static bottom value: it cannot see the device's inset.
     content: {
       padding: spacing.xl,
       gap: spacing.xl,

@@ -4,7 +4,6 @@ import { AppState } from "react-native"
 
 import { supabase } from "@/lib/supabase/client"
 import { logChannelPayload, logChannelStatus } from "@/lib/realtimeLog"
-import { contactsQueryKey } from "./useBookingsQuery"
 
 const TAG = "bookings-realtime"
 
@@ -53,22 +52,18 @@ export function useBookingsRealtime(vendorId: string | null) {
     }) => {
       logChannelPayload(TAG, payload.eventType, payload.new?.id)
 
-      // I4 — an INSERT can come from a booker the contacts map has never seen,
-      // and the row renders its name from that map (`bookings.service.ts:64`
-      // falls back to ""). Ordering is not optional here: `useBookingsQuery`
-      // CLOSES OVER `contacts.data`, and React Query does not re-run a query
-      // when its queryFn identity changes — so invalidating both at once races,
-      // the list usually wins, and the new row paints with a blank name that
-      // reads as corrupt data rather than as loading.
+      // ⚠️ I4's INSERT special case is GONE, and its absence is the point.
       //
-      // `.finally`, not `.then`: a contacts failure must not strand the list on
-      // stale data. UPDATE skips this — it cannot introduce a new booker.
-      if (payload.eventType === "INSERT") {
-        queryClient
-          .invalidateQueries({ queryKey: contactsQueryKey(vendorId) })
-          .finally(invalidate)
-        return
-      }
+      // It used to invalidate the contacts cache FIRST and the list only after,
+      // because `useBookingsQuery` closed over a shared contacts map: an INSERT
+      // from a booker that map had never seen would otherwise paint a row with a
+      // blank name, which reads as corrupt data rather than as loading. That
+      // ordering was load-bearing while the map existed.
+      //
+      // It no longer does. Each page resolves contacts for its own bookers inside
+      // `getBookingsPage` (unbounded-queries B2), so a refetched page always
+      // includes the new booker by construction. One invalidation, no ordering,
+      // no race — the fix for the 1000-booker cap paid for this simplification.
       invalidate()
     }
 

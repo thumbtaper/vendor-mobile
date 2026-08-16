@@ -1,19 +1,51 @@
-import { useCallback, useMemo, useState } from "react"
+import { useLocalSearchParams, useRouter } from "expo-router"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
-import {
-  useTransactionsQuery,
-  type WindowPreset,
-} from "@/hooks/useTransactionsQuery"
-import type { Transaction } from "@/lib/types"
+import { useTransactionsQuery } from "@/hooks/useTransactionsQuery"
+import { defaultWindow, parseWindowParam } from "@/lib/dateWindows"
+import type { DateWindow, Transaction } from "@/lib/types"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 
 export function useTransactionsView() {
+  const router = useRouter()
   const { gate } = useSessionGate()
   const vendorId = gate.selectedVendorId
-  const [preset, setPreset] = useState<WindowPreset>("this-month")
+  // Still defaults to the current month — `defaultWindow()` IS "this month", so
+  // this screen opens on exactly the range it always has (D3).
+  const [window, setWindowState] = useState<DateWindow>(() => defaultWindow())
   const [search, setSearch] = useState("")
 
-  const query = useTransactionsQuery(vendorId, preset)
+  // Same adapter as the dashboard, and for the same reason: `PeriodFilter` speaks
+  // `DateWindow | null` so the bookings list can clear its period, but this screen
+  // renders no "All dates" chip and its money totals must always be about SOME
+  // bounded range (F9). Kept as two small guards rather than a shared abstraction
+  // for two call sites.
+  const setWindow = useCallback((next: DateWindow | null) => {
+    if (next) setWindowState(next)
+  }, [])
+
+  const query = useTransactionsQuery(vendorId, window)
+
+  // Drill-down arrivals from the dashboard's Revenue card (I2). Same shape as
+  // `useBookingsList`, with one deliberate difference: a malformed window leaves
+  // the current range in place rather than clearing it, because this screen has no
+  // "no period" state to fall back to.
+  const params = useLocalSearchParams<{ from?: string; to?: string }>()
+
+  useEffect(() => {
+    if (!params.from && !params.to) return
+
+    const arriving = parseWindowParam(params.from, params.to)
+    /* eslint-disable-next-line react-hooks/set-state-in-effect --
+     * One-shot sync from a navigation event, not derived state. See the longer
+     * note in `useBookingsList.ts`; the early return and the params clear below
+     * make each arrival apply exactly once. */
+    if (arriving) setWindowState(arriving)
+
+    // Clearing is what lets the SAME drill-down work twice: without it the second
+    // push carries identical params, no value changes, and the effect never runs.
+    router.setParams({ from: undefined, to: undefined })
+  }, [params.from, params.to, router])
 
   // Client-side, over loaded rows only (D9). Booker name/email/phone come from
   // an RPC rather than a joinable column, so there is no server-side equivalent
@@ -44,8 +76,8 @@ export function useTransactionsView() {
       : null
 
   return {
-    preset,
-    setPreset,
+    window,
+    setWindow,
     setSearch,
     transactions: filtered,
     totals: query.totals,

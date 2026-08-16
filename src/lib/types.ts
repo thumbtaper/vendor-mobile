@@ -141,3 +141,25 @@ export interface Vendor {
   branches: number
   initials: string
 }
+
+/**
+ * An inclusive PH calendar-day range — the app's one currency for "a period".
+ *
+ * Lives here rather than in `transactions.service.ts`, where it was declared, for
+ * a layering reason: `lib/dateWindows.ts` builds these and `lib/` must not depend
+ * on `services/`. The practical bite is the test runner — importing a service
+ * would pull in `lib/supabase/client`, which `node --test` cannot load.
+ *
+ * ⚠️ Both bounds are INCLUSIVE calendar days, which is not the same as a
+ * timestamptz bound. A `date` column (`bookings.booked_date`) can use them
+ * directly with `.gte`/`.lte`; a timestamptz column (`booking_transactions
+ * .created_at`) must convert `to` into an EXCLUSIVE start-of-next-day, or every
+ * payment made after midnight on the last day is silently dropped. Both services
+ * do this — see their `nextDay` helpers.
+ */
+export interface DateWindow {
+  /** Inclusive PH calendar day, YYYY-MM-DD. */
+  from: string
+  /** Inclusive PH calendar day, YYYY-MM-DD. */
+  to: string
+}

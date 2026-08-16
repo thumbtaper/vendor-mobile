@@ -23,6 +23,12 @@ export const makeStyles = (t: Tokens) =>
       overflow: "hidden",
       ...t.cardShadow,
     },
+    // Only reachable when the card was given an `onPress` (B3/D2). 0.75 matches
+    // `BookingListItem`, the app's other pressable card — a press on a large
+    // surface reads at a lower opacity than the 0.85 used for small buttons.
+    pressed: {
+      opacity: 0.75,
+    },
     // 3px urgency bar pinned to the top edge. Longhand edges rather than
     // `StyleSheet.absoluteFillObject`, which RN 0.86 no longer exposes in its types.
     accentBar: {

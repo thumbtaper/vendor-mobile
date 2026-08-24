@@ -147,26 +147,42 @@ export function SettingsList() {
               {s.signingOut ? "Signing out…" : "Sign out"}
             </Text>
           </Pressable>
-          {s.hasPortal ? (
-            <Pressable
-              onPress={s.openAccountDeletion}
-              accessibilityRole="link"
-              accessibilityHint="Opens the web portal to request account deletion"
-              style={({ pressed }) => [
-                styles.row,
-                styles.rowDivider,
-                pressed && styles.rowPressed,
-              ]}
-            >
-              <Text style={[styles.rowLabel, styles.danger]}>
-                Delete account
-              </Text>
-            </Pressable>
-          ) : null}
+          {/* Privacy policy and account deletion are UNGATED (B2/B3).
+              Both stores require these to accept a submission at all, and both used to be
+              hidden whenever EXPO_PUBLIC_VENDOR_PORTAL_URL was unset — meaning a
+              production build could ship without either. They are plain constants now. */}
+          <Pressable
+            onPress={s.openPrivacyPolicy}
+            accessibilityRole="link"
+            accessibilityHint="Opens Ezzy's privacy policy in a browser"
+            style={({ pressed }) => [
+              styles.row,
+              styles.rowDivider,
+              pressed && styles.rowPressed,
+            ]}
+          >
+            <Text style={styles.rowLabel}>Privacy policy</Text>
+          </Pressable>
+          <Pressable
+            onPress={s.openAccountDeletion}
+            accessibilityRole="link"
+            accessibilityHint="Opens Ezzy's account and data deletion page in a browser"
+            style={({ pressed }) => [
+              styles.row,
+              styles.rowDivider,
+              pressed && styles.rowPressed,
+            ]}
+          >
+            <Text style={[styles.rowLabel, styles.danger]}>
+              Delete account
+            </Text>
+          </Pressable>
         </View>
         <Text style={styles.footnote}>
-          Registration, document verification and account deletion are handled on
-          the web portal.
+          {/* Was "…handled on the web portal", which stopped being true the moment
+              deletion moved to ezzy.ph. Registration and verification still are. */}
+          Registration and document verification are handled on the web portal.
+          Account deletion is explained on ezzy.ph.
         </Text>
       </View>
 

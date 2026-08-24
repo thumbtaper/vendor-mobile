@@ -15,11 +15,26 @@ import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import { ConfigErrorScreen } from "@/components/common/ConfigErrorScreen/ConfigErrorScreen"
 import { MISSING_CONFIG } from "@/lib/constants"
+
 import { registerForegroundNotificationHandler } from "@/lib/notifications"
 import { persistOptions, queryClient, startFocusTracking } from "@/lib/queryClient"
 import { SessionGateProvider, useSessionGate } from "@/providers/SessionGateProvider"
 import { SnackbarProvider } from "@/providers/SnackbarProvider"
 import { AppThemeProvider } from "@/theme/AppThemeProvider"
+
+// expo-router looks for a named `ErrorBoundary` export on a route module and
+// wraps that route in `Try` only when it finds one — there is no default in a
+// release build (`expo-router/build/useScreens.js:146`). Declared on the root
+// layout so it covers every route beneath it: no other route exports one, so a
+// crash anywhere propagates up to this single boundary.
+//
+// Re-exported rather than defined here, because route files in this app stay
+// pure composition. The component is deliberately self-contained — it renders
+// OUTSIDE this file's provider tree; see its own header before editing it.
+//
+// Must sit below the imports: `import/first` treats a re-export as module body
+// and flags every import after it.
+export { AppErrorBoundary as ErrorBoundary } from "@/components/common/AppErrorBoundary/AppErrorBoundary"
 
 // Module-scope, so an unhandled rejection here would surface as a startup crash
 // with no on-screen error. A splash that hides early is a cosmetic problem; a

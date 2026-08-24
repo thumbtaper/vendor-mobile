@@ -33,10 +33,25 @@ export const SUPABASE_ANON_KEY = anonKey ?? "missing"
 export const APP_NAME = process.env.EXPO_PUBLIC_APP_NAME ?? "Ezzy Vendor"
 
 // The deployed vendor web portal. Mobile links out to it for the things that stay
-// on the web: registration + KYC (D7-A), account deletion (D13-A), and the
-// privacy policy (B6). Not fatal if unset — the links are hidden rather than
-// broken, since a link to nowhere is worse than no link at a store review.
+// on the web: registration + KYC (D7-A). Not fatal if unset — the link is hidden
+// rather than broken, since a link to nowhere is worse than no link at a store review.
 export const WEB_PORTAL_URL = process.env.EXPO_PUBLIC_VENDOR_PORTAL_URL ?? null
+
+/*
+ * Legal URLs — UNCONDITIONAL CONSTANTS, never environment-gated.
+ *
+ * ⚠️ THIS IS THE WHOLE POINT OF B3. These used to hang off `WEB_PORTAL_URL`, so a
+ * production build made without `EXPO_PUBLIC_VENDOR_PORTAL_URL` set shipped with **no
+ * privacy link and no deletion link at all** — the two things both stores require in order
+ * to accept a submission. A missing environment variable must never be able to remove them.
+ *
+ * ⚠️ TRAILING SLASHES ARE LOAD-BEARING, and the deletion slug is not the obvious one.
+ * `ezzy.ph/terms-use` (no slash) 301-redirects, `/account-deletion/` and `/delete-account/`
+ * are 404s — the real page is `/account-data-deletion/`. Verified 2026-08-23.
+ */
+export const PRIVACY_POLICY_URL   = "https://ezzy.ph/privacy-policy/"
+export const ACCOUNT_DELETION_URL = "https://ezzy.ph/account-data-deletion/"
+
 
 // The portal this client acts as, matching the `notifications.portal` value the
 // web app filters on (`vendor/services/notifications.service.ts`).

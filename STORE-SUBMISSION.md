@@ -16,8 +16,8 @@ you transcribe into App Store Connect and Play Console.
 | Field | Value | Status |
 |---|---|---|
 | Display name | Ezzy Vendor | resolved 2026-07-28 — sourced from `EXPO_PUBLIC_APP_NAME` via `app.config.js`, with `app.json` as fallback |
-| Bundle ID (iOS) | `com.ezzy.vendormobile` | set |
-| Package (Android) | `com.ezzy.vendormobile` | set |
+| Bundle ID (iOS) | `ph.ezzy.vendormobile` | set |
+| Package (Android) | `ph.ezzy.vendormobile` | set |
 | Deep-link scheme | `ezzyvendormobile://` | set |
 | Devices | iPhone + Android phones, portrait only | `ios.supportsTablet: false` (D12-A) |
 | Icons / splash | Real brand assets — white ZZ mark on `#034BFC`; splash on `#04060E` | done 2026-07-30, verified via `expo prebuild` |

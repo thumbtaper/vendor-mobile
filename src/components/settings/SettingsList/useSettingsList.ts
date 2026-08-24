@@ -2,7 +2,7 @@ import * as WebBrowser from "expo-web-browser"
 import { useCallback, useState } from "react"
 
 import { useBottomInset } from "@/hooks/useBottomInset"
-import { WEB_PORTAL_URL } from "@/lib/constants"
+import { WEB_PORTAL_URL, PRIVACY_POLICY_URL, ACCOUNT_DELETION_URL } from "@/lib/constants"
 import { usePush } from "@/providers/PushProvider"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 import { signOut } from "@/services/auth.service"
@@ -41,11 +41,21 @@ export function useSettingsList() {
     if (WEB_PORTAL_URL) WebBrowser.openBrowserAsync(WEB_PORTAL_URL)
   }, [])
 
-  // D13-A: account deletion opens the web portal's deletion route. That route
-  // does not exist yet (B6) — until it does, this points at the portal root
-  // rather than at a 404, which would be worse than no link at a store review.
+  /*
+   * Account deletion, and the privacy policy — both UNGATED (B2/B3).
+   *
+   * These used to point at the portal ROOT and be hidden whenever
+   * `EXPO_PUBLIC_VENDOR_PORTAL_URL` was unset, with a comment explaining that the real
+   * deletion page did not exist yet. It does now
+   * (`https://ezzy.ph/account-data-deletion/`, verified 200 on 2026-08-23), so both are
+   * plain constants: a store submission cannot lose them to a missing build variable.
+   */
   const openAccountDeletion = useCallback(() => {
-    if (WEB_PORTAL_URL) WebBrowser.openBrowserAsync(WEB_PORTAL_URL)
+    WebBrowser.openBrowserAsync(ACCOUNT_DELETION_URL)
+  }, [])
+
+  const openPrivacyPolicy = useCallback(() => {
+    WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)
   }, [])
 
   return {
@@ -65,8 +75,11 @@ export function useSettingsList() {
     switchVendor: gate.clearVendor,
     signingOut,
     handleSignOut,
+    // Gates ONLY the "open the web portal" row now. Privacy and deletion are
+    // unconditional — see the note above openAccountDeletion.
     hasPortal: Boolean(WEB_PORTAL_URL),
     openPortal,
+    openPrivacyPolicy,
     openAccountDeletion,
   }
 }

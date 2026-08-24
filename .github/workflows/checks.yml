@@ -1,0 +1,56 @@
+# Static checks for ezzy-vendor-mobile.
+#
+# Deliberately minimal (plan I10). This runs the three checks that already exist
+# and are already green locally — it adds no new tooling and no build step.
+#
+# Builds and submissions stay on EAS, which already handles credential injection
+# and version increment (`eas.json`: appVersionSource "remote", autoIncrement on
+# the production profile). Duplicating that here would be a second, weaker build
+# system, so this workflow deliberately does not compile a binary.
+#
+# ⚠️ None of this exercises runtime behaviour on a device. As AGENTS.md records,
+# four separate style passes shipped changes that tsc, expo lint, npm test and
+# expo export all approved and that did nothing on screen. A green run here means
+# "no regression in the checks we have", never "verified".
+name: checks
+
+on:
+  pull_request:
+    branches: [develop, master]
+  push:
+    branches: [develop, master]
+
+# A new push to the same branch or PR makes the in-flight run obsolete.
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 22+ specifically: `npm test` runs the unit tests through
+      # `node --test --experimental-strip-types`, which does not exist earlier.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Each check runs even if an earlier one failed, so a single run reports
+      # every problem rather than only the first.
+      - name: Type check
+        if: ${{ !cancelled() }}
+        run: ./node_modules/.bin/tsc --noEmit --project tsconfig.json
+
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: npm run lint
+
+      - name: Unit tests
+        if: ${{ !cancelled() }}
+        run: npm test

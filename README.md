@@ -11,7 +11,7 @@ project, the same tables, the same RLS boundaries as the web portal.
 - **Supabase** for auth, data and realtime — sessions persisted in the device keystore
 - **TanStack Query** for server state, with a bounded offline read cache
 
-Bundle ID / package: `com.ezzy.vendormobile`. Phone only — no tablet layout, no
+Bundle ID / package: `ph.ezzy.vendormobile`. Phone only — no tablet layout, no
 web target.
 
 ---

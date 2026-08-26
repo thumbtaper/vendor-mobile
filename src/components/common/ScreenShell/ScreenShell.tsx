@@ -5,7 +5,9 @@ import { SafeAreaView } from "react-native-safe-area-context"
 
 import { ScreenTitleContext } from "@/components/common/ScreenTitle/ScreenTitleContext"
 import { useAppTheme } from "@/theme/useAppTheme"
+import { ScreenChromeContext } from "./ScreenChromeContext"
 import { makeStyles } from "./ScreenShell.styles"
+import { useScreenShell } from "./useScreenShell"
 
 interface Props {
   title: string
@@ -32,6 +34,7 @@ interface Props {
 export function ScreenShell({ title, subtitle, action, children }: Props) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
+  const shell = useScreenShell()
 
   // Memoised on the two values it holds, not rebuilt each render — every screen's
   // scroll content sits under this provider, so a fresh object would invalidate
@@ -49,10 +52,22 @@ export function ScreenShell({ title, subtitle, action, children }: Props) {
         {/* Rendered only when there is an action. Settings has none, and an empty
             pinned strip there would be dead space above content that already
             starts at the safe-area edge. */}
-        {action ? <View style={styles.actionRow}>{action}</View> : null}
-        <ScreenTitleContext.Provider value={titleValue}>
-          <View style={styles.body}>{children}</View>
-        </ScreenTitleContext.Provider>
+        {action ? (
+          <View
+            pointerEvents={shell.actionsVisible ? "auto" : "none"}
+            style={[
+              styles.actionRow,
+              !shell.actionsVisible && styles.actionRowHidden,
+            ]}
+          >
+            {action}
+          </View>
+        ) : null}
+        <ScreenChromeContext.Provider value={shell.chrome}>
+          <ScreenTitleContext.Provider value={titleValue}>
+            <View style={styles.body}>{children}</View>
+          </ScreenTitleContext.Provider>
+        </ScreenChromeContext.Provider>
       </SafeAreaView>
     </LinearGradient>
   )

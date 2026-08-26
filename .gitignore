@@ -18,6 +18,12 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Firebase private service-account key exports. Keep google-services.json
+# trackable; it is Android app config, not a private service-account key.
+*firebase-adminsdk*.json
+*service-account*.json
+ezzy-vendor-companion-app-*.json
+
 # Metro
 .metro-health-check*
 

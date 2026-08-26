@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "595290077085",
+    "project_id": "ezzy-vendor-mobile-fbase",
+    "storage_bucket": "ezzy-vendor-mobile-fbase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:595290077085:android:695594c8a17dfe6c492174",
+        "android_client_info": {
+          "package_name": "ph.ezzy.vendormobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7skJe-Hs1m7M1Es1y4pRb8YsLhldTy18"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

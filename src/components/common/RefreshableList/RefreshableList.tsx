@@ -9,6 +9,7 @@ import {
 } from "react-native"
 
 import { useAppTheme } from "@/theme/useAppTheme"
+import { useScreenChrome } from "@/components/common/ScreenShell/ScreenChromeContext"
 import { makeStyles } from "./RefreshableList.styles"
 import { useRefreshableList } from "./useRefreshableList"
 
@@ -61,10 +62,12 @@ export function RefreshableList<T>({
   data,
   contentContainerStyle,
   ItemSeparatorComponent,
+  onScroll,
   ...listProps
 }: Props<T>) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
+  const chrome = useScreenChrome()
   const { refreshing, refresh, contentBottomPadding } =
     useRefreshableList(onRefresh)
 
@@ -100,6 +103,16 @@ export function RefreshableList<T>({
   }, [contentContainerStyle, contentPaddingTop, contentBottomPadding, styles])
 
   const isEmpty = !data || data.length === 0
+  const handleScroll = useMemo(
+    () =>
+      onScroll
+        ? ((event: Parameters<NonNullable<typeof onScroll>>[0]) => {
+            chrome.onScroll(event)
+            onScroll(event)
+          })
+        : chrome.onScroll,
+    [chrome, onScroll],
+  )
 
   // The header renders in the loading and error states too, not only alongside
   // rows. Without this the vendor loses the filter chips and date presets in
@@ -112,6 +125,8 @@ export function RefreshableList<T>({
       <ScrollView
         contentContainerStyle={styles.stateContent}
         scrollEnabled={header !== undefined}
+        onScroll={handleScroll}
+        scrollEventThrottle={chrome.scrollEventThrottle}
       >
         {header}
         <View style={styles.centred}>
@@ -126,6 +141,8 @@ export function RefreshableList<T>({
       <ScrollView
         contentContainerStyle={styles.stateContent}
         scrollEnabled={header !== undefined}
+        onScroll={handleScroll}
+        scrollEventThrottle={chrome.scrollEventThrottle}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -161,6 +178,8 @@ export function RefreshableList<T>({
       contentContainerStyle={contentStyle}
       ListHeaderComponent={header}
       ItemSeparatorComponent={Separator}
+      onScroll={handleScroll}
+      scrollEventThrottle={chrome.scrollEventThrottle}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

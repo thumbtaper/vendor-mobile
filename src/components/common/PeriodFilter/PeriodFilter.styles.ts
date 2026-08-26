@@ -2,25 +2,9 @@ import { StyleSheet } from "react-native"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
-/**
- * ⚠️ The chip metrics below are a DELIBERATE COPY of
- * `components/bookings/BookingFilterTabs/BookingFilterTabs.styles.ts`, not an
- * independent design.
- *
- * Why copied rather than imported or extracted:
- *   - `common/` must not depend on `bookings/`; importing that file would point the
- *     dependency the wrong way for one constant.
- *   - Extracting a shared chip module means editing a working component, and the
- *     two strips are not actually the same component — that one carries count
- *     badges and bleeds out of a list header, this one does neither.
- *
- * The cost is real and is accepted with a trigger, the same way the app treats its
- * other cross-file copies (`lib/bookingFilters.ts`): **edit both in the same
- * change.** These two strips sit STACKED on the bookings screen (dashboard range
- * plan D6), so any divergence in padding, radius or font is visible side by side
- * and self-announcing. If a THIRD chip strip appears, that is the signal to
- * extract a shared chip rather than copy a third time.
- */
+// Legacy compact chip metrics. Bookings no longer stacks this strip under its
+// status filter, but Dashboard and Transactions still use `PeriodFilter` until
+// their call sites are intentionally redesigned.
 const CHIP_PADDING_V = 6
 
 // Same derivation as the bookings strip: the chip is sized by padding to match the

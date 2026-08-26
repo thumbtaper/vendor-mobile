@@ -311,8 +311,8 @@ export const TAB_BAR_HEIGHT = 49
 // `maxFontSizeMultiplier` only where truncation would break meaning, or where a
 // control is sized by padding rather than a `minHeight` floor — a floor absorbs
 // scaled text for free, additive padding cannot, so an uncapped label there grows
-// the control without limit. `BookingFilterTabs` is the one instance (capped at
-// 1.3). Do not copy the cap onto controls that use a `minHeight` floor: they
+// the control without limit. `PeriodFilter` is one such compact chip strip (capped
+// at 1.3). Do not copy the cap onto controls that use a `minHeight` floor: they
 // degrade correctly by growing with the text, which is the behaviour we want.
 export const type = {
   caption: { size: 12, weight: "500" as const },

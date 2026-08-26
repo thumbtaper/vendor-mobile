@@ -17,17 +17,17 @@ import { makeStyles } from "./GuideAction.styles"
  * same reason this is: it sits in a row of icon controls. Icon-only is exactly why
  * the accessibility label is not optional.
  *
- * A TOGGLE, not a "show": it is the guide's single entry point now that the card's
- * own "Show guide" row is gone, so it has to be able to put the guide away too.
+ * A TOGGLE, not a "show": it is the guide's single entry point, so it has to be
+ * able to close the modal too.
  * The label follows the state rather than staying generic — "Show" on a control
- * that hides is worse than no label.
+ * that closes is worse than no label.
  */
 export function GuideAction({
-  expanded,
+  open,
   onPress,
 }: {
-  /** Whether the guide is currently on screen. */
-  expanded: boolean
+  /** Whether the guide modal is currently on screen. */
+  open: boolean
   onPress: () => void
 }) {
   const { tokens } = useAppTheme()
@@ -38,9 +38,9 @@ export function GuideAction({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={
-        expanded ? "Hide the getting-started guide" : "Show the getting-started guide"
+        open ? "Close the getting-started guide" : "Open the getting-started guide"
       }
-      accessibilityState={{ expanded }}
+      accessibilityState={{ expanded: open }}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
       <Compass size={20} color={tokens.strong} />

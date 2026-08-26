@@ -77,7 +77,7 @@ Worth stating plainly, because it is the part people expect to be painful.
 
 | Key | Value | Why it's already right |
 |---|---|---|
-| `ios.bundleIdentifier` | `com.ezzy.vendormobile` | Registered on the Developer portal automatically at first build. **Cannot be changed after the app is on the store** — it is fine as-is |
+| `ios.bundleIdentifier` | `ph.ezzy.vendormobile` | Registered on the Developer portal automatically at first build. **Cannot be changed after the app is on the store** — it is fine as-is |
 | `ios.supportsTablet` | `false` | iPhone-only, so no iPad screenshots or layout pass needed |
 | `ios.infoPlist.ITSAppUsesNonExemptEncryption` | `false` | Skips the export-compliance question Apple otherwise asks on **every single** TestFlight upload |
 | `ios.privacyManifests` | UserDefaults + FileTimestamp | Required since 2024; missing entries are an automatic upload rejection |
@@ -112,7 +112,7 @@ only thing you *type* is your Apple login.
 | **Apple ID password** | Same | Your **real** password, **not** an app-specific password — the Developer Portal login needs the real one |
 | **6-digit 2FA code** | Your trusted Apple device | EAS caches the session, so this is not every build |
 | **Apple Team ID** | developer.apple.com/account → **Membership details** → *Team ID* (10 chars, e.g. `ABCDE12345`) | Auto-detected; only asked if you belong to several teams |
-| **Bundle identifier** | Already in `app.json` — `com.ezzy.vendormobile` | EAS registers it on the portal for you |
+| **Bundle identifier** | Already in `app.json` — `ph.ezzy.vendormobile` | EAS registers it on the portal for you |
 
 Everything else — **Distribution Certificate**, **Ad Hoc / App Store provisioning
 profile**, later the **APNs push key** — EAS creates, names, and stores against
@@ -208,7 +208,7 @@ The first run is interactive. Expect, in order:
 2. **"Generate a new Apple Distribution Certificate?"** → **yes**. EAS creates and
    stores it. You get 2 distribution certificates per account — let EAS manage
    them rather than making your own, and never delete one Apple lists as in use.
-3. **Bundle identifier registration** — EAS registers `com.ezzy.vendormobile` on
+3. **Bundle identifier registration** — EAS registers `ph.ezzy.vendormobile` on
    the portal if it is not there yet.
 4. **Provisioning profile** — an ad-hoc profile containing the devices from §2.
 

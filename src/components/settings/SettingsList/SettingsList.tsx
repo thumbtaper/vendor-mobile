@@ -3,6 +3,7 @@ import { useMemo } from "react"
 import { Pressable, ScrollView, Text, View } from "react-native"
 
 import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
+import { useScreenChrome } from "@/components/common/ScreenShell/ScreenChromeContext"
 import type { PushState } from "@/hooks/usePushRegistration"
 import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./SettingsList.styles"
@@ -36,9 +37,12 @@ export function SettingsList() {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
   const s = useSettingsList()
+  const chrome = useScreenChrome()
 
   return (
     <ScrollView
+      onScroll={chrome.onScroll}
+      scrollEventThrottle={chrome.scrollEventThrottle}
       contentContainerStyle={[styles.content, { paddingBottom: s.bottomInset }]}
     >
       {/* Scrolls with the content (B1). Settings passes no header action, so
@@ -147,27 +151,52 @@ export function SettingsList() {
               {s.signingOut ? "Signing out…" : "Sign out"}
             </Text>
           </Pressable>
-          {s.hasPortal ? (
+          <Pressable
+            onPress={s.openAccountDeletion}
+            accessibilityRole="link"
+            accessibilityHint="Opens Ezzy's account and data deletion page in a browser"
+            style={({ pressed }) => [
+              styles.row,
+              styles.rowDivider,
+              pressed && styles.rowPressed,
+            ]}
+          >
+            <Text style={[styles.rowLabel, styles.danger]}>
+              Delete account
+            </Text>
+          </Pressable>
+        </View>
+        <Text style={styles.footnote}>
+          {/* Was "…handled on the web portal", which stopped being true the moment
+              deletion moved to ezzy.ph. Registration and verification still are. */}
+          Registration and document verification are handled on the web portal.
+          Account deletion is explained on ezzy.ph.
+        </Text>
+      </View>
+
+      {/* Legal policy links are UNGATED (B2/B3). Both stores require a reachable
+          privacy policy, and the vendor portal now exposes seven policy documents
+          on ezzy.ph. A missing EXPO_PUBLIC_VENDOR_PORTAL_URL must never remove
+          these rows from a production build. */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Legal</Text>
+        <View style={styles.card}>
+          {s.legalLinks.map((link, index) => (
             <Pressable
-              onPress={s.openAccountDeletion}
+              key={link.key}
+              onPress={() => s.openLegalLink(link)}
               accessibilityRole="link"
-              accessibilityHint="Opens the web portal to request account deletion"
+              accessibilityHint={`Opens Ezzy's ${link.label} in a browser`}
               style={({ pressed }) => [
                 styles.row,
-                styles.rowDivider,
+                index > 0 && styles.rowDivider,
                 pressed && styles.rowPressed,
               ]}
             >
-              <Text style={[styles.rowLabel, styles.danger]}>
-                Delete account
-              </Text>
+              <Text style={styles.rowLabel}>{link.label}</Text>
             </Pressable>
-          ) : null}
+          ))}
         </View>
-        <Text style={styles.footnote}>
-          Registration, document verification and account deletion are handled on
-          the web portal.
-        </Text>
       </View>
 
       {/* Reuses the label/value row from the Vendor section — a non-interactive

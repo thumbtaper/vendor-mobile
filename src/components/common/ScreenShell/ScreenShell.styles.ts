@@ -25,6 +25,13 @@ export const makeStyles = (_t: Tokens) =>
       paddingHorizontal: spacing.xl,
       paddingTop: spacing.md,
     },
+    actionRowHidden: {
+      height: 0,
+      opacity: 0,
+      overflow: "hidden",
+      paddingTop: 0,
+      transform: [{ translateY: -12 }],
+    },
     body: {
       flex: 1,
     },

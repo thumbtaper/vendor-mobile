@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { useRouter } from "expo-router"
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
-import type { ScrollView } from "react-native"
+import { useCallback, useState } from "react"
 
 import { useBookingsQuery } from "@/hooks/useBookingsQuery"
 import { useBottomInset } from "@/hooks/useBottomInset"
@@ -15,52 +14,11 @@ import type { Booking, BookingStatus, DateWindow } from "@/lib/types"
 // would be a new query key each time and refetch forever.
 const PENDING_ONLY: BookingStatus[] = ["pending"]
 
-/**
- * @param scrollRef The dashboard's own ScrollView, created by the render layer.
- *
- * ⚠️ It is created THERE and passed in, rather than created here and handed back,
- * and that is not a style preference: `reactCompiler` is enabled
- * (`app.json` → `experiments`), and returning a ref — or even a callback ref —
- * from a hook makes the compiler lint treat every property read on this hook's
- * result as a ref access during render. That produced **52 errors across
- * `DashboardView`**, none of which mentioned the ref. Passing the handle in is
- * the shape the compiler understands, and the render layer still holds no logic:
- * an inert handle, with the effect that uses it living here.
- */
-export function useDashboardView(
-  guideHidden: boolean | null,
-  scrollRef: RefObject<ScrollView | null>,
-) {
+export function useDashboardView() {
   const router = useRouter()
   const { gate } = useSessionGate()
   const vendorId = gate.selectedVendorId
   const contentBottomPadding = useBottomInset({ tabBar: true })
-
-  // ── Bringing the guide into view when the header reveals it (I5) ────────────
-  //
-  // The card renders BELOW the stat grid, so on a phone a vendor who taps the
-  // header button while scrolled down sees nothing happen: the card appears,
-  // correctly, off-screen. That is the "did my tap work" failure the whole point
-  // of moving the trigger was to avoid.
-  const guideY = useRef(0)
-  const onGuideLayout = useCallback((y: number) => {
-    guideY.current = y
-  }, [])
-
-  // ⚠️ Only on a TRUE → FALSE transition. `hidden` also goes `null → false` on
-  // every cold start for the majority of vendors, who have never hidden the
-  // guide — scrolling on that would yank the dashboard down each time the app
-  // opens. The ref is what distinguishes "was hidden, now revealed" from "we have
-  // just learned it was never hidden".
-  const wasHidden = useRef(false)
-  useEffect(() => {
-    if (wasHidden.current && guideHidden === false) {
-      scrollRef.current?.scrollTo({ y: guideY.current, animated: true })
-    }
-    if (guideHidden !== null) wasHidden.current = guideHidden
-    // `scrollRef` is listed because it is a prop now; a ref object is stable, so
-    // it never actually re-runs this.
-  }, [guideHidden, scrollRef])
 
   // Lazy initialiser, not `useState(defaultWindow())`: the eager form would
   // recompute the current month on every render and throw the result away.
@@ -206,7 +164,6 @@ export function useDashboardView(
     // `useBottomInset`, shared with every other bottom-anchored surface; the value
     // is unchanged.
     contentBottomPadding,
-    onGuideLayout,
     opsCaption,
     earningsCaption,
     // Derived here rather than repeated in four `unavailable={...}` expressions:

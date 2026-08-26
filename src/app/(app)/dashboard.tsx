@@ -1,6 +1,7 @@
 import { ScreenShell } from "@/components/common/ScreenShell/ScreenShell"
 import { DashboardView } from "@/components/dashboard/DashboardView/DashboardView"
-import { useGuideCard } from "@/components/dashboard/GuideCard/useGuideCard"
+import { GuideModal } from "@/components/dashboard/GuideModal/GuideModal"
+import { useGuideModal } from "@/components/dashboard/GuideModal/useGuideModal"
 import { GuideAction } from "@/components/layout/GuideAction/GuideAction"
 import { SettingsAction } from "@/components/layout/SettingsAction/SettingsAction"
 import { useSessionGate } from "@/providers/SessionGateProvider"
@@ -8,13 +9,9 @@ import { useSessionGate } from "@/providers/SessionGateProvider"
 export default function DashboardScreen() {
   const { gate } = useSessionGate()
 
-  // The guide's state lives HERE, not in `GuideCard`, and the reason is
-  // structural rather than stylistic: its trigger is now a header action rendered
-  // through `ScreenShell`'s `action` slot, while the card renders inside
-  // `DashboardView`. This route is the only common ancestor of the two. Left in
-  // the card, a header tap would flip a second, independent copy of the state and
-  // nothing on screen would move.
-  const guide = useGuideCard()
+  // The guide's state lives HERE, not in the modal, because this route is the
+  // common owner of the header button and the modal surface.
+  const guide = useGuideModal()
 
   return (
     <ScreenShell
@@ -26,12 +23,20 @@ export default function DashboardScreen() {
       // two children need no layout change.
       action={
         <>
-          <GuideAction expanded={guide.hidden === false} onPress={guide.toggle} />
+          <GuideAction open={guide.visible} onPress={guide.toggle} />
           <SettingsAction />
         </>
       }
     >
-      <DashboardView guideHidden={guide.hidden} onHideGuide={guide.hide} />
+      <DashboardView />
+      {guide.ready ? (
+        <GuideModal
+          visible={guide.visible}
+          onClose={guide.close}
+          topInset={guide.topInset}
+          bottomInset={guide.bottomInset}
+        />
+      ) : null}
     </ScreenShell>
   )
 }

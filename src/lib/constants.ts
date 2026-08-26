@@ -37,6 +37,13 @@ export const APP_NAME = process.env.EXPO_PUBLIC_APP_NAME ?? "Ezzy Vendor"
 // rather than broken, since a link to nowhere is worse than no link at a store review.
 export const WEB_PORTAL_URL = process.env.EXPO_PUBLIC_VENDOR_PORTAL_URL ?? null
 
+export interface LegalLink {
+  key: string
+  label: string
+  short: string
+  href: string
+}
+
 /*
  * Legal URLs — UNCONDITIONAL CONSTANTS, never environment-gated.
  *
@@ -45,13 +52,65 @@ export const WEB_PORTAL_URL = process.env.EXPO_PUBLIC_VENDOR_PORTAL_URL ?? null
  * privacy link and no deletion link at all** — the two things both stores require in order
  * to accept a submission. A missing environment variable must never be able to remove them.
  *
- * ⚠️ TRAILING SLASHES ARE LOAD-BEARING, and the deletion slug is not the obvious one.
+ * Copied, not imported, from the vendor portal's `lib/legal.ts` per the cross-app
+ * convention. Mobile displays the same seven policy documents but has no consent flow.
+ *
+ * ⚠️ TRAILING SLASHES ARE LOAD-BEARING, and two slugs are not the obvious ones.
  * `ezzy.ph/terms-use` (no slash) 301-redirects, `/account-deletion/` and `/delete-account/`
- * are 404s — the real page is `/account-data-deletion/`. Verified 2026-08-23.
+ * are 404s — the real deletion page is `/account-data-deletion/`. `/payment-policy/` is
+ * singular. Verified 2026-08-23 in the web/account-deletion plan.
  */
-export const PRIVACY_POLICY_URL   = "https://ezzy.ph/privacy-policy/"
-export const ACCOUNT_DELETION_URL = "https://ezzy.ph/account-data-deletion/"
+export const LEGAL_LINKS: readonly LegalLink[] = [
+  {
+    key: "terms",
+    label: "Terms of Use",
+    short: "Terms",
+    href: "https://ezzy.ph/terms-use/",
+  },
+  {
+    key: "privacy",
+    label: "Privacy Policy",
+    short: "Privacy",
+    href: "https://ezzy.ph/privacy-policy/",
+  },
+  {
+    key: "acceptable",
+    label: "Acceptable Use Policy",
+    short: "Acceptable Use",
+    href: "https://ezzy.ph/acceptable-use-policy/",
+  },
+  {
+    key: "cookies",
+    label: "Cookie Policy",
+    short: "Cookies",
+    href: "https://ezzy.ph/cookie-policy/",
+  },
+  {
+    key: "refunds",
+    label: "Refund & Cancellation Policy",
+    short: "Refunds",
+    href: "https://ezzy.ph/refund-cancellation-policy/",
+  },
+  {
+    key: "deletion",
+    label: "Account & Data Deletion",
+    short: "Deletion",
+    href: "https://ezzy.ph/account-data-deletion/",
+  },
+  {
+    key: "payments",
+    label: "Payment Policy",
+    short: "Payments",
+    href: "https://ezzy.ph/payment-policy/",
+  },
+]
 
+export const PRIVACY_POLICY_URL =
+  LEGAL_LINKS.find((link) => link.key === "privacy")?.href ??
+  "https://ezzy.ph/privacy-policy/"
+export const ACCOUNT_DELETION_URL =
+  LEGAL_LINKS.find((link) => link.key === "deletion")?.href ??
+  "https://ezzy.ph/account-data-deletion/"
 
 // The portal this client acts as, matching the `notifications.portal` value the
 // web app filters on (`vendor/services/notifications.service.ts`).

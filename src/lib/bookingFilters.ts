@@ -3,7 +3,7 @@
 // That file's own comment asks for this port by name:
 //
 //   "Exported (not inlined in BookingsPage) because ezzy-vendor-mobile's
-//    BookingFilterTabs needs the same grouping and a second copy would drift."
+//    booking filter UI needs the same grouping and a second copy would drift."
 //
 // Copied rather than imported — separate repos, no shared build tooling. So the
 // drift that comment warns about is prevented by discipline, not by the compiler:

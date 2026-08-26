@@ -7,15 +7,15 @@ import {
   Receipt,
   Wallet,
 } from "lucide-react-native"
-import { useMemo, useRef } from "react"
+import { useMemo } from "react"
 import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native"
 
 import { BookingListItem } from "@/components/bookings/BookingListItem/BookingListItem"
 import { PeriodFilter } from "@/components/common/PeriodFilter/PeriodFilter"
 import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
+import { useScreenChrome } from "@/components/common/ScreenShell/ScreenChromeContext"
 import { StaleBanner } from "@/components/common/StaleBanner/StaleBanner"
 import { DashboardSection } from "@/components/dashboard/DashboardSection/DashboardSection"
-import { GuideCard } from "@/components/dashboard/GuideCard/GuideCard"
 import { StatCard } from "@/components/dashboard/StatCard/StatCard"
 import { useRefreshableList } from "@/components/common/RefreshableList/useRefreshableList"
 import { fmtPeso } from "@/lib/format"
@@ -23,21 +23,11 @@ import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./DashboardView.styles"
 import { useDashboardView } from "./useDashboardView"
 
-export function DashboardView({
-  guideHidden,
-  onHideGuide,
-}: {
-  /** Owned by the route — see `app/(app)/dashboard.tsx` for why it lives there. */
-  guideHidden: boolean | null
-  onHideGuide: () => void
-}) {
+export function DashboardView() {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
-  // An inert handle, not logic: the effect that scrolls it lives in the hook. It
-  // is created here because `reactCompiler` rejects a ref handed back OUT of a
-  // hook — see the note on `useDashboardView`.
-  const scrollRef = useRef<ScrollView>(null)
-  const s = useDashboardView(guideHidden, scrollRef)
+  const s = useDashboardView()
+  const chrome = useScreenChrome()
   const { refreshing, refresh } = useRefreshableList(s.refresh)
 
   const stats = s.stats
@@ -45,7 +35,8 @@ export function DashboardView({
   return (
     <>
       <ScrollView
-        ref={scrollRef}
+        onScroll={chrome.onScroll}
+        scrollEventThrottle={chrome.scrollEventThrottle}
         contentContainerStyle={[
           styles.content,
           { paddingBottom: s.contentBottomPadding },
@@ -206,19 +197,6 @@ export function DashboardView({
             folded into the Earnings caption above (I2). Two places telling a
             vendor the same period is incomplete is worse than one, and the
             caption sits directly over the money it qualifies. */}
-
-        {/* Below the stats, not above them: the numbers are what a returning
-            vendor opens the app for, and a guide they have read fifty times
-            should not push them below the fold. A first-time vendor still
-            reaches it with one short scroll.
-
-            It no longer owns its shown/hidden state — the header button toggles
-            it, and this component is not that button's ancestor. `onLayout`
-            reports where the card sits so revealing it can scroll it into view
-            (I5); the wrapper exists for that measurement and nothing else. */}
-        <View onLayout={(e) => s.onGuideLayout(e.nativeEvent.layout.y)}>
-          <GuideCard hidden={guideHidden} onHide={onHideGuide} />
-        </View>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Waiting for approval</Text>

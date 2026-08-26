@@ -2,7 +2,12 @@ import * as WebBrowser from "expo-web-browser"
 import { useCallback, useState } from "react"
 
 import { useBottomInset } from "@/hooks/useBottomInset"
-import { WEB_PORTAL_URL, PRIVACY_POLICY_URL, ACCOUNT_DELETION_URL } from "@/lib/constants"
+import {
+  ACCOUNT_DELETION_URL,
+  LEGAL_LINKS,
+  WEB_PORTAL_URL,
+  type LegalLink,
+} from "@/lib/constants"
 import { usePush } from "@/providers/PushProvider"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 import { signOut } from "@/services/auth.service"
@@ -42,20 +47,21 @@ export function useSettingsList() {
   }, [])
 
   /*
-   * Account deletion, and the privacy policy — both UNGATED (B2/B3).
+   * Account deletion, and every legal policy link — all UNGATED (B2/B3).
    *
    * These used to point at the portal ROOT and be hidden whenever
    * `EXPO_PUBLIC_VENDOR_PORTAL_URL` was unset, with a comment explaining that the real
    * deletion page did not exist yet. It does now
-   * (`https://ezzy.ph/account-data-deletion/`, verified 200 on 2026-08-23), so both are
-   * plain constants: a store submission cannot lose them to a missing build variable.
+   * (`https://ezzy.ph/account-data-deletion/`, verified 200 on 2026-08-23), and the legal
+   * policies live on ezzy.ph, so these are plain constants: a store submission cannot lose
+   * them to a missing build variable.
    */
   const openAccountDeletion = useCallback(() => {
     WebBrowser.openBrowserAsync(ACCOUNT_DELETION_URL)
   }, [])
 
-  const openPrivacyPolicy = useCallback(() => {
-    WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)
+  const openLegalLink = useCallback((link: LegalLink) => {
+    WebBrowser.openBrowserAsync(link.href)
   }, [])
 
   return {
@@ -79,7 +85,8 @@ export function useSettingsList() {
     // unconditional — see the note above openAccountDeletion.
     hasPortal: Boolean(WEB_PORTAL_URL),
     openPortal,
-    openPrivacyPolicy,
+    legalLinks: LEGAL_LINKS,
+    openLegalLink,
     openAccountDeletion,
   }
 }

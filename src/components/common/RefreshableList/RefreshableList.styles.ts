@@ -9,8 +9,8 @@ export const makeStyles = (t: Tokens) =>
     // the prop list `RecyclerView` destructures, so it falls through to the
     // underlying ScrollView, whose content container wraps the header along with
     // the cells. Anything rendered in `header` is therefore inset by this padding
-    // and must NOT carry a horizontal inset of its own; `BookingFilterTabs` is the
-    // single exception and bleeds back out with a negative margin of its own.
+    // and must NOT carry a horizontal inset of its own. A future full-bleed header
+    // control must opt into that deliberately with its own negative margin.
     //
     // No `gap` here — FlashList lays every cell out absolutely
     // (`ViewHolder`: `position: "absolute"`), so a flex gap on the content
@@ -25,9 +25,8 @@ export const makeStyles = (t: Tokens) =>
     // retry control off the bottom, out of reach.
     //
     // It must carry the SAME horizontal inset as `content` above: header pieces
-    // no longer bring their own, and `BookingFilterTabs` bleeds against exactly
-    // this value. Miss it and the header sits flush to both edges in precisely the
-    // two states where the vendor is trying to read it.
+    // no longer bring their own. Miss it and the header sits flush to both edges
+    // in precisely the two states where the vendor is trying to read it.
     stateContent: {
       flexGrow: 1,
       paddingHorizontal: spacing.xl,

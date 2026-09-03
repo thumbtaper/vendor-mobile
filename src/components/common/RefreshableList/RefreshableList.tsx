@@ -44,6 +44,8 @@ interface Props<T> extends Omit<FlashListProps<T>, "refreshControl"> {
    * Left-, right- and bottom padding are untouched, so cards keep their inset.
    */
   contentPaddingTop?: number
+  /** Adds breathing room between the full scrolling header and the first row. */
+  separateHeaderFromRows?: boolean
 }
 
 // Thin wrapper over FlashList v2 — no `estimatedItemSize`, which v2 removed in
@@ -59,6 +61,7 @@ export function RefreshableList<T>({
   loadingMore = false,
   header,
   contentPaddingTop,
+  separateHeaderFromRows = false,
   data,
   contentContainerStyle,
   ItemSeparatorComponent,
@@ -114,6 +117,14 @@ export function RefreshableList<T>({
     [chrome, onScroll],
   )
 
+  // FlashList separators exist only between data rows, never between its header
+  // and the first row. Filter-heavy headers opt in so their final control does
+  // not visually merge into the first result.
+  const renderedHeader =
+    separateHeaderFromRows && header ? (
+      <View style={styles.headerSeparated}>{header}</View>
+    ) : header
+
   // The header renders in the loading and error states too, not only alongside
   // rows. Without this the vendor loses the filter chips and date presets in
   // exactly the two states where they need them most — to change the query that
@@ -128,7 +139,7 @@ export function RefreshableList<T>({
         onScroll={handleScroll}
         scrollEventThrottle={chrome.scrollEventThrottle}
       >
-        {header}
+        {renderedHeader}
         <View style={styles.centred}>
           <ActivityIndicator color={tokens.text} />
         </View>
@@ -153,7 +164,7 @@ export function RefreshableList<T>({
           />
         }
       >
-        {header}
+        {renderedHeader}
         <View style={styles.centred}>
           <Text style={styles.messageTitle}>Couldn&apos;t load this</Text>
           <Text style={styles.message}>{error}</Text>
@@ -176,7 +187,7 @@ export function RefreshableList<T>({
       {...listProps}
       data={data}
       contentContainerStyle={contentStyle}
-      ListHeaderComponent={header}
+      ListHeaderComponent={renderedHeader}
       ItemSeparatorComponent={Separator}
       onScroll={handleScroll}
       scrollEventThrottle={chrome.scrollEventThrottle}

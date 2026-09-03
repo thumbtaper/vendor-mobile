@@ -35,6 +35,9 @@ export const makeStyles = (t: Tokens) =>
     separator: {
       height: spacing.md,
     },
+    headerSeparated: {
+      paddingBottom: spacing.md,
+    },
     centred: {
       flex: 1,
       alignItems: "center",

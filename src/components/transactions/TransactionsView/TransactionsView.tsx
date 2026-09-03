@@ -53,6 +53,7 @@ export function TransactionsView() {
     <>
       <RefreshableList<Transaction>
         header={header}
+        separateHeaderFromRows
         data={s.transactions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <TransactionListItem transaction={item} />}

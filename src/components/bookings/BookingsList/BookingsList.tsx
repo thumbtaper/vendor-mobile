@@ -34,6 +34,7 @@ export function BookingsList() {
     <>
       <RefreshableList<Booking>
         header={header}
+        separateHeaderFromRows
         data={s.bookings}
         keyExtractor={(booking) => booking.id}
         renderItem={({ item }) => (

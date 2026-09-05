@@ -55,6 +55,30 @@ export const makeStyles = (t: Tokens) =>
       color: t.text,
       fontSize: type.caption.size,
     },
+    probeContent: {
+      gap: spacing.md,
+      padding: spacing.lg,
+    },
+    probeCopy: {
+      color: t.text,
+      fontSize: type.caption.size,
+      lineHeight: 18,
+    },
+    probeTarget: {
+      color: t.strong,
+      fontSize: type.caption.size,
+      fontWeight: "600",
+    },
+    probeSuccess: {
+      color: "#16a34a",
+      fontSize: type.caption.size,
+      lineHeight: 18,
+    },
+    probeError: {
+      color: "#ef4444",
+      fontSize: type.caption.size,
+      lineHeight: 18,
+    },
     segmented: {
       flexDirection: "row",
       gap: spacing.xs,

@@ -2,6 +2,8 @@ import Constants from "expo-constants"
 import { useMemo } from "react"
 import { Pressable, ScrollView, Text, View } from "react-native"
 
+import { FormField } from "@/components/common/FormField/FormField"
+import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
 import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
 import { useScreenChrome } from "@/components/common/ScreenShell/ScreenChromeContext"
 import type { PushState } from "@/hooks/usePushRegistration"
@@ -122,6 +124,59 @@ export function SettingsList() {
           ) : null}
         </View>
       </View>
+
+      {s.showKioskProbe ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Development: kiosk access</Text>
+          <View style={styles.card}>
+            <View style={styles.probeContent}>
+              <Text style={styles.probeCopy}>
+                Verifies the signed-in app can use the configured kiosk API. This test only
+                performs a non-matching lookup and does not change a booking.
+              </Text>
+              <Text style={styles.probeTarget} numberOfLines={1}>
+                Server: {s.kioskProbeTarget}
+              </Text>
+              {s.selectedVendorId ? (
+                <Text style={styles.probeTarget} selectable>
+                  Selected vendor UUID: {s.selectedVendorId}
+                </Text>
+              ) : null}
+              <PrimaryButton
+                label="Test selected vendor access"
+                onPress={s.testSelectedVendorKioskAccess}
+                loading={s.kioskProbe.kind === "running"}
+                accessibilityHint="Checks access to the currently selected vendor without changing data"
+              />
+              <FormField
+                label="Other vendor UUID"
+                value={s.probeVendorId}
+                onChangeText={s.setProbeVendorId}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="UUID for the access-denied test"
+              />
+              <PrimaryButton
+                label="Test other vendor is denied"
+                variant="secondary"
+                onPress={s.testOtherVendorKioskAccess}
+                loading={s.kioskProbe.kind === "running"}
+                accessibilityHint="Checks that this account cannot access another vendor"
+              />
+              {s.kioskProbe.kind === "success" ? (
+                <Text style={styles.probeSuccess} accessibilityRole="alert">
+                  {s.kioskProbe.message}
+                </Text>
+              ) : null}
+              {s.kioskProbe.kind === "error" ? (
+                <Text style={styles.probeError} accessibilityRole="alert">
+                  {s.kioskProbe.message}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>

@@ -26,6 +26,15 @@ type KioskProbeState =
   | { kind: "success"; message: string }
   | { kind: "error"; message: string }
 
+type KioskProbeFailure = Extract<KioskProbeState, { kind: "error" }>
+
+function kioskProbeFailure(status: number | null): KioskProbeFailure {
+  if (status === 401) return { kind: "error", message: "The staging server rejected this session (401)." }
+  if (status === 403) return { kind: "error", message: "The staging server denied this vendor (403)." }
+  if (status !== null) return { kind: "error", message: `The staging server returned ${status}.` }
+  return { kind: "error", message: "No response from the staging kiosk server." }
+}
+
 export function useSettingsList() {
   const { gate } = useSessionGate()
   const { preference, setPreference } = useAppTheme()
@@ -85,14 +94,7 @@ export function useSettingsList() {
       setKioskProbe({ kind: "success", message: "Access to the selected vendor succeeded." })
     } catch (error) {
       const status = error instanceof KioskApiError ? error.status : null
-      setKioskProbe({
-        kind: "error",
-        message: status === 401
-          ? "The staging server rejected this session (401)."
-          : status === 403
-            ? "The staging server denied this vendor (403)."
-            : "The kiosk connection could not be verified.",
-      })
+      setKioskProbe(kioskProbeFailure(status))
     }
   }, [gate.selectedVendorId])
 
@@ -116,9 +118,7 @@ export function useSettingsList() {
         kind: status === 403 ? "success" : "error",
         message: status === 403
           ? "Access to the other vendor was correctly denied (403)."
-          : status === 401
-            ? "The staging server rejected this session (401)."
-            : "The kiosk connection could not be verified.",
+          : kioskProbeFailure(status).message,
       })
     }
   }, [probeVendorId])

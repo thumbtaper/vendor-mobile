@@ -84,6 +84,14 @@ export function createKioskBooking(request: KioskBookingRequest) {
   return kioskRequest<KioskBookingResponse>("/api/kiosk/booking", request)
 }
 
+/** Uses the existing web contract and its existing success/cancel destinations. */
+export function createKioskPaymentSession(vendorId: string, bookingId: string) {
+  return kioskRequest<{ checkout_url: string; session_id: string }>(
+    "/api/kiosk/payment/create-session",
+    { vendorId, bookingId },
+  )
+}
+
 const AUTH_PROBE_IDENTIFIER = "mobile-kiosk-auth-probe-000000000000000000"
 
 /**

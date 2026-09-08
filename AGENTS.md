@@ -9,6 +9,28 @@ context — not from inside this folder.
 
 ---
 
+## Write boundary — explicit approval required outside this app
+
+While working on `ezzy-vendor-mobile`, only files inside
+`/home/joshua/RS/ezzy-vendor-mobile/` may be changed without additional approval.
+
+- Read-only investigation of sibling apps and shared architecture is allowed.
+- Before changing anything outside this app, identify the exact files or external
+  targets, proposed change, and reason, then obtain explicit user approval. This
+  includes `vendor`, `booker`, `command`, `backbone`, root instructions, shared
+  `architecture/` documents, and `.plans/` files. Routine plan upkeep is not exempt.
+- Requests such as “continue”, “fix B1”, or “make mobile match vendor” do not grant
+  permission to edit a sibling app or shared documentation. Propose any required
+  backend fix and wait for approval before applying it.
+- Approval is limited to the specified change; it does not authorize subsequent
+  changes outside this app. Existing cross-app plan approvals do not override this
+  boundary without explicit renewed approval for the proposed change.
+- **One-time exception accepted 2026-09-07:** the existing vendor close-out query
+  fix selecting `profiles!bookings_booker_id_fkey(phone, email)` was accepted for
+  testing. This does not authorize further vendor changes or deployment.
+
+---
+
 ## Expo HAS CHANGED
 
 Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before

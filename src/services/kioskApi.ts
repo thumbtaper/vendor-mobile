@@ -91,18 +91,3 @@ export function createKioskPaymentSession(vendorId: string, bookingId: string) {
     { vendorId, bookingId },
   )
 }
-
-const AUTH_PROBE_IDENTIFIER = "mobile-kiosk-auth-probe-000000000000000000"
-
-/**
- * Development-only proof that the installed app can call the existing kiosk boundary.
- *
- * The identifier cannot match a UUID prefix or a normal phone number, so this is a
- * read-only no-match lookup. It is intentionally not part of the customer kiosk flow.
- */
-export function verifyKioskAccess(vendorId: string) {
-  return kioskRequest<{ bookings: unknown[] }>("/api/kiosk/close-out", {
-    vendorId,
-    identifier: AUTH_PROBE_IDENTIFIER,
-  })
-}

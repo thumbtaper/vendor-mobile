@@ -11,7 +11,6 @@ import {
 import { usePush } from "@/providers/PushProvider"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 import { signOut } from "@/services/auth.service"
-import { KioskApiError, verifyKioskAccess } from "@/services/kioskApi"
 import { useAppTheme, type ThemePreference } from "@/theme/useAppTheme"
 
 export const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
@@ -20,28 +19,11 @@ export const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: "system", label: "System" },
 ]
 
-type KioskProbeState =
-  | { kind: "idle" }
-  | { kind: "running" }
-  | { kind: "success"; message: string }
-  | { kind: "error"; message: string }
-
-type KioskProbeFailure = Extract<KioskProbeState, { kind: "error" }>
-
-function kioskProbeFailure(status: number | null): KioskProbeFailure {
-  if (status === 401) return { kind: "error", message: "The staging server rejected this session (401)." }
-  if (status === 403) return { kind: "error", message: "The staging server denied this vendor (403)." }
-  if (status !== null) return { kind: "error", message: `The staging server returned ${status}.` }
-  return { kind: "error", message: "No response from the staging kiosk server." }
-}
-
 export function useSettingsList() {
   const { gate } = useSessionGate()
   const { preference, setPreference } = useAppTheme()
   const push = usePush()
   const [signingOut, setSigningOut] = useState(false)
-  const [kioskProbe, setKioskProbe] = useState<KioskProbeState>({ kind: "idle" })
-  const [probeVendorId, setProbeVendorId] = useState("")
   const bottomInset = useBottomInset({ tabBar: true })
 
   const handleSignOut = useCallback(async () => {
@@ -82,47 +64,6 @@ export function useSettingsList() {
     WebBrowser.openBrowserAsync(link.href)
   }, [])
 
-  const testSelectedVendorKioskAccess = useCallback(async () => {
-    if (!gate.selectedVendorId) {
-      setKioskProbe({ kind: "error", message: "Choose a vendor before testing kiosk access." })
-      return
-    }
-
-    setKioskProbe({ kind: "running" })
-    try {
-      await verifyKioskAccess(gate.selectedVendorId)
-      setKioskProbe({ kind: "success", message: "Access to the selected vendor succeeded." })
-    } catch (error) {
-      const status = error instanceof KioskApiError ? error.status : null
-      setKioskProbe(kioskProbeFailure(status))
-    }
-  }, [gate.selectedVendorId])
-
-  const testOtherVendorKioskAccess = useCallback(async () => {
-    const targetVendorId = probeVendorId.trim()
-    if (!targetVendorId) {
-      setKioskProbe({ kind: "error", message: "Enter the other vendor’s UUID first." })
-      return
-    }
-
-    setKioskProbe({ kind: "running" })
-    try {
-      await verifyKioskAccess(targetVendorId)
-      setKioskProbe({
-        kind: "error",
-        message: "Unexpected access: this account may administer that vendor.",
-      })
-    } catch (error) {
-      const status = error instanceof KioskApiError ? error.status : null
-      setKioskProbe({
-        kind: status === 403 ? "success" : "error",
-        message: status === 403
-          ? "Access to the other vendor was correctly denied (403)."
-          : kioskProbeFailure(status).message,
-      })
-    }
-  }, [probeVendorId])
-
   return {
     // `tabBar: true` — Settings is inside the tab navigator. `href: null`
     // (`app/(app)/_layout.tsx`) only hides it FROM the bar; the bar still renders
@@ -147,13 +88,5 @@ export function useSettingsList() {
     legalLinks: LEGAL_LINKS,
     openLegalLink,
     openAccountDeletion,
-    showKioskProbe: __DEV__,
-    kioskProbeTarget: WEB_PORTAL_URL ?? "Not configured",
-    selectedVendorId: gate.selectedVendorId,
-    kioskProbe,
-    probeVendorId,
-    setProbeVendorId,
-    testSelectedVendorKioskAccess,
-    testOtherVendorKioskAccess,
   }
 }

@@ -1,3 +1,4 @@
+import { useKioskMode } from "@/providers/KioskModeProvider/KioskModeProvider"
 import { Redirect } from "expo-router"
 import { ActivityIndicator } from "react-native"
 
@@ -10,6 +11,9 @@ import { useSessionGate } from "@/providers/SessionGateProvider"
 // keeping that decision in a single file rather than spread across screens.
 export default function Index() {
   const { session, isRecovering, gate } = useSessionGate()
+
+  const kiosk = useKioskMode()
+  if (kiosk.contained) return <Redirect href="/kiosk" />
 
   if (isRecovering) return <Redirect href="/reset-password" />
   if (!session) return <Redirect href="/sign-in" />

@@ -171,6 +171,9 @@ export function fmtBookingSpan(b: {
   endDate: string
 }): string {
   if (b.startTime) {
+    if (b.endTime && b.endDate && b.endDate !== b.bookedDate) {
+      return `${b.startTime} – ${b.endTime} (${fmtPhDate(b.endDate)})`
+    }
     return b.endTime ? `${b.startTime} – ${b.endTime}` : b.startTime
   }
   if (b.endDate && b.endDate !== b.bookedDate) {
@@ -180,8 +183,8 @@ export function fmtBookingSpan(b: {
 }
 
 /** How many days a date-granular booking covers, inclusive. 0 when not date-granular. */
-export function bookingDayCount(b: { bookedDate: string; endDate: string }): number {
-  if (!b.endDate) return 0
+export function bookingDayCount(b: { bookedDate: string; endDate: string; startTime: string }): number {
+  if (b.startTime || !b.endDate) return 0
   const ms = new Date(b.endDate + "T00:00:00Z").getTime() - new Date(b.bookedDate + "T00:00:00Z").getTime()
   return Math.max(1, Math.round(ms / 86_400_000) + 1)
 }

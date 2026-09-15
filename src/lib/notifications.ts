@@ -1,3 +1,4 @@
+import { areStaffNotificationsBlocked } from "./kioskMode"
 import { loadNotifications } from "./pushModule"
 
 // How an arriving push behaves while the app is in the foreground.
@@ -23,8 +24,8 @@ export function registerForegroundNotificationHandler(): void {
         // that a booking needing approval reaches the vendor immediately, and
         // suppressing it while they happen to have the app open is the wrong
         // default here.
-        shouldShowBanner: true,
-        shouldShowList: true,
+        shouldShowBanner: !areStaffNotificationsBlocked(),
+        shouldShowList: !areStaffNotificationsBlocked(),
       }),
     })
   } catch (error) {

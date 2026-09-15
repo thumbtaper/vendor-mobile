@@ -3,10 +3,8 @@
 // updated alongside the web app's version after any schema change (this repo
 // hand-writes its interfaces; there is no `supabase gen types`).
 //
-// Scope: only the entities this companion app actually renders. Staff, Schedule,
-// Offering, VendorProfile, Requirement and the commented-out Package/Branch/
-// Certificate types are omitted because those surfaces stay on the web portal
-// (plan §1). Add them only if a screen needs them.
+// Scope: booking history and the read-only catalogue needed by native kiosk.
+export type { Offering, OfferingAttachment, Schedule } from "./kioskTypes"
 
 // All nine states the database allows (20260801000002). The four in the middle
 // were added by the dual-acknowledgement work: a booking is only `completed` once
@@ -50,7 +48,7 @@ export interface Booking {
   // schedule here would show every booking the same time.
   startTime: string        // "" for date-granular bookings
   endTime: string          // "" for date-granular bookings
-  endDate: string          // "" for time-granular bookings
+  endDate: string          // Also populated for timed bookings ending on another day
   quantity: number
   status: BookingStatus
   pricePaid: number

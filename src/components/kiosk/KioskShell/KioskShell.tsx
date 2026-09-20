@@ -13,7 +13,7 @@ export function KioskShell() {
   return (
     <SafeAreaView style={s.styles.root} onTouchStart={s.touch} onTouchMove={s.touch}>
       <StatusBar style={s.isDark ? "light" : "dark"} />
-      <KeyboardAvoidingView style={s.styles.keyboard} behavior={Platform.OS === "android" ? "height" : undefined}>
+      <KeyboardAvoidingView style={s.styles.keyboard} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <View style={s.styles.screen}>
         <View style={s.styles.header}>
           <View style={s.styles.identity}>
@@ -36,8 +36,8 @@ export function KioskShell() {
           {s.browserOpen ? <Text style={s.styles.text}>Browser session in progress</Text> : s.ready ? s.browsing === "closeout" && s.mode.vendorId ? <KioskCloseOut vendorId={s.mode.vendorId} onHome={s.home} /> : !s.browsing ? <View style={s.styles.welcome}>
             <Text style={s.styles.title}>Welcome</Text>
             <Text style={s.styles.text}>What would you like to do?</Text>
-            <PrimaryButton label="Book something" onPress={s.openCatalogue} />
-            <PrimaryButton label="Finish a booking" onPress={s.openCloseOut} variant="secondary" />
+            <PrimaryButton label="Book something" onPress={s.openCatalogue} size="large" />
+            <PrimaryButton label="Finish a booking" onPress={s.openCloseOut} variant="secondary" size="large" />
           </View> : null : s.checking ? <ActivityIndicator accessibilityLabel="Checking kiosk access" /> : <View style={s.styles.welcome}>
             <Text style={s.styles.title} accessibilityRole="header">Kiosk unavailable</Text>
             <Text style={s.styles.text} accessibilityRole="alert">{s.mode.status === "storage_error" ? "Could not restore kiosk settings. Please retry." : s.message ?? "Please see staff."}</Text>

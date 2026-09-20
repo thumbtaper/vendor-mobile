@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { canPayKioskReceipt, createKioskCheckoutAttempt, isKioskReceiptConfirmed, mapKioskReceipt, type KioskReceiptRow } from "./kioskCheckout.ts"
+import { canPayKioskReceipt, canStartKioskPayment, createKioskCheckoutAttempt, isKioskReceiptConfirmed, mapKioskReceipt, type KioskReceiptRow } from "./kioskCheckout.ts"
 
 const row: KioskReceiptRow = {
   id: "booking", price_paid: "250.50", is_paid: false, status: "pending",
@@ -16,11 +16,16 @@ test("receipt uses the stored amount, payment truth and overnight boundaries", (
   assert.equal(receipt.endTime, "01:00")
   assert.equal(receipt.endDate, "2026-09-17")
   assert.equal(canPayKioskReceipt(receipt), true)
+  assert.equal(canStartKioskPayment(receipt, false), true)
+  assert.equal(canStartKioskPayment(null, true), true)
+  assert.equal(canStartKioskPayment(null, false), false)
   assert.equal(canPayKioskReceipt({ ...receipt, paid: true }), false)
+  assert.equal(canStartKioskPayment({ ...receipt, paid: true }, true), false)
   assert.equal(isKioskReceiptConfirmed({ ...receipt, paid: true }), true)
   assert.equal(isKioskReceiptConfirmed({ ...receipt, paid: true, status: "refunded" }), false)
   for (const status of ["cancelled", "refunded", "rejected", "unknown"]) {
     assert.equal(canPayKioskReceipt({ ...receipt, status }), false)
+    assert.equal(canStartKioskPayment({ ...receipt, status }, true), false)
   }
 })
 

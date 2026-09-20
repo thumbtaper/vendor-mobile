@@ -39,6 +39,14 @@ export function canPayKioskReceipt(receipt: KioskReceipt) {
   return !receipt.paid && receipt.amount > 0 && ["pending", "confirmed"].includes(receipt.status)
 }
 
+/**
+ * A newly-created paid booking can open its first server-authorized checkout session
+ * even when the optional direct receipt read is temporarily unavailable.
+ */
+export function canStartKioskPayment(receipt: KioskReceipt | null, isFreshPaidBooking: boolean) {
+  return receipt ? canPayKioskReceipt(receipt) : isFreshPaidBooking
+}
+
 /** A settled payment is confirmation unless the booking was subsequently refunded. */
 export function isKioskReceiptConfirmed(receipt: KioskReceipt | null): boolean {
   return Boolean(receipt?.paid && receipt.status !== "refunded")

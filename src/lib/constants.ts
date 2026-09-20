@@ -37,6 +37,12 @@ export const APP_NAME = process.env.EXPO_PUBLIC_APP_NAME ?? "Ezzy Vendor"
 // rather than broken, since a link to nowhere is worse than no link at a store review.
 export const WEB_PORTAL_URL = process.env.EXPO_PUBLIC_VENDOR_PORTAL_URL ?? null
 
+// Kiosk remains enabled in local development. Preview builds opt in explicitly
+// so it can be accepted on physical devices without exposing an unannounced
+// production feature.
+export const KIOSK_MODE_ENABLED =
+  __DEV__ || process.env.EXPO_PUBLIC_KIOSK_ENABLED === "true"
+
 export interface LegalLink {
   key: string
   label: string

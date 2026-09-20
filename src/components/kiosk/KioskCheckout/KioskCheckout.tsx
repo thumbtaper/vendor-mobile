@@ -1,13 +1,14 @@
 import { CircleCheckBig } from "lucide-react-native"
-import { Image, ScrollView, Text, View } from "react-native"
+import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native"
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
+import { KioskBackButton } from "../KioskBackButton/KioskBackButton"
 import { useKioskCheckout, type KioskCheckoutProps } from "./useKioskCheckout"
 
 export function KioskCheckout(props: KioskCheckoutProps) {
   const s = useKioskCheckout(props)
   return <View style={s.styles.frame}>
     <View style={s.styles.stepHeader}>
-      {!s.started ? <PrimaryButton label="Back" variant="secondary" onPress={props.onBack} /> : null}
+      {!s.started ? <KioskBackButton accessibilityLabel="Back to customer details" onPress={props.onBack} /> : null}
       <Text style={s.styles.stepLabel}>Booking · Review and payment</Text>
     </View>
     <ScrollView style={s.styles.scroll} contentContainerStyle={s.styles.content}>
@@ -21,7 +22,11 @@ export function KioskCheckout(props: KioskCheckoutProps) {
       <Text style={s.styles.amount}>Estimated total: {s.estimate}</Text>
       <Text style={s.styles.muted}>The final amount is confirmed when the booking is created.</Text>
       {props.signature ? <Image source={{ uri: `data:image/png;base64,${props.signature}` }} style={s.styles.signature} resizeMode="contain" accessibilityLabel="Captured signature" /> : null}
-    </> : <>
+    </> : s.creating ? <View style={s.styles.creating} accessibilityLiveRegion="polite">
+      <Image source={require("@/assets/brand/icon-ios.png")} style={s.styles.creatingLogo} accessibilityLabel="Ezzy Vendor" />
+      <ActivityIndicator size="small" color={s.tokens.accent} accessibilityLabel="Creating booking" />
+      <Text style={s.styles.creatingText}>Creating your booking...</Text>
+    </View> : <>
       {s.bookingId ? <Text style={s.styles.text}>Booking reference: {s.bookingId}</Text> : null}
       {s.confirmed && s.receipt ? <View style={s.styles.confirmation} accessibilityLiveRegion="polite">
         <CircleCheckBig size={40} color={s.tokens.status.confirmed.fg} accessible={false} />
@@ -43,15 +48,15 @@ export function KioskCheckout(props: KioskCheckoutProps) {
       {s.canPay ? <>
         <Text style={s.styles.muted}>After payment, close the browser to return here. Confirmation may take a moment.</Text>
       </> : null}
-      {s.working && !s.bookingId ? <Text style={s.styles.text} accessibilityLiveRegion="polite">Creating booking...</Text> : null}
     </>}
     {s.error ? <Text style={s.styles.text} accessibilityRole="alert">{s.error}</Text> : null}
     </ScrollView>
     <View style={[s.styles.actionBar, { paddingBottom: s.actionBarPaddingBottom }]}>
-      {!s.started ? <PrimaryButton label="Create booking" onPress={s.create} loading={s.working} /> : null}
-      {s.started && s.canPay ? <PrimaryButton label={s.payLabel} onPress={s.pay} loading={s.working} /> : null}
-      {s.started && s.bookingId && !s.confirmed ? <PrimaryButton label="Check payment status" variant="secondary" onPress={s.refresh} loading={s.working} /> : null}
-      {s.started && !s.working ? <PrimaryButton label="Done" variant="secondary" onPress={s.done} /> : null}
+      {!s.started ? <PrimaryButton label="Create booking" onPress={s.create} loading={s.working} /> : s.creating ? <PrimaryButton label="Creating booking" onPress={s.inertAction} disabled /> : <>
+        {s.canPay ? <PrimaryButton label={s.payLabel} onPress={s.pay} loading={s.working} /> : null}
+        {s.bookingId && !s.confirmed ? <PrimaryButton label="Check payment status" variant="secondary" onPress={s.refresh} loading={s.working} /> : null}
+        {!s.working ? <PrimaryButton label="Done" variant="secondary" onPress={s.done} /> : null}
+      </>}
     </View>
   </View>
 }

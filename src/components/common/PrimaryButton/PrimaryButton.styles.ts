@@ -10,6 +10,9 @@ export const makeStyles = (t: Tokens) =>
       overflow: "hidden",
       ...t.btnPrimaryShadow,
     },
+    pressableLarge: {
+      minHeight: 80,
+    },
     gradient: {
       flex: 1,
       minHeight: MIN_TOUCH_TARGET,
@@ -19,12 +22,19 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.sm,
       paddingHorizontal: spacing.lg,
     },
+    gradientLarge: {
+      minHeight: 80,
+      paddingHorizontal: spacing.xl,
+    },
     label: {
       // Tokenised, not white: on the branded auth surface `btnPrimary` is gold,
       // where white text is unreadable.
       color: t.btnPrimaryFg,
       fontSize: type.body.size,
       fontWeight: "600",
+    },
+    labelLarge: {
+      fontSize: 18,
     },
     pressed: {
       opacity: 0.85,
@@ -43,9 +53,16 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
       paddingHorizontal: spacing.lg,
     },
+    secondaryLarge: {
+      minHeight: 80,
+      paddingHorizontal: spacing.xl,
+    },
     secondaryLabel: {
       color: t.strong,
       fontSize: type.body.size,
       fontWeight: "600",
+    },
+    secondaryLabelLarge: {
+      fontSize: 18,
     },
   })

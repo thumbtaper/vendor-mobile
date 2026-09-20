@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react"
 import { AppState } from "react-native"
 
+import { KIOSK_MODE_ENABLED } from "@/lib/constants"
 import { KioskModeStore, kioskContainsStaff } from "@/lib/kioskMode"
 import { authenticateKioskStaff, checkKioskAccess } from "@/services/kioskAccess.service"
 
@@ -11,7 +12,7 @@ export function useKioskModeProvider() {
   useEffect(() => { void store.restore() }, [store])
 
   const launch = useCallback(async (vendorId: string) => {
-    if (!__DEV__) throw new Error("Kiosk launch is not available in this release.")
+    if (!KIOSK_MODE_ENABLED) throw new Error("Kiosk launch is not available in this release.")
     await checkKioskAccess(vendorId)
     await store.enter(vendorId)
   }, [store])

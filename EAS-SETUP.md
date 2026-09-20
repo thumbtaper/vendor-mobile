@@ -89,9 +89,14 @@ npx eas-cli@latest env:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://<
 npx eas-cli@latest env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "<anon key>"
 npx eas-cli@latest env:create --name EXPO_PUBLIC_APP_NAME --value "Ezzy Vendor"
 npx eas-cli@latest env:create --name EXPO_PUBLIC_VENDOR_PORTAL_URL --value "https://<vendor-portal-domain>"
+npx eas-cli@latest env:create --name EXPO_PUBLIC_KIOSK_ENABLED --value "true"
 ```
 
-That is **all four** of the app's public variables — the set in `.env.example`. The
+That is **all five** of the app's public variables. `EXPO_PUBLIC_KIOSK_ENABLED`
+controls the kiosk menu and launch guard outside local development; set it to
+`true` for the `preview` environment while kiosk acceptance is in progress, and
+leave it unset for production until it is approved for release. The
+remaining four are the set in `.env.example`. The
 fourth is easy to skip because nothing crashes without it: `lib/constants.ts`
 defaults `WEB_PORTAL_URL` to `null` and the affected links are *hidden* rather than
 shown broken. What silently disappears from the build is the "Open the web portal"

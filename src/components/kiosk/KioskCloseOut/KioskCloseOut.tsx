@@ -1,13 +1,14 @@
 import { ActivityIndicator, ScrollView, Text, View } from "react-native"
 import { FormField } from "@/components/common/FormField/FormField"
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
+import { KioskBackButton } from "../KioskBackButton/KioskBackButton"
 import { useKioskCloseOut } from "./useKioskCloseOut"
 
 export function KioskCloseOut({ vendorId, onHome }: { vendorId: string; onHome: () => void }) {
   const s = useKioskCloseOut(vendorId, onHome)
   return <View style={s.styles.frame}>
     <View style={s.styles.stepHeader}>
-      <PrimaryButton label="Back to welcome" variant="secondary" onPress={s.home} />
+      <KioskBackButton accessibilityLabel="Back to welcome" onPress={s.home} />
       <Text style={s.styles.stepLabel}>Finish a booking</Text>
     </View>
     <ScrollView style={s.styles.scroll} contentContainerStyle={s.styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>

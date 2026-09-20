@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AppState } from "react-native"
-import { canPayKioskReceipt, createKioskCheckoutAttempt, isKioskReceiptConfirmed, type KioskCheckoutSelection, type KioskReceipt } from "@/lib/kioskCheckout"
+import { canStartKioskPayment, createKioskCheckoutAttempt, isKioskReceiptConfirmed, type KioskCheckoutSelection, type KioskReceipt } from "@/lib/kioskCheckout"
 import { normaliseKioskPhone, validKioskCustomer, type KioskCustomer } from "@/lib/kioskCustomer"
 import { normaliseSignaturePng } from "@/lib/kioskSignature"
 import { requirementsFor } from "@/lib/kioskSteps"
@@ -38,6 +38,7 @@ export function useKioskCheckout({ selection, customer, documents, signature, pa
   const [error, setError] = useState<string | null>(null)
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null)
   const [sessionFailed, setSessionFailed] = useState(false)
+  const [freshPaidBooking, setFreshPaidBooking] = useState(false)
   const [pollUntil, setPollUntil] = useState(0)
   const [attempt] = useState(() => createKioskCheckoutAttempt(
     () => createKioskBooking({
@@ -99,18 +100,28 @@ export function useKioskCheckout({ selection, customer, documents, signature, pa
     startedOnce.current = true; busy.current = true
     setStarted(true); setWorking(true); setError(null)
     let createdId: string | null = null
+    let canPayWithoutReceipt = false
     try {
       const booking = await attempt.book()
       if (!live.current) return
       if (typeof booking.bookingId !== "string" || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(booking.bookingId)) throw new Error("Unknown booking result")
       createdId = booking.bookingId
       setBookingId(createdId)
+      canPayWithoutReceipt = booking.free === false
+      setFreshPaidBooking(canPayWithoutReceipt)
       invalidate()
-      await read(createdId)
     } catch {
       if (live.current) setError(createdId
         ? "Your booking was created, but its payment status is unavailable. Check again or see staff."
         : "We could not confirm whether your booking was created. Please see staff before trying again.")
+      return
+    }
+    try {
+      await read(createdId)
+    } catch {
+      if (live.current) setError(canPayWithoutReceipt
+        ? "Your booking was created. Payment status is still loading; you can continue to PayMongo."
+        : "Your booking was created, but its payment status is unavailable. Check again or see staff.")
     } finally { busy.current = false; if (live.current) setWorking(false) }
   }, [attempt, customer, documents, signature, read, invalidate])
 
@@ -118,8 +129,12 @@ export function useKioskCheckout({ selection, customer, documents, signature, pa
     if (!bookingId || busy.current || !live.current || sessionFailed) return
     busy.current = true; setWorking(true); setError(null)
     try {
-      const current = await read(bookingId)
-      if (!current || !canPayKioskReceipt(current)) return
+      let current: KioskReceipt | null = null
+      try { current = await read(bookingId) }
+      catch {
+        if (!freshPaidBooking) throw new Error("Receipt unavailable")
+      }
+      if (!canStartKioskPayment(current, freshPaidBooking)) return
       let url = checkoutUrl
       if (!url) {
         try {
@@ -146,12 +161,14 @@ export function useKioskCheckout({ selection, customer, documents, signature, pa
     } catch {
       if (live.current) { setReceipt(null); setError("Payment status is unavailable. Check again before making another payment.") }
     } finally { busy.current = false; if (live.current) setWorking(false) }
-  }, [bookingId, sessionFailed, checkoutUrl, attempt, read, payment])
+  }, [bookingId, sessionFailed, checkoutUrl, attempt, read, payment, freshPaidBooking])
 
   return {
     tokens, styles, started, working, bookingId, receipt, error, sessionFailed, create, pay, refresh,
+    inertAction: useCallback(() => {}, []),
+    creating: started && working && !bookingId,
     actionBarPaddingBottom: Math.max(spacing.md, insets.bottom),
-    canPay: !!receipt && canPayKioskReceipt(receipt) && !sessionFailed,
+    canPay: canStartKioskPayment(receipt, freshPaidBooking) && !sessionFailed,
     confirmed: isKioskReceiptConfirmed(receipt),
     payLabel: checkoutUrl ? "Reopen payment" : "Pay with PayMongo",
     heading: !started ? "Review booking" : receipt?.paid

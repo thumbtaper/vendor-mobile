@@ -11,6 +11,7 @@ interface Props {
   loading?: boolean
   disabled?: boolean
   variant?: "primary" | "secondary"
+  size?: "default" | "large"
   accessibilityHint?: string
 }
 
@@ -23,11 +24,13 @@ export function PrimaryButton({
   loading = false,
   disabled = false,
   variant = "primary",
+  size = "default",
   accessibilityHint,
 }: Props) {
   const { tokens } = useAppTheme()
   const styles = useMemo(() => makeStyles(tokens), [tokens])
   const isInert = disabled || loading
+  const isLarge = size === "large"
 
   if (variant === "secondary") {
     return (
@@ -39,6 +42,7 @@ export function PrimaryButton({
         accessibilityHint={accessibilityHint}
         style={({ pressed }) => [
           styles.secondary,
+          isLarge && styles.secondaryLarge,
           pressed && styles.pressed,
           isInert && styles.disabled,
         ]}
@@ -46,7 +50,7 @@ export function PrimaryButton({
         {loading ? (
           <ActivityIndicator color={tokens.strong} />
         ) : (
-          <Text style={styles.secondaryLabel}>{label}</Text>
+          <Text style={[styles.secondaryLabel, isLarge && styles.secondaryLabelLarge]}>{label}</Text>
         )}
       </Pressable>
     )
@@ -61,6 +65,7 @@ export function PrimaryButton({
       accessibilityHint={accessibilityHint}
       style={({ pressed }) => [
         styles.pressable,
+        isLarge && styles.pressableLarge,
         pressed && styles.pressed,
         isInert && styles.disabled,
       ]}
@@ -69,14 +74,14 @@ export function PrimaryButton({
         colors={tokens.btnPrimary.colors}
         start={tokens.btnPrimary.start}
         end={tokens.btnPrimary.end}
-        style={styles.gradient}
+        style={[styles.gradient, isLarge && styles.gradientLarge]}
       >
         {loading ? (
           // Same reason as `styles.label`: white would all but vanish on the gold
           // button the branded auth surface uses.
           <ActivityIndicator color={tokens.btnPrimaryFg} />
         ) : (
-          <Text style={styles.label}>{label}</Text>
+          <Text style={[styles.label, isLarge && styles.labelLarge]}>{label}</Text>
         )}
       </LinearGradient>
     </Pressable>

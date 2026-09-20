@@ -1,6 +1,7 @@
 import { Check, Minus, Plus } from "lucide-react-native"
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from "react-native"
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
+import { KioskBackButton } from "../KioskBackButton/KioskBackButton"
 import { useKioskCatalogue } from "./useKioskCatalogue"
 import { KioskCustomerForm } from "../KioskCustomerForm/KioskCustomerForm"
 
@@ -26,7 +27,7 @@ export function KioskCatalogue({ vendorId, onHome, review, payment }: { vendorId
   if (s.customerDocuments && s.checkoutSelection) return <KioskCustomerForm selection={s.checkoutSelection} documents={s.customerDocuments} onBack={s.backToSlots} review={review} payment={payment} onDone={onHome} />
   return <View style={s.styles.frame}>
     <View style={s.styles.stepHeader}>
-      <PrimaryButton label={s.offering ? "Back to offerings" : "Back to welcome"} variant="secondary" onPress={s.offering ? s.back : onHome} />
+      <KioskBackButton accessibilityLabel={s.offering ? "Back to offerings" : "Back to welcome"} onPress={s.offering ? s.back : onHome} />
       <Text style={s.styles.stepLabel}>Booking · {s.offering ? "Choose a time" : "Choose an offering"}</Text>
     </View>
     <ScrollView style={s.styles.scroll} contentContainerStyle={s.styles.content} keyboardShouldPersistTaps="handled">

@@ -1,5 +1,6 @@
 import { isOccurrence, parseLocalDate } from "./occurrence.ts"
 import { availabilityForDay, slotDate, spanAvailable, type SlotBooking } from "./slotAvailability.ts"
+import { hasStarted } from "./kioskAvailability.ts"
 import type { Schedule } from "./types.ts"
 
 export function addCalendarDays(day: string, count: number): string {
@@ -33,13 +34,14 @@ export interface KioskSlot {
   schedule: Schedule
 }
 
-export function kioskSlots(schedules: Schedule[], bookings: SlotBooking[], date: string): KioskSlot[] {
+export function kioskSlots(schedules: Schedule[], bookings: SlotBooking[], date: string, nowMs = Number.NEGATIVE_INFINITY): KioskSlot[] {
   const slots: KioskSlot[] = []
   for (const schedule of schedules) {
     if (!schedule.time) continue
     for (const slot of availabilityForDay(schedule, bookings, date)) {
       if (!slot.start) continue
       const ownDate = slotDate(date, schedule.time, slot.start)
+      if (hasStarted(ownDate, slot.start, nowMs)) continue
       slots.push({ id: `${schedule.id}:${ownDate}:${slot.start}`, start: slot.start,
         ownDate, nextDay: ownDate !== date, remaining: slot.remaining, schedule })
     }

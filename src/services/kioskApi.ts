@@ -35,6 +35,9 @@ async function kioskRequest<T>(path: string, body: unknown): Promise<T> {
     throw new KioskApiError("Staff sign-in is required before starting kiosk mode.", 401)
   }
 
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 45_000)
+  try {
   const response = await fetch(`${kioskApiOrigin()}${path}`, {
     method: "POST",
     headers: {
@@ -42,6 +45,7 @@ async function kioskRequest<T>(path: string, body: unknown): Promise<T> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    signal: controller.signal,
   })
 
   const payload = await response.json().catch(() => ({})) as { error?: unknown }
@@ -53,6 +57,7 @@ async function kioskRequest<T>(path: string, body: unknown): Promise<T> {
   }
 
   return payload as T
+  } finally { clearTimeout(timeout) }
 }
 
 export interface KioskBookingRequest {
@@ -77,6 +82,20 @@ export interface KioskBookingResponse {
   bookingId: string
   bookedDate: string
   customerCreated: boolean
+  free: boolean
+}
+
+export interface KioskCloseOutBooking {
+  id: string
+  offeringName: string
+  stage: string
+  status: string
+  bookedDate?: string
+  startTime?: string | null
+}
+
+export interface KioskCloseOutResponse {
+  bookings: KioskCloseOutBooking[]
 }
 
 /** Creates a kiosk booking through the server-side, vendor-admin guarded route. */
@@ -88,6 +107,19 @@ export function createKioskBooking(request: KioskBookingRequest) {
 export function createKioskPaymentSession(vendorId: string, bookingId: string) {
   return kioskRequest<{ checkout_url: string; session_id: string }>(
     "/api/kiosk/payment/create-session",
+    { vendorId, bookingId },
+  )
+}
+
+/** Finds only the kiosk bookings identified by the customer input. */
+export function findKioskCloseOut(vendorId: string, identifier: string) {
+  return kioskRequest<KioskCloseOutResponse>("/api/kiosk/close-out", { vendorId, identifier })
+}
+
+/** Confirms the server-derived close-out action for one kiosk booking. */
+export function confirmKioskCloseOut(vendorId: string, bookingId: string) {
+  return kioskRequest<{ status: "returned" | "completed" }>(
+    "/api/kiosk/close-out/confirm",
     { vendorId, bookingId },
   )
 }

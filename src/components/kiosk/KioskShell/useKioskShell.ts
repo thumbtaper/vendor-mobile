@@ -8,6 +8,9 @@ import { useAppTheme } from "@/theme/useAppTheme"
 import { makeStyles } from "./KioskShell.styles"
 import { reviewExpired } from "@/lib/kioskCustomer"
 import { openKioskReviewBrowser } from "@/services/kioskDocuments.service"
+import { openKioskPaymentBrowser } from "@/services/kioskPayment.service"
+
+type KioskSurface = "catalogue" | "closeout"
 
 export function useKioskShell() {
   const { tokens, isDark } = useAppTheme()
@@ -17,7 +20,7 @@ export function useKioskShell() {
   const [active, setActive] = useState(AppState.currentState === "active")
   const [attempt, setAttempt] = useState(0)
   const [resetKey, setResetKey] = useState(0)
-  const [browsing, setBrowsing] = useState(false)
+  const [browsing, setBrowsing] = useState<KioskSurface | false>(false)
   const [activity, setActivity] = useState(0)
   const handoff = useRef<{ startedAt: number } | null>(null)
   const [browserOpen, setBrowserOpen] = useState(false)
@@ -77,13 +80,13 @@ export function useKioskShell() {
     return () => { clearTimeout(accessRefresh) }
   }, [ready, staffDialog, retry, result, browserOpen])
 
-  const review = useCallback(async (url: string) => {
-    if (!session || handoff.current || AppState.currentState !== "active") return
+  const handoffBrowser = useCallback(async (url: string, open: (url: string) => Promise<void>) => {
+    if (!session || handoff.current || AppState.currentState !== "active") throw new Error("Browser unavailable")
     const current = { startedAt: Date.now() }
     handoff.current = current
     setPreserveOwner(session.user.id)
     setBrowserOpen(true)
-    try { await openKioskReviewBrowser(url) }
+    try { await open(url) }
     finally {
       if (handoff.current === current) {
         handoff.current = null
@@ -97,9 +100,12 @@ export function useKioskShell() {
   return {
     styles, tokens, isDark, mode, ready, active, resetKey, staffDialog,
     browsing, home: reset,
-    review, browserOpen,
-    mountCatalogue: browsing && Boolean(session) && !isRecovering && (ready || preserveOwner === session?.user.id),
-    openCatalogue: useCallback(() => setBrowsing(true), []),
+    review: useCallback((url: string) => handoffBrowser(url, openKioskReviewBrowser), [handoffBrowser]),
+    payment: useCallback((url: string) => handoffBrowser(url, openKioskPaymentBrowser), [handoffBrowser]),
+    browserOpen,
+    mountCatalogue: browsing === "catalogue" && Boolean(session) && !isRecovering && (ready || preserveOwner === session?.user.id),
+    openCatalogue: useCallback(() => setBrowsing("catalogue"), []),
+    openCloseOut: useCallback(() => setBrowsing("closeout"), []),
     touch: useCallback(() => setActivity(value => value + 1), []),
     staffIdentity: session?.user.id ?? "signed-out",
     vendorName: ready ? result?.vendorName : null,

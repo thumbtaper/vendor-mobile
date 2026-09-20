@@ -1,7 +1,6 @@
-import * as WebBrowser from "expo-web-browser"
-import { AppState } from "react-native"
 import { SUPABASE_URL } from "@/lib/constants"
-import { KIOSK_REVIEW_MAX_MS, safeKioskReviewUrl } from "@/lib/kioskCustomer"
+import { safeKioskReviewUrl } from "@/lib/kioskCustomer"
+import { openKioskBrowser } from "./kioskBrowser.service"
 import { supabase } from "@/lib/supabase/client"
 import type { OfferingAttachment } from "@/lib/types"
 
@@ -24,33 +23,5 @@ export async function openKioskReviewBrowser(url: string): Promise<void> {
   if (!safeKioskReviewUrl(url, SUPABASE_URL) && !safeKioskReviewUrl(url, "https://ezzy.ph")) {
     throw new Error("This document cannot be opened.")
   }
-  let away = false
-  let finish: () => void = () => {}
-  const returned = new Promise<void>(resolve => {
-    finish = resolve
-  })
-  // Install before launching: foreground can arrive before openBrowserAsync settles.
-  const subscription = AppState.addEventListener("change", state => {
-    if (state !== "active") away = true
-    else if (away) finish()
-  })
-  let timeout: ReturnType<typeof setTimeout> | undefined
-  const expired = new Promise<void>((_, reject) => {
-    timeout = setTimeout(() => reject(new Error("Review timed out. Please start again.")), KIOSK_REVIEW_MAX_MS + 1)
-  })
-  try {
-    await Promise.race([
-      (async () => {
-        const result = await WebBrowser.openBrowserAsync(url, {
-          dismissButtonStyle: "done", createTask: false, showInRecents: false,
-        })
-        if (result.type === "opened") await returned
-      })(),
-      // Also bounds an iOS modal that never dismisses.
-      expired,
-    ])
-  } finally {
-    subscription.remove()
-    clearTimeout(timeout)
-  }
+  await openKioskBrowser(url)
 }

@@ -81,15 +81,15 @@ export async function getKioskCatalogue(vendorId: string) {
   return { ...classifyKioskOfferings(offerings, schedules), schedules, attachments: files }
 }
 
-/** Query both calendar days of an occurrence; select no customer fields. */
-export async function getKioskSlotBookings(vendorId: string, scheduleIds: string[], date: string): Promise<SlotBooking[]> {
+/** Query an inclusive calendar range; select no customer fields. */
+export async function getKioskSlotBookings(vendorId: string, scheduleIds: string[], date: string, throughDate = addCalendarDays(date, 1)): Promise<SlotBooking[]> {
   const out: SlotBooking[] = []
   // Keep PostgREST URLs bounded even for a vendor with many active rules.
   for (let offset = 0; offset < scheduleIds.length; offset += 50) {
     const rows = await readAll<BookingRow>((from, to) => supabase.from("bookings")
       .select("schedule_id, booked_date, start_time, end_time, end_date, status", { count: "exact" })
       .eq("vendor_id", vendorId).in("schedule_id", scheduleIds.slice(offset, offset + 50))
-      .gte("booked_date", date).lte("booked_date", addCalendarDays(date, 1))
+      .gte("booked_date", date).lte("booked_date", throughDate)
       .not("status", "in", "(cancelled,refunded)").order("id").range(from, to))
     out.push(...rows.map(r => ({ scheduleId: r.schedule_id, bookedDate: r.booked_date,
       startTime: r.start_time ?? "", endTime: r.end_time ?? "", endDate: r.end_date ?? "", status: r.status })))

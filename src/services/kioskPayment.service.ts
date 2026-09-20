@@ -1,6 +1,6 @@
-import * as WebBrowser from "expo-web-browser"
-
 import { supabase } from "@/lib/supabase/client"
+import { mapKioskReceipt, type KioskReceiptRow } from "@/lib/kioskCheckout"
+import { openKioskBrowser } from "./kioskBrowser.service"
 
 /**
  * Open the server-provided checkout URL without attaching the staff's credentials.
@@ -13,7 +13,21 @@ export async function openKioskPaymentBrowser(checkoutUrl: string): Promise<void
   if (url.protocol !== "https:" || url.username || url.password) {
     throw new Error("The payment link is unavailable. Please see staff.")
   }
-  await WebBrowser.openBrowserAsync(url.toString(), { dismissButtonStyle: "done" })
+  await openKioskBrowser(url.toString())
+}
+
+/** Memory-only receipt: never put this read in the persisted staff query cache. */
+export async function getKioskReceipt(vendorId: string, bookingId: string) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15_000)
+  try {
+    const { data, error } = await supabase.from("bookings")
+      .select("id, price_paid, is_paid, status, booked_date, start_time, end_time, end_date, offerings(name)")
+      .eq("id", bookingId).eq("vendor_id", vendorId).eq("booked_via", "kiosk")
+      .abortSignal(controller.signal).single<KioskReceiptRow>()
+    if (error || !data) throw new Error("Receipt unavailable. Please check again or see staff.")
+    return mapKioskReceipt(data)
+  } finally { clearTimeout(timeout) }
 }
 
 /** Read financial truth through the existing vendor RLS session; never infer it from navigation. */

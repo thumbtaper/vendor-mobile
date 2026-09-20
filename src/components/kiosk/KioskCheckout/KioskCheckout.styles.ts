@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native"
 import { spacing, type Tokens } from "@/theme/tokens"
+
 export const makeStyles = (t: Tokens) => StyleSheet.create({
   frame: { flex: 1, minHeight: 0 },
   stepHeader: { gap: spacing.sm, paddingBottom: spacing.md },
@@ -9,5 +10,9 @@ export const makeStyles = (t: Tokens) => StyleSheet.create({
   heading: { color: t.strong, fontSize: 22, fontWeight: "700" },
   text: { color: t.strong, fontSize: 15, lineHeight: 22 },
   muted: { color: t.text, fontSize: 14, lineHeight: 21 },
-  actionBar: { borderTopWidth: 1, borderTopColor: t.divider, backgroundColor: t.modalBg, paddingTop: spacing.md },
+  amount: { color: t.strong, fontSize: 24, fontWeight: "700" },
+  confirmation: { alignItems: "center", gap: spacing.md, paddingVertical: spacing.xl },
+  confirmationTitle: { color: t.strong, fontSize: 24, fontWeight: "700", textAlign: "center" },
+  signature: { width: "100%", aspectRatio: 2, borderRadius: 8 },
+  actionBar: { borderTopWidth: 1, borderTopColor: t.divider, backgroundColor: t.modalBg, paddingTop: spacing.md, gap: spacing.sm },
 })

@@ -16,6 +16,7 @@ import {
   Clock,
   DoorOpen,
   LayoutDashboard,
+  Monitor,
   Wallet,
 } from "lucide-react-native"
 
@@ -98,6 +99,30 @@ export const GUIDE_ITEMS: GuideItem[] = [
     title: "Notifications",
     color: "#3b82f6",
     body: "New requests and customer updates arrive here, and as a push notification too if you've turned those on in Settings.",
+  },
+  {
+    Icon: Monitor,
+    title: "Kiosk Mode",
+    color: "#0ea5e9",
+    body: "Kiosk Mode opens a self-service booking screen for the selected vendor on a shared device. It keeps the customer flow separate from staff screens, but it is not an operating-system lock.",
+    actions: [
+      {
+        label: "Launch and exit",
+        meaning: "Open Kiosk Mode from the main menu, choose the configured vendor, and use the staff control with the staff password to exit. Use Android screen pinning or iOS Guided Access separately when the device must stay in the kiosk app.",
+      },
+      {
+        label: "Customer flow",
+        meaning: "Customers choose an offering with an available time, provide their details, review any required documents, sign when required, and complete PayMongo checkout in the hosted browser.",
+      },
+      {
+        label: "Finish a booking",
+        meaning: "Customers can enter their mobile number, email, or booking reference. Only their matching kiosk bookings appear, and only a booking waiting for the customer's confirmation has an action.",
+      },
+      {
+        label: "Reset and privacy",
+        meaning: "Returning home, leaving the app, or kiosk timeout resets the customer flow. Customer details are not shown as a roster and should not remain visible after reset.",
+      },
+    ],
   },
   {
     Icon: DoorOpen,

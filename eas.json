@@ -25,6 +25,10 @@
       "android": {
         "buildType": "app-bundle"
       }
+    },
+    "store-staging": {
+      "extends": "production",
+      "environment": "preview"
     }
   },
   "submit": {

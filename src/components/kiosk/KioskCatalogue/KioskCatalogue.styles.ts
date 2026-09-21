@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native"
 import { MIN_TOUCH_TARGET, spacing, type Tokens } from "@/theme/tokens"
 
-export const makeStyles = (t: Tokens) => StyleSheet.create({
+export const makeStyles = (t: Tokens, isDark: boolean) => StyleSheet.create({
   frame: { flex: 1, minHeight: 0 },
   stepHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingBottom: spacing.md },
   stepLabel: { flex: 1, color: t.text, fontSize: 13, fontWeight: "600" },
@@ -18,7 +18,8 @@ export const makeStyles = (t: Tokens) => StyleSheet.create({
   photos: { height: 112, borderRadius: 8, overflow: "hidden", position: "relative", backgroundColor: t.subBg, borderWidth: 1, borderColor: t.pillBdr },
   photoBackdrop: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, opacity: 0.6 },
   photo: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 },
-  photoCode: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, alignItems: "center", justifyContent: "center", backgroundColor: t.editBtnBg },
+  photoCode: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: isDark ? "#1e40af" : "#bfdbfe" },
   photoCodeText: { color: t.accent, fontSize: 40, lineHeight: 44, fontWeight: "800", fontVariant: ["tabular-nums"] },
   photoCodeLong: { fontSize: 28, lineHeight: 32 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
@@ -30,7 +31,8 @@ export const makeStyles = (t: Tokens) => StyleSheet.create({
   icon: { minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET, alignItems: "center", justifyContent: "center",
     borderWidth: 1, borderColor: t.inputBdr, borderRadius: 8 },
   quantity: { minWidth: 40, textAlign: "center", color: t.strong, fontSize: 18 },
-  actionBar: { borderTopWidth: 1, borderTopColor: t.divider, backgroundColor: t.modalBg, paddingTop: spacing.md, gap: spacing.sm },
+  actionBar: { paddingTop: spacing.xl },
+  actionBarContent: { gap: spacing.sm },
   actionSummary: { gap: spacing.xs },
   actionTitle: { color: t.strong, fontSize: 16, fontWeight: "700", flexShrink: 1 },
   actionButtons: { gap: spacing.sm },

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { formatDuration } from "@/lib/duration"
 import { fmtPeso, phToday } from "@/lib/format"
 import { spacing } from "@/theme/tokens"
+import type { Gradient } from "@/theme/tokens"
 import { kioskDateChoices, kioskMaxQuantity, kioskSlots, occurringSchedules, addCalendarDays } from "@/lib/kioskCatalogue"
 import { groupByAvailability, longDayLabel, offeringAvailability, whenAvailable } from "@/lib/kioskAvailability"
 import type { SlotBooking } from "@/lib/slotAvailability"
@@ -11,10 +12,15 @@ import { useAppTheme } from "@/theme/useAppTheme"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { makeStyles } from "./KioskCatalogue.styles"
 
+const PHOTO_PLACEHOLDER = {
+  light: { colors: ["#eff6ff", "#e0edff"], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+  dark: { colors: ["#0f1b2d", "#132642"], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+} satisfies Record<"light" | "dark", Gradient>
+
 export function useKioskCatalogue(vendorId: string) {
-  const { tokens } = useAppTheme()
+  const { tokens, isDark } = useAppTheme()
   const insets = useSafeAreaInsets()
-  const styles = useMemo(() => makeStyles(tokens), [tokens])
+  const styles = useMemo(() => makeStyles(tokens, isDark), [tokens, isDark])
   const [catalogue, setCatalogue] = useState<Awaited<ReturnType<typeof getKioskCatalogue>> | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
@@ -109,7 +115,7 @@ export function useKioskCatalogue(vendorId: string) {
     return { today: groups.today.map(decorate), later: groups.later.map(decorate), none: groups.none.map(decorate), todayLabel: longDayLabel(today) }
   }, [availability, cards, dates, today])
   return {
-    styles, tokens, offering, error, loading: !catalogue && !error, retryCatalogue, back,
+    styles, tokens, isDark, photoPlaceholder: PHOTO_PLACEHOLDER[isDark ? "dark" : "light"], offering, error, loading: !catalogue && !error, retryCatalogue, back,
     actionBarPaddingBottom: Math.max(spacing.md, insets.bottom),
     customerDocuments,
     checkoutSelection: offering && slot ? {

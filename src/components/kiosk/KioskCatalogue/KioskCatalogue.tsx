@@ -1,4 +1,5 @@
 import { Check, Minus, Plus, RefreshCw } from "lucide-react-native"
+import { LinearGradient } from "expo-linear-gradient"
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from "react-native"
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
 import { KioskBackButton } from "../KioskBackButton/KioskBackButton"
@@ -13,16 +14,17 @@ export function KioskCatalogue({ vendorId, onHome, review, payment }: { vendorId
       {o.photo?.url && !o.photo.failed ? <>
         <Image source={{ uri: o.photo.url }} style={s.styles.photoBackdrop} resizeMode="cover" blurRadius={18} accessible={false} />
         <Image source={{ uri: o.photo.url }} style={s.styles.photo} resizeMode="contain" accessibilityLabel={o.photo.title || o.name} onError={o.photo.onError} />
-      </> : <View style={s.styles.photoCode} accessibilityLabel={`${o.name}, ${o.code} image placeholder`}>
+      </> : <LinearGradient colors={s.photoPlaceholder.colors} start={s.photoPlaceholder.start} end={s.photoPlaceholder.end}
+        style={s.styles.photoCode} accessibilityLabel={`${o.name}, ${o.code} image placeholder`}>
         <Text style={[s.styles.photoCodeText, o.code.length > 4 && s.styles.photoCodeLong]}>{o.code}</Text>
-      </View>}
+      </LinearGradient>}
     </View>
     {o.badge ? <Text style={s.styles.badge}>{o.badge}</Text> : null}
     <Text style={s.styles.heading}>{o.name}</Text>
     {o.description ? <Text style={s.styles.text}>{o.description}</Text> : null}
     <Text style={s.styles.text}>{o.priceLabel}</Text>
     {o.detail ? <Text style={s.styles.muted}>{o.detail}</Text> : null}
-    <PrimaryButton label="Choose" onPress={o.onPress} />
+    <PrimaryButton label="Choose" onPress={o.onPress} size="compact" />
   </View>
   if (s.customerDocuments && s.checkoutSelection) return <KioskCustomerForm selection={s.checkoutSelection} documents={s.customerDocuments} onBack={s.backToSlots} review={review} payment={payment} onDone={onHome} />
   return <View style={s.styles.frame}>
@@ -111,12 +113,14 @@ export function KioskCatalogue({ vendorId, onHome, review, payment }: { vendorId
     </>}
     </ScrollView>
     <View style={[s.styles.actionBar, { paddingBottom: s.actionBarPaddingBottom }]}>
-      <View style={s.styles.actionSummary}>
-        <Text style={s.styles.actionTitle}>{s.offering ? s.offering.name : "Choose an offering"}</Text>
-        <Text style={s.styles.muted}>{s.slot ? `${s.slot.ownDate} at ${s.slot.start} · ${s.quantity} selected · ${s.durationLabel} · ${s.totalLabel}` : "Select a time to continue"}</Text>
-      </View>
-      <View style={s.styles.actionButtons}>
-        {s.offering ? <PrimaryButton label="Continue" onPress={s.continueCustomer} disabled={!s.slot || s.quantity < 1 || s.quantity > s.maxQuantity} /> : null}
+      <View style={s.styles.actionBarContent}>
+        <View style={s.styles.actionSummary}>
+          <Text style={s.styles.actionTitle}>{s.offering ? s.offering.name : "Choose an offering"}</Text>
+          <Text style={s.styles.muted}>{s.slot ? `${s.slot.ownDate} at ${s.slot.start} · ${s.quantity} selected · ${s.durationLabel} · ${s.totalLabel}` : "Select a time to continue"}</Text>
+        </View>
+        <View style={s.styles.actionButtons}>
+          {s.offering ? <PrimaryButton label="Continue" onPress={s.continueCustomer} disabled={!s.slot || s.quantity < 1 || s.quantity > s.maxQuantity} /> : null}
+        </View>
       </View>
     </View>
   </View>

@@ -13,9 +13,9 @@ export function KioskShell() {
   const s = useKioskShell()
   return (
     <LinearGradient
-      colors={s.tokens.pageBg.colors}
-      start={s.tokens.pageBg.start}
-      end={s.tokens.pageBg.end}
+      colors={s.pageBg.colors}
+      start={s.pageBg.start}
+      end={s.pageBg.end}
       style={s.styles.gradient}
     >
     <SafeAreaView style={s.styles.root} onTouchStart={s.touch} onTouchMove={s.touch}>

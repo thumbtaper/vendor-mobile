@@ -5,12 +5,18 @@ import { useKioskMode } from "@/providers/KioskModeProvider/KioskModeProvider"
 import { useSessionGate } from "@/providers/SessionGateProvider"
 import { checkKioskAccess, KioskAccessError } from "@/services/kioskAccess.service"
 import { useAppTheme } from "@/theme/useAppTheme"
+import type { Gradient } from "@/theme/tokens"
 import { makeStyles } from "./KioskShell.styles"
 import { reviewExpired } from "@/lib/kioskCustomer"
 import { openKioskReviewBrowser } from "@/services/kioskDocuments.service"
 import { openKioskPaymentBrowser } from "@/services/kioskPayment.service"
 
 type KioskSurface = "catalogue" | "closeout"
+
+const KIOSK_PAGE_BG = {
+  light: { colors: ["#f8fafc", "#eef2ff", "#e0e7ff"], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+  dark: { colors: ["#04060e", "#070b17", "#0d1b4b"], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+} satisfies Record<"light" | "dark", Gradient>
 
 export function useKioskShell() {
   const { tokens, isDark } = useAppTheme()
@@ -98,7 +104,7 @@ export function useKioskShell() {
   }, [session, reset, retry])
 
   return {
-    styles, tokens, isDark, mode, ready, active, resetKey, staffDialog,
+    styles, tokens, isDark, pageBg: KIOSK_PAGE_BG[isDark ? "dark" : "light"], mode, ready, active, resetKey, staffDialog,
     browsing, home: reset,
     review: useCallback((url: string) => handoffBrowser(url, openKioskReviewBrowser), [handoffBrowser]),
     payment: useCallback((url: string) => handoffBrowser(url, openKioskPaymentBrowser), [handoffBrowser]),

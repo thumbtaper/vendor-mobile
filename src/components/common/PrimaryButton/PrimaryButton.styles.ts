@@ -11,7 +11,12 @@ export const makeStyles = (t: Tokens) =>
       ...t.btnPrimaryShadow,
     },
     pressableLarge: {
-      minHeight: 80,
+      minHeight: 88,
+    },
+    pressableCompact: {
+      alignSelf: "center",
+      minHeight: MIN_TOUCH_TARGET,
+      width: "88%",
     },
     gradient: {
       flex: 1,
@@ -23,8 +28,12 @@ export const makeStyles = (t: Tokens) =>
       paddingHorizontal: spacing.lg,
     },
     gradientLarge: {
-      minHeight: 80,
+      minHeight: 88,
       paddingHorizontal: spacing.xl,
+    },
+    gradientCompact: {
+      minHeight: MIN_TOUCH_TARGET,
+      paddingHorizontal: spacing.md,
     },
     label: {
       // Tokenised, not white: on the branded auth surface `btnPrimary` is gold,
@@ -35,6 +44,9 @@ export const makeStyles = (t: Tokens) =>
     },
     labelLarge: {
       fontSize: 18,
+    },
+    labelCompact: {
+      fontSize: 15,
     },
     pressed: {
       opacity: 0.85,
@@ -54,8 +66,13 @@ export const makeStyles = (t: Tokens) =>
       paddingHorizontal: spacing.lg,
     },
     secondaryLarge: {
-      minHeight: 80,
+      minHeight: 88,
       paddingHorizontal: spacing.xl,
+    },
+    secondaryCompact: {
+      alignSelf: "center",
+      minHeight: MIN_TOUCH_TARGET,
+      width: "88%",
     },
     secondaryLabel: {
       color: t.strong,
@@ -64,5 +81,8 @@ export const makeStyles = (t: Tokens) =>
     },
     secondaryLabelLarge: {
       fontSize: 18,
+    },
+    secondaryLabelCompact: {
+      fontSize: 15,
     },
   })

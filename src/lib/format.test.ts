@@ -221,8 +221,18 @@ describe("fmtBookingSpan", () => {
 
 describe("bookingDayCount", () => {
   it("counts inclusively", () => {
-    assert.equal(bookingDayCount({ bookedDate: "2026-08-10", endDate: "2026-08-12" }), 3)
-    assert.equal(bookingDayCount({ bookedDate: "2026-08-10", endDate: "2026-08-10" }), 1)
-    assert.equal(bookingDayCount({ bookedDate: "2026-08-10", endDate: "" }), 0)
+    assert.equal(bookingDayCount({ bookedDate: "2026-08-10", endDate: "2026-08-12", startTime: "" }), 3)
+    assert.equal(bookingDayCount({ bookedDate: "2026-08-10", endDate: "2026-08-10", startTime: "" }), 1)
+    assert.equal(bookingDayCount({ bookedDate: "2026-08-10", endDate: "", startTime: "" }), 0)
+  })
+  it("does not call an overnight timed booking a multi-day booking", () => {
+    const booking = { bookedDate: "2026-08-10", startTime: "23:00", endTime: "01:00", endDate: "2026-08-11" }
+    assert.equal(bookingDayCount(booking), 0)
+    assert.equal(fmtBookingSpan(booking), "23:00 – 01:00 (11 Aug 2026)")
+  })
+  it("preserves the exact-midnight end of the booked day", () => {
+    const booking = { bookedDate: "2026-08-10", startTime: "23:00", endTime: "24:00", endDate: "" }
+    assert.equal(bookingDayCount(booking), 0)
+    assert.equal(fmtBookingSpan(booking), "23:00 – 24:00")
   })
 })

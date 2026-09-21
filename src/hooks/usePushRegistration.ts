@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 // PushProvider and (app)/_layout.tsx down with it. See lib/pushModule.ts.
 import type * as NotificationsTypes from "expo-notifications"
 
+import { areStaffNotificationsBlocked } from "@/lib/kioskMode"
 import { routeForPayload, type PushPayload } from "@/lib/notifications"
 import { loadNotifications } from "@/lib/pushModule"
 import {
@@ -113,6 +114,7 @@ export function usePushRegistration(hasSession: boolean) {
     if (!Notifications) return
 
     const handle = (response: NotificationsTypes.NotificationResponse) => {
+      if (areStaffNotificationsBlocked()) return
       const payload = response.notification.request.content.data as
         | PushPayload
         | undefined

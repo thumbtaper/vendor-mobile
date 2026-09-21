@@ -1,14 +1,13 @@
+import { Text } from "react-native"
+import { KioskLauncher } from "@/components/kiosk/KioskLauncher/KioskLauncher"
+import { useAppTabs } from "@/components/layout/AppTabs/useAppTabs"
+import { styles } from "@/components/layout/AppTabs/AppTabs.styles"
 import { Tabs } from "expo-router"
 import { StatusBar } from "expo-status-bar"
-import { Bell, ClipboardList, House, Receipt } from "lucide-react-native"
+import { Bell, ClipboardList, House, Receipt, Tablet } from "lucide-react-native"
 
 import { TabBarBackground } from "@/components/layout/TabBarBackground/TabBarBackground"
-import { useBookingsRealtime } from "@/hooks/useBookingsRealtime"
-import { useUnreadCount } from "@/hooks/useNotificationsQuery"
-import { useNotificationsRealtime } from "@/hooks/useNotificationsRealtime"
 import { PushProvider } from "@/providers/PushProvider"
-import { useSessionGate } from "@/providers/SessionGateProvider"
-import { useAppTheme } from "@/theme/useAppTheme"
 
 // Mirrors vendor web's own bottom `TabBar` information architecture
 // (`vendor/components/layout/TabBar`). Settings is a header action rather than a
@@ -29,19 +28,8 @@ export default function AppTabsLayout() {
 }
 
 function AppTabs() {
-  const { tokens, isDark } = useAppTheme()
-  const { session, gate } = useSessionGate()
-  const unread = useUnreadCount()
-
-  // Mounted at the layout so the arrival toast and the badge work from whichever
-  // tab the vendor is on, not only after Alerts has been opened.
-  useNotificationsRealtime(session?.user.id ?? null)
-
-  // Same reasoning, applied to bookings (I1). This used to live inside
-  // `useBookingsList`, which meant the channel only existed once the Bookings tab
-  // had been opened — a vendor on Dashboard got no live rows at all, and the
-  // "Pending Approvals" card went stale silently.
-  useBookingsRealtime(gate.selectedVendorId)
+  const s = useAppTabs()
+  const { tokens, isDark, unread } = s
 
   return (
     <>
@@ -56,9 +44,10 @@ function AppTabs() {
           tabBarInactiveTintColor: tokens.text,
           // Transparent so the blurred background shows through; the bar's own
           // colour comes from TabBarBackground.
-          tabBarStyle: { position: "absolute", borderTopWidth: 0 },
+          tabBarStyle: styles.tabBar,
+          tabBarLabel: ({ children, color }) => <Text style={[styles.label, { color }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.3}>{children}</Text>,
           tabBarBackground: () => <TabBarBackground />,
-          sceneStyle: { backgroundColor: "transparent" },
+          sceneStyle: styles.scene,
         }}
       >
         {/* Named `dashboard`, not `index`: an `(app)/index.tsx` would resolve to
@@ -99,9 +88,20 @@ function AppTabs() {
               unread > 0 ? `Alerts, ${unread} unread` : "Alerts",
           }}
         />
+        <Tabs.Screen
+          name="kiosk-launch"
+          listeners={{ tabPress: s.openLauncher }}
+          options={{
+            title: "Kiosk Mode",
+            href: s.launchEnabled ? undefined : null,
+            tabBarAccessibilityLabel: "Kiosk Mode",
+            tabBarIcon: ({ color, size }) => <Tablet color={color} size={size} />,
+          }}
+        />
         {/* Reachable from the header action, not from the tab bar. */}
         <Tabs.Screen name="settings" options={{ href: null }} />
       </Tabs>
+      {s.launchEnabled && s.launchOpen && s.vendorId ? <KioskLauncher key={s.vendorId} vendorId={s.vendorId} onClose={s.closeLauncher} /> : null}
     </>
   )
 }

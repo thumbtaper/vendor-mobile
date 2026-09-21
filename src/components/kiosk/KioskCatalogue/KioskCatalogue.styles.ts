@@ -3,8 +3,12 @@ import { MIN_TOUCH_TARGET, spacing, type Tokens } from "@/theme/tokens"
 
 export const makeStyles = (t: Tokens) => StyleSheet.create({
   frame: { flex: 1, minHeight: 0 },
-  stepHeader: { gap: spacing.sm, paddingBottom: spacing.md },
-  stepLabel: { color: t.text, fontSize: 13, fontWeight: "600" },
+  stepHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingBottom: spacing.md },
+  stepLabel: { flex: 1, color: t.text, fontSize: 13, fontWeight: "600" },
+  refreshButton: { width: MIN_TOUCH_TARGET, height: MIN_TOUCH_TARGET, alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: t.inputBdr, borderRadius: 12, backgroundColor: t.cardBg },
+  refreshPressed: { opacity: 0.7 },
+  refreshDisabled: { opacity: 0.5 },
   scroll: { flex: 1 },
   content: { gap: spacing.lg, paddingBottom: spacing.lg },
   heading: { color: t.strong, fontSize: 22, fontWeight: "700" },

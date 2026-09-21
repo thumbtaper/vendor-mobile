@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient"
 import { StatusBar } from "expo-status-bar"
 import { LockKeyhole } from "lucide-react-native"
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, Text, View } from "react-native"
@@ -11,13 +12,26 @@ import { useKioskShell } from "./useKioskShell"
 export function KioskShell() {
   const s = useKioskShell()
   return (
+    <LinearGradient
+      colors={s.tokens.pageBg.colors}
+      start={s.tokens.pageBg.start}
+      end={s.tokens.pageBg.end}
+      style={s.styles.gradient}
+    >
     <SafeAreaView style={s.styles.root} onTouchStart={s.touch} onTouchMove={s.touch}>
       <StatusBar style={s.isDark ? "light" : "dark"} />
       <KeyboardAvoidingView style={s.styles.keyboard} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <View style={s.styles.screen}>
         <View style={s.styles.header}>
           <View style={s.styles.identity}>
-            <Image source={require("@/assets/brand/mark-white.png")} style={s.styles.brand} resizeMode="contain" accessible={false} />
+            <LinearGradient
+              colors={s.tokens.btnPrimary.colors}
+              start={s.tokens.btnPrimary.start}
+              end={s.tokens.btnPrimary.end}
+              style={s.styles.brandMark}
+            >
+              <Image source={require("@/assets/brand/mark-white.png")} style={s.styles.brand} resizeMode="contain" accessible={false} />
+            </LinearGradient>
             <View style={s.styles.identityCopy}>
               <Text style={s.styles.identityName}>{s.vendorName ?? "Ezzy Vendor"}</Text>
               <Text style={s.styles.identitySub}>Self-service booking</Text>
@@ -49,5 +63,6 @@ export function KioskShell() {
       </KeyboardAvoidingView>
       {s.active && s.staffDialog ? <KioskStaffDialog key={s.staffIdentity} exit={s.staffDialog === "exit"} onClose={s.closeStaff} /> : null}
     </SafeAreaView>
+    </LinearGradient>
   )
 }

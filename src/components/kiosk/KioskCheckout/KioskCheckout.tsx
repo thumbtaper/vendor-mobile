@@ -14,12 +14,32 @@ export function KioskCheckout(props: KioskCheckoutProps) {
     <ScrollView style={s.styles.scroll} contentContainerStyle={s.styles.content}>
     <Text style={s.styles.heading} accessibilityRole="header">{s.heading}</Text>
     {!s.started ? <>
-      <Text style={s.styles.text}>{props.selection.offeringName}</Text>
-      <Text style={s.styles.text}>{s.selectedDate} at {props.selection.startTime}</Text>
-      <Text style={s.styles.text}>Quantity: {props.selection.quantity}</Text>
-      <Text style={s.styles.text}>{props.customer.fullName}</Text>
-      <Text style={s.styles.text}>{props.customer.email}</Text>
-      <Text style={s.styles.amount}>Estimated total: {s.estimate}</Text>
+      <View style={s.styles.summaryCard}>
+        <View style={s.styles.summaryRow}>
+          <Text style={s.styles.rowLabel}>Service</Text>
+          <Text style={s.styles.rowValue}>{props.selection.offeringName}</Text>
+        </View>
+        <View style={[s.styles.summaryRow, s.styles.rowBorder]}>
+          <Text style={s.styles.rowLabel}>When</Text>
+          <Text style={s.styles.rowValue}>{s.selectedDate} at {props.selection.startTime}</Text>
+        </View>
+        <View style={[s.styles.summaryRow, s.styles.rowBorder]}>
+          <Text style={s.styles.rowLabel}>Quantity</Text>
+          <Text style={s.styles.rowValue}>{props.selection.quantity}</Text>
+        </View>
+        <View style={[s.styles.summaryRow, s.styles.rowBorder]}>
+          <Text style={s.styles.rowLabel}>Name</Text>
+          <Text style={s.styles.rowValue}>{props.customer.fullName}</Text>
+        </View>
+        <View style={[s.styles.summaryRow, s.styles.rowBorder]}>
+          <Text style={s.styles.rowLabel}>Email</Text>
+          <Text style={s.styles.rowValue}>{props.customer.email}</Text>
+        </View>
+        <View style={s.styles.totalRow}>
+          <Text style={s.styles.totalLabel}>Estimated total</Text>
+          <Text style={s.styles.amount}>{s.estimate}</Text>
+        </View>
+      </View>
       <Text style={s.styles.muted}>The final amount is confirmed when the booking is created.</Text>
       {props.signature ? <Image source={{ uri: `data:image/png;base64,${props.signature}` }} style={s.styles.signature} resizeMode="contain" accessibilityLabel="Captured signature" /> : null}
     </> : s.creating ? <View style={s.styles.creating} accessibilityLiveRegion="polite">
@@ -27,24 +47,45 @@ export function KioskCheckout(props: KioskCheckoutProps) {
       <ActivityIndicator size="small" color={s.tokens.accent} accessibilityLabel="Creating booking" />
       <Text style={s.styles.creatingText}>Creating your booking...</Text>
     </View> : <>
-      {s.bookingId ? <Text style={s.styles.text}>Booking reference: {s.bookingId}</Text> : null}
+      {s.bookingId && !s.receipt ? <Text style={s.styles.text}>Booking reference: {s.bookingId}</Text> : null}
       {s.confirmed && s.receipt ? <View style={s.styles.confirmation} accessibilityLiveRegion="polite">
         <CircleCheckBig size={40} color={s.tokens.status.confirmed.fg} accessible={false} />
         <Text style={s.styles.confirmationTitle}>You&apos;re booked</Text>
         <Text style={s.styles.text}>Payment confirmed. A confirmation is on its way to {props.customer.email}.</Text>
-        <Text style={s.styles.text}>Booking reference: {s.bookingId}</Text>
-        <Text style={s.styles.text}>{s.receipt.offering}</Text>
-        <Text style={s.styles.text}>{s.receiptDate}</Text>
-        <Text style={s.styles.text}>{s.receiptSpan}</Text>
-        <Text style={s.styles.amount}>{s.amount}</Text>
-      </View> : s.receipt ? <>
-        <Text style={s.styles.text}>{s.receipt.offering}</Text>
-        <Text style={s.styles.text}>{s.receiptDate}</Text>
-        <Text style={s.styles.text}>{s.receiptSpan}</Text>
-        <Text style={s.styles.amount}>{s.amount}</Text>
-        <Text style={s.styles.text}>{s.receipt.status === "refunded" ? "Payment was refunded. Please see staff." : "Payment is not confirmed."}</Text>
-        {!s.receipt.paid ? <Text style={s.styles.text} accessibilityLiveRegion="polite">Payment is not confirmed. If you have paid, please wait and check again.</Text> : null}
-      </> : null}
+        <View style={s.styles.receiptCard}>
+          <View style={s.styles.summaryRow}>
+            <Text style={s.styles.rowLabel}>Booking reference</Text>
+            <Text style={s.styles.reference}>{s.bookingId}</Text>
+          </View>
+          <View style={[s.styles.summaryRow, s.styles.rowBorder]}>
+            <Text style={s.styles.rowLabel}>Service</Text>
+            <Text style={s.styles.rowValue}>{s.receipt.offering}</Text>
+          </View>
+          <View style={[s.styles.summaryRow, s.styles.rowBorder]}>
+            <Text style={s.styles.rowLabel}>When</Text>
+            <Text style={s.styles.rowValue}>{s.receiptDate} · {s.receiptSpan}</Text>
+          </View>
+          <View style={s.styles.totalRow}>
+            <Text style={s.styles.totalLabel}>{s.receipt.amount === 0 ? "Total" : "Paid"}</Text>
+            <Text style={s.styles.amount}>{s.receipt.amount === 0 ? "Free" : s.amount}</Text>
+          </View>
+        </View>
+      </View> : s.receipt ? <View style={s.styles.receiptCard}>
+        <View style={s.styles.summaryRow}>
+          <Text style={s.styles.rowLabel}>Service</Text>
+          <Text style={s.styles.rowValue}>{s.receipt.offering}</Text>
+        </View>
+        <View style={[s.styles.summaryRow, s.styles.rowBorder]}>
+          <Text style={s.styles.rowLabel}>When</Text>
+          <Text style={s.styles.rowValue}>{s.receiptDate} · {s.receiptSpan}</Text>
+        </View>
+        <View style={s.styles.totalRow}>
+          <Text style={s.styles.totalLabel}>Total</Text>
+          <Text style={s.styles.amount}>{s.receipt.amount === 0 ? "Free" : s.amount}</Text>
+        </View>
+        <Text style={s.styles.paymentState}>{s.receipt.status === "refunded" ? "Payment was refunded. Please see staff." : "Payment is not confirmed."}</Text>
+        {!s.receipt.paid ? <Text style={s.styles.paymentState} accessibilityLiveRegion="polite">Payment is not confirmed. If you have paid, please wait and check again.</Text> : null}
+      </View> : null}
       {s.canPay ? <>
         <Text style={s.styles.muted}>After payment, close the browser to return here. Confirmation may take a moment.</Text>
       </> : null}

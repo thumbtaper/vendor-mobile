@@ -1,4 +1,4 @@
-import { Check, Minus, Plus } from "lucide-react-native"
+import { Check, Minus, Plus, RefreshCw } from "lucide-react-native"
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from "react-native"
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
 import { KioskBackButton } from "../KioskBackButton/KioskBackButton"
@@ -29,6 +29,19 @@ export function KioskCatalogue({ vendorId, onHome, review, payment }: { vendorId
     <View style={s.styles.stepHeader}>
       <KioskBackButton accessibilityLabel={s.offering ? "Back to offerings" : "Back to welcome"} onPress={s.offering ? s.back : onHome} />
       <Text style={s.styles.stepLabel}>Booking · {s.offering ? "Choose a time" : "Choose an offering"}</Text>
+      {s.offering ? <Pressable
+        onPress={s.retryAvailability}
+        disabled={s.availabilityLoading}
+        accessibilityRole="button"
+        accessibilityLabel="Refresh availability"
+        accessibilityHint="Updates available times and resets your selection"
+        accessibilityState={{ disabled: s.availabilityLoading, busy: s.availabilityLoading }}
+        style={({ pressed }) => [s.styles.refreshButton, pressed && s.styles.refreshPressed, s.availabilityLoading && s.styles.refreshDisabled]}
+      >
+        {s.availabilityLoading
+          ? <ActivityIndicator size="small" color={s.tokens.strong} accessible={false} />
+          : <RefreshCw size={20} color={s.tokens.strong} accessible={false} />}
+      </Pressable> : null}
     </View>
     <ScrollView style={s.styles.scroll} contentContainerStyle={s.styles.content} keyboardShouldPersistTaps="handled">
     <Text style={s.styles.heading} accessibilityRole="header">{s.offering ? s.offering.name : "Choose an offering"}</Text>
@@ -103,7 +116,6 @@ export function KioskCatalogue({ vendorId, onHome, review, payment }: { vendorId
         <Text style={s.styles.muted}>{s.slot ? `${s.slot.ownDate} at ${s.slot.start} · ${s.quantity} selected · ${s.durationLabel} · ${s.totalLabel}` : "Select a time to continue"}</Text>
       </View>
       <View style={s.styles.actionButtons}>
-        {s.offering ? <PrimaryButton label="Refresh availability" variant="secondary" onPress={s.retryAvailability} disabled={s.availabilityLoading} /> : null}
         {s.offering ? <PrimaryButton label="Continue" onPress={s.continueCustomer} disabled={!s.slot || s.quantity < 1 || s.quantity > s.maxQuantity} /> : null}
       </View>
     </View>

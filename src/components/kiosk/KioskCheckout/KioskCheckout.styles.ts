@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native"
-import { spacing, type Tokens } from "@/theme/tokens"
+import { radii, spacing, type Tokens } from "@/theme/tokens"
 
 export const makeStyles = (t: Tokens) => StyleSheet.create({
   frame: { flex: 1, minHeight: 0 },
@@ -10,12 +10,24 @@ export const makeStyles = (t: Tokens) => StyleSheet.create({
   heading: { color: t.strong, fontSize: 22, fontWeight: "700" },
   text: { color: t.strong, fontSize: 15, lineHeight: 22 },
   muted: { color: t.text, fontSize: 14, lineHeight: 21 },
+  summaryCard: { width: "100%", maxWidth: 560, alignSelf: "center", paddingHorizontal: spacing.lg, paddingTop: spacing.xs,
+    borderWidth: 1, borderColor: t.cardBdr, borderRadius: radii.card, backgroundColor: t.cardBg, ...t.cardShadow },
+  receiptCard: { width: "100%", maxWidth: 560, alignSelf: "center", marginTop: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.xs,
+    borderWidth: 1, borderColor: t.cardBdr, borderRadius: radii.card, backgroundColor: t.cardBg, ...t.cardShadow },
+  summaryRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md, paddingVertical: spacing.md },
+  rowBorder: { borderTopWidth: 1, borderTopColor: t.divider },
+  rowLabel: { flex: 1, color: t.text, fontSize: 15, lineHeight: 22 },
+  rowValue: { flex: 1, color: t.strong, fontSize: 16, fontWeight: "600", lineHeight: 22, textAlign: "right" },
+  totalRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.md },
+  totalLabel: { color: t.strong, fontSize: 17, fontWeight: "600" },
   creating: { minHeight: 300, alignItems: "center", justifyContent: "center", gap: spacing.lg },
   creatingLogo: { width: 84, height: 84, borderRadius: 18 },
   creatingText: { color: t.strong, fontSize: 16, fontWeight: "600" },
   amount: { color: t.strong, fontSize: 24, fontWeight: "700" },
   confirmation: { alignItems: "center", gap: spacing.md, paddingVertical: spacing.xl },
   confirmationTitle: { color: t.strong, fontSize: 24, fontWeight: "700", textAlign: "center" },
+  reference: { flex: 1, color: t.strong, fontFamily: "monospace", fontSize: 15, fontWeight: "600", letterSpacing: 0.6, textAlign: "right" },
+  paymentState: { color: t.text, fontSize: 14, lineHeight: 21, paddingBottom: spacing.md },
   signature: { width: "100%", aspectRatio: 2, borderRadius: 8 },
   actionBar: { borderTopWidth: 1, borderTopColor: t.divider, backgroundColor: t.modalBg, paddingTop: spacing.md, gap: spacing.sm },
 })

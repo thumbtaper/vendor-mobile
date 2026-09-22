@@ -63,10 +63,13 @@ the app to have been **publicly released**, so a TestFlight-only app cannot move
 Fix it before the first build, while there is no app record and no registered
 bundle identifier to untangle.
 
-The limitation that usually decides it is not the public seller name: **an
-Individual account cannot add team members at all** — no second Admin, Developer,
-or App Manager. For a team, that means one person holds App Store Connect,
-TestFlight and the signing credentials permanently.
+The limitation that usually decides it is not the public seller name: an
+**Individual account cannot add people to the Apple Developer Program team**.
+It *can*, however, grant up to 50 additional people App Store Connect-only access.
+Those users can be made internal TestFlight testers (with an eligible App Store
+Connect role), but they do not receive Developer Portal membership, certificate,
+or provisioning-profile access. For a team that needs shared signing credentials,
+an Organisation membership is still required.
 
 ---
 

@@ -16,6 +16,21 @@ export const makeStyles = (t: Tokens) =>
       padding: spacing.xl,
       gap: spacing.lg,
     },
+    backLink: {
+      alignSelf: "flex-start",
+      minHeight: 44,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    backLinkPressed: {
+      opacity: 0.75,
+    },
+    backLinkLabel: {
+      color: t.accent,
+      fontSize: type.body.size,
+      fontWeight: "600",
+    },
     centred: {
       flex: 1,
       alignItems: "center",

@@ -19,5 +19,5 @@ export const makeStyles = (t: Tokens) => StyleSheet.create({
   matchSub: { color: t.text, fontSize: 14 },
   matchMessage: { color: t.text, fontSize: 14, lineHeight: 21 },
   action: { minHeight: MIN_TOUCH_TARGET },
-  actionBar: { borderTopWidth: 1, borderTopColor: t.divider, backgroundColor: t.modalBg, paddingTop: spacing.md },
+  actionBar: { borderTopWidth: 0, backgroundColor: "transparent", paddingTop: spacing.md },
 })

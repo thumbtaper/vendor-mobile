@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient"
 import { StatusBar } from "expo-status-bar"
-import { LockKeyhole } from "lucide-react-native"
+import { CalendarDays, CheckCircle2, LockKeyhole } from "lucide-react-native"
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
@@ -48,10 +48,42 @@ export function KioskShell() {
             <KioskCatalogue vendorId={s.mode.vendorId} onHome={s.home} review={s.review} payment={s.payment} />
           </View> : null}
           {s.browserOpen ? <Text style={s.styles.text}>Browser session in progress</Text> : s.ready ? s.browsing === "closeout" && s.mode.vendorId ? <KioskCloseOut vendorId={s.mode.vendorId} onHome={s.home} /> : !s.browsing ? <View style={s.styles.welcome}>
-            <Text style={s.styles.title}>Welcome</Text>
-            <Text style={s.styles.text}>What would you like to do?</Text>
-            <PrimaryButton label="Book something" onPress={s.openCatalogue} size="large" />
-            <PrimaryButton label="Finish a booking" onPress={s.openCloseOut} variant="secondary" size="large" />
+            <View style={s.styles.welcomeIntro}>
+              <Text style={s.styles.title}>Welcome</Text>
+              <Text style={s.styles.welcomeLead}>What would you like to do?</Text>
+            </View>
+            <View style={s.styles.welcomeChoices}>
+              <Pressable
+                onPress={s.openCatalogue}
+                accessibilityRole="button"
+                accessibilityLabel="Book something"
+                accessibilityHint="Pick a service, choose a time and pay here"
+                style={({ pressed }) => [s.styles.welcomeChoice, pressed && s.styles.welcomeChoicePressed]}
+              >
+                <LinearGradient colors={s.tokens.btnPrimary.colors} start={s.tokens.btnPrimary.start} end={s.tokens.btnPrimary.end} style={[s.styles.welcomeChoiceSurface, s.styles.welcomeChoicePrimary]}>
+                  <View style={[s.styles.welcomeChoiceIcon, s.styles.welcomeChoiceIconPrimary]}><CalendarDays size={28} color={s.tokens.btnPrimaryFg} accessible={false} /></View>
+                  <View style={s.styles.welcomeChoiceCopy}>
+                    <Text style={s.styles.welcomeChoiceTitlePrimary}>Book something</Text>
+                    <Text style={s.styles.welcomeChoiceBodyPrimary}>Pick a service, choose a time and pay here.</Text>
+                  </View>
+                </LinearGradient>
+              </Pressable>
+              <Pressable
+                onPress={s.openCloseOut}
+                accessibilityRole="button"
+                accessibilityLabel="Finish a booking"
+                accessibilityHint="Return an item or confirm your session is done"
+                style={({ pressed }) => [s.styles.welcomeChoice, pressed && s.styles.welcomeChoicePressed]}
+              >
+                <View style={[s.styles.welcomeChoiceSurface, s.styles.welcomeChoiceSecondary]}>
+                  <View style={[s.styles.welcomeChoiceIcon, s.styles.welcomeChoiceIconSecondary]}><CheckCircle2 size={28} color={s.tokens.accent} accessible={false} /></View>
+                  <View style={s.styles.welcomeChoiceCopy}>
+                    <Text style={s.styles.welcomeChoiceTitle}>Finish a booking</Text>
+                    <Text style={s.styles.welcomeChoiceBody}>Return an item or confirm your session is done.</Text>
+                  </View>
+                </View>
+              </Pressable>
+            </View>
           </View> : null : s.checking ? <ActivityIndicator accessibilityLabel="Checking kiosk access" /> : <View style={s.styles.welcome}>
             <Text style={s.styles.title} accessibilityRole="header">Kiosk unavailable</Text>
             <Text style={s.styles.text} accessibilityRole="alert">{s.mode.status === "storage_error" ? "Could not restore kiosk settings. Please retry." : s.message ?? "Please see staff."}</Text>

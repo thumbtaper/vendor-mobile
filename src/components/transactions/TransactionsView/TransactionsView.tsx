@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { Text } from "react-native"
+import { Text, View } from "react-native"
 
 import { RefreshableList } from "@/components/common/RefreshableList/RefreshableList"
 import { ScreenTitle } from "@/components/common/ScreenTitle/ScreenTitle"
@@ -37,11 +37,13 @@ export function TransactionsView() {
         isFetching={s.isFetching}
       />
 
-      <TransactionSummaryCards
-        totals={s.totals}
-        loading={s.totalsLoading}
-        contactsFailed={s.contactsFailed}
-      />
+      <View style={styles.summarySection}>
+        <TransactionSummaryCards
+          totals={s.totals}
+          loading={s.totalsLoading}
+          contactsFailed={s.contactsFailed}
+        />
+      </View>
 
       {s.searchScopeNote ? (
         <Text style={styles.note}>{s.searchScopeNote}</Text>

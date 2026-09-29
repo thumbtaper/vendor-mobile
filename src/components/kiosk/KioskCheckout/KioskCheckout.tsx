@@ -95,8 +95,21 @@ export function KioskCheckout(props: KioskCheckoutProps) {
     <View style={[s.styles.actionBar, { paddingBottom: s.actionBarPaddingBottom }]}>
       {!s.started ? <PrimaryButton label="Create booking" onPress={s.create} loading={s.working} /> : s.creating ? <PrimaryButton label="Creating booking" onPress={s.inertAction} disabled /> : <>
         {s.canPay ? <PrimaryButton label={s.payLabel} onPress={s.pay} loading={s.working} /> : null}
-        {s.bookingId && !s.confirmed ? <PrimaryButton label="Check payment status" variant="secondary" onPress={s.refresh} loading={s.working} /> : null}
-        {!s.working ? <PrimaryButton label="Done" variant="secondary" onPress={s.done} /> : null}
+        {s.showSecondaryActionRow ? (
+          <View style={s.styles.secondaryActions}>
+            <View style={s.styles.secondaryAction}>
+              <PrimaryButton label="Check payment status" variant="secondary" onPress={s.refresh} />
+            </View>
+            <View style={s.styles.secondaryAction}>
+              <PrimaryButton label="Done" variant="secondary" onPress={s.done} />
+            </View>
+          </View>
+        ) : (
+          <>
+            {s.showPaymentStatus ? <PrimaryButton label="Check payment status" variant="secondary" onPress={s.refresh} loading={s.working} /> : null}
+            {s.showDone ? <PrimaryButton label="Done" variant="secondary" onPress={s.done} /> : null}
+          </>
+        )}
       </>}
     </View>
   </View>

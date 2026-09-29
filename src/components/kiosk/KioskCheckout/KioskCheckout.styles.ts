@@ -29,5 +29,7 @@ export const makeStyles = (t: Tokens) => StyleSheet.create({
   reference: { flex: 1, color: t.strong, fontFamily: "monospace", fontSize: 15, fontWeight: "600", letterSpacing: 0.6, textAlign: "right" },
   paymentState: { color: t.text, fontSize: 14, lineHeight: 21, paddingBottom: spacing.md },
   signature: { width: "100%", aspectRatio: 2, borderRadius: 8 },
-  actionBar: { borderTopWidth: 1, borderTopColor: t.divider, backgroundColor: t.modalBg, paddingTop: spacing.md, gap: spacing.sm },
+  actionBar: { borderTopWidth: 0, backgroundColor: "transparent", paddingTop: spacing.md, gap: spacing.sm },
+  secondaryActions: { flexDirection: "row", gap: spacing.sm },
+  secondaryAction: { flex: 1 },
 })

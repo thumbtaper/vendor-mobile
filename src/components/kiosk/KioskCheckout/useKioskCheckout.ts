@@ -163,13 +163,20 @@ export function useKioskCheckout({ selection, customer, documents, signature, pa
     } finally { busy.current = false; if (live.current) setWorking(false) }
   }, [bookingId, sessionFailed, checkoutUrl, attempt, read, payment, freshPaidBooking])
 
+  const confirmed = isKioskReceiptConfirmed(receipt)
+  const showPaymentStatus = Boolean(bookingId && !confirmed)
+  const showDone = !working
+
   return {
     tokens, styles, started, working, bookingId, receipt, error, sessionFailed, create, pay, refresh,
     inertAction: useCallback(() => {}, []),
     creating: started && working && !bookingId,
     actionBarPaddingBottom: Math.max(spacing.md, insets.bottom),
     canPay: canStartKioskPayment(receipt, freshPaidBooking) && !sessionFailed,
-    confirmed: isKioskReceiptConfirmed(receipt),
+    confirmed,
+    showPaymentStatus,
+    showDone,
+    showSecondaryActionRow: showPaymentStatus && showDone,
     payLabel: checkoutUrl ? "Reopen payment" : "Pay with PayMongo",
     heading: !started ? "Review booking" : receipt?.paid
       ? receipt.status === "refunded" ? "Payment refunded" : receipt.amount === 0 ? "Booking confirmed" : "Payment confirmed"

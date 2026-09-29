@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native"
+import { Platform, StyleSheet } from "react-native"
 import { MIN_TOUCH_TARGET, spacing, type Tokens } from "@/theme/tokens"
 export const makeStyles = (t: Tokens) => StyleSheet.create({
   gradient: { flex: 1 },
@@ -19,6 +19,22 @@ export const makeStyles = (t: Tokens) => StyleSheet.create({
   title: { color: t.strong, fontSize: 24, fontWeight: "700", textAlign: "center" },
   body: { flex: 1, width: "100%", maxWidth: 560, alignSelf: "center" },
   welcome: { flex: 1, justifyContent: "center", gap: spacing.xl },
+  welcomeIntro: { alignItems: "center", gap: spacing.sm },
+  welcomeLead: { color: t.text, fontSize: 17, lineHeight: 25, textAlign: "center" },
+  welcomeChoices: { gap: spacing.lg },
+  welcomeChoice: { minHeight: 184, borderRadius: 20, overflow: "hidden" },
+  welcomeChoicePressed: { opacity: 0.8 },
+  welcomeChoiceSurface: { flex: 1, minHeight: 184, paddingHorizontal: spacing.xl, paddingVertical: Platform.OS === "android" ? spacing.xxl + spacing.lg : spacing.xxl, justifyContent: "space-between", gap: spacing.lg },
+  welcomeChoicePrimary: { ...t.btnPrimaryShadow },
+  welcomeChoiceSecondary: { backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.cardBdr, ...t.cardShadow },
+  welcomeChoiceIcon: { width: 56, height: 56, borderRadius: 15, alignItems: "center", justifyContent: "center" },
+  welcomeChoiceIconPrimary: { backgroundColor: "rgba(255,255,255,0.18)" },
+  welcomeChoiceIconSecondary: { backgroundColor: t.editBtnBg },
+  welcomeChoiceCopy: { gap: spacing.sm },
+  welcomeChoiceTitle: { color: t.strong, fontSize: 22, lineHeight: 28, fontWeight: "700" },
+  welcomeChoiceTitlePrimary: { color: t.btnPrimaryFg, fontSize: 22, lineHeight: 28, fontWeight: "700" },
+  welcomeChoiceBody: { color: t.text, fontSize: 15, lineHeight: 22 },
+  welcomeChoiceBodyPrimary: { color: t.btnPrimaryFg, fontSize: 15, lineHeight: 22, opacity: 0.85 },
   brandMark: { width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center", ...t.btnPrimaryShadow },
   brand: { width: 24, height: 24, tintColor: t.btnPrimaryFg },
 })

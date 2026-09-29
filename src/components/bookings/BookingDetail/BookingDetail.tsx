@@ -1,5 +1,6 @@
 import { useMemo } from "react"
-import { ActivityIndicator, ScrollView, Text, View } from "react-native"
+import { ChevronLeft } from "lucide-react-native"
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native"
 
 import { BookingActionBar } from "@/components/bookings/BookingActionBar/BookingActionBar"
 import { PrimaryButton } from "@/components/common/PrimaryButton/PrimaryButton"
@@ -43,6 +44,17 @@ export function BookingDetail() {
   return (
     <View style={[styles.wrapper, { paddingBottom: s.bottomInset }]}>
       <ScrollView contentContainerStyle={styles.scroll}>
+        <Pressable
+          onPress={s.goBack}
+          accessibilityRole="button"
+          accessibilityLabel="Back to bookings"
+          accessibilityHint="Returns to the bookings list"
+          style={({ pressed }) => [styles.backLink, pressed && styles.backLinkPressed]}
+        >
+          <ChevronLeft size={20} color={tokens.accent} />
+          <Text style={styles.backLinkLabel}>Back to bookings</Text>
+        </Pressable>
+
         {/* B1 — this screen passes no header action, so `ScreenShell` pins
             nothing. Without this the "Booking" title would not render at all,
             because the title now lives wherever the screen puts it rather than in

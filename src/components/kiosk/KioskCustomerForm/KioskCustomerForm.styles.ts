@@ -13,5 +13,5 @@ export const makeStyles = (t: Tokens) => StyleSheet.create({
   legalLink: { minHeight: MIN_TOUCH_TARGET, maxWidth: "100%", justifyContent: "center", paddingHorizontal: spacing.sm },
   legalLinkPressed: { opacity: 0.7 },
   legalLinkText: { color: t.accent, fontSize: 14, fontWeight: "600", textDecorationLine: "underline" },
-  actionBar: { borderTopWidth: 1, borderTopColor: t.divider, backgroundColor: t.modalBg, paddingTop: spacing.md },
+  actionBar: { borderTopWidth: 0, backgroundColor: "transparent", paddingTop: spacing.md },
 })

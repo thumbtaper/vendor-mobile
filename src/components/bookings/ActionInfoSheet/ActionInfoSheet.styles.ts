@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -44,9 +45,9 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: t.toggleOff,
     },
     title: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
-      fontWeight: type.title.weight,
     },
     // `flexShrink: 1` is what lets the list give up space to the grabber, title
     // and "Got it" button when `sheetWrap`'s bound bites. Without it the button
@@ -63,13 +64,14 @@ export const makeStyles = (t: Tokens) =>
     // The action's name, styled to echo the button it explains without imitating
     // it — this is a glossary entry, not a second place to tap.
     entryLabel: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
-      fontWeight: "700",
     },
     // The `meaning` string. Given the readable body size rather than a caption:
     // this is the sentence the vendor opened the sheet to read.
     body: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,

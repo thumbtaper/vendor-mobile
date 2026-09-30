@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -10,11 +11,12 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     label: {
+        ...typeface.semibold,
       color: t.text,
       fontSize: type.label.size,
-      fontWeight: type.label.weight,
     },
     input: {
+        ...typeface.regular,
       minHeight: MIN_TOUCH_TARGET,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
@@ -29,6 +31,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: "#ef4444",
     },
     error: {
+        ...typeface.regular,
       color: "#ef4444",
       fontSize: type.caption.size,
     },

@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -17,11 +18,12 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.cardBdr,
     },
     title: {
+        ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     body: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

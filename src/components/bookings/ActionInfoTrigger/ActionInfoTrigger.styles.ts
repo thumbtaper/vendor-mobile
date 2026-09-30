@@ -1,4 +1,5 @@
-import { Platform, StyleSheet } from "react-native"
+import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, type, type Tokens } from "@/theme/tokens"
 
@@ -41,11 +42,9 @@ export const makeStyles = (t: Tokens) =>
     // A serif italic reads unmistakably as an information mark at this size, where
     // a sans-serif "i" is easily mistaken for a stray character or a lowercase L.
     glyph: {
+        ...typeface.boldItalic,
       color: t.text,
       fontSize: type.label.size,
-      fontWeight: "700",
-      fontStyle: "italic",
-      fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
     },
     pressed: {
       opacity: 0.7,

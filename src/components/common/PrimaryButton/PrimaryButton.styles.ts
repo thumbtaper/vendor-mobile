@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -36,16 +37,18 @@ export const makeStyles = (t: Tokens) =>
       paddingHorizontal: spacing.md,
     },
     label: {
+        ...typeface.semibold,
       // Tokenised, not white: on the branded auth surface `btnPrimary` is gold,
       // where white text is unreadable.
       color: t.btnPrimaryFg,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     labelLarge: {
+        ...typeface.regular,
       fontSize: 18,
     },
     labelCompact: {
+        ...typeface.regular,
       fontSize: 15,
     },
     pressed: {
@@ -75,14 +78,16 @@ export const makeStyles = (t: Tokens) =>
       width: "88%",
     },
     secondaryLabel: {
+        ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     secondaryLabelLarge: {
+        ...typeface.regular,
       fontSize: 18,
     },
     secondaryLabelCompact: {
+        ...typeface.regular,
       fontSize: 15,
     },
   })

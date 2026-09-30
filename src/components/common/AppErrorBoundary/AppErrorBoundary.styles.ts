@@ -1,6 +1,5 @@
 import { StyleSheet } from "react-native"
-
-import { radii, spacing, type, MIN_TOUCH_TARGET } from "@/theme/tokens"
+import { MIN_TOUCH_TARGET, radii, spacing, type, typeface } from "@/theme/tokens"
 
 // ⚠️ DELIBERATE DEVIATION from the app's `makeStyles(tokens)` convention — the
 // only file in `components/` that does not take a `Tokens` argument.
@@ -60,12 +59,13 @@ export const styles = StyleSheet.create({
     borderColor: CARD_BDR,
   },
   title: {
+      ...typeface.bold,
     color: STRONG,
     fontSize: type.title.size,
-    fontWeight: type.title.weight,
     textAlign: "center",
   },
   body: {
+      ...typeface.regular,
     color: TEXT,
     fontSize: type.body.size,
     lineHeight: 21,
@@ -85,9 +85,9 @@ export const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   detailText: {
+      ...typeface.medium,
     color: STRONG,
     fontSize: type.caption.size,
-    fontWeight: type.caption.weight,
   },
   button: {
     alignSelf: "stretch",
@@ -102,8 +102,8 @@ export const styles = StyleSheet.create({
     opacity: 0.85,
   },
   buttonLabel: {
+      ...typeface.semibold,
     color: "#ffffff",
     fontSize: type.label.size,
-    fontWeight: type.label.weight,
   },
 })

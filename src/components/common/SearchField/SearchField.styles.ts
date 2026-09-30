@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -15,6 +16,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.inputBdr,
     },
     input: {
+        ...typeface.regular,
       flex: 1,
       minHeight: MIN_TOUCH_TARGET,
       color: t.inputColor,

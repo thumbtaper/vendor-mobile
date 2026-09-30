@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -24,28 +25,30 @@ export const makeStyles = (t: Tokens) =>
       marginTop: spacing.sm,
     },
     sectionTitle: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
-      fontWeight: "700",
     },
     link: {
       minHeight: MIN_TOUCH_TARGET,
       justifyContent: "center",
     },
     linkLabel: {
+        ...typeface.bold,
       color: "#2563eb",
       fontSize: type.caption.size,
-      fontWeight: "700",
     },
     previewList: {
       gap: spacing.md,
     },
     emptyText: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
     },
     errorText: {
+        ...typeface.regular,
       color: "#ef4444",
       fontSize: type.body.size,
     },

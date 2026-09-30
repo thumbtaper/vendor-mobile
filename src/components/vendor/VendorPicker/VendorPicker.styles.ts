@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -12,11 +13,12 @@ export const makeStyles = (t: Tokens) =>
       marginBottom: spacing.lg,
     },
     heading: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
-      fontWeight: type.title.weight,
     },
     subheading: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
     },
@@ -46,20 +48,21 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.pillBdr,
     },
     initials: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
-      fontWeight: "700",
     },
     body: {
       flex: 1,
       gap: 2,
     },
     name: {
+        ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     address: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },

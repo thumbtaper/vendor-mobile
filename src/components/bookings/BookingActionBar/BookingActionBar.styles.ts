@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -34,6 +35,7 @@ export const makeStyles = (t: Tokens) =>
     // timer working is the normal, good case — it is what stops one unresponsive
     // customer freezing a vendor's money indefinitely.
     timer: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
@@ -43,10 +45,10 @@ export const makeStyles = (t: Tokens) =>
     // Unpaid, on the other hand, IS a warning — amber, matching the `pending`
     // status hue, which is the app's existing "waiting on something" colour.
     unpaid: {
+        ...typeface.semibold,
       color: "#f59e0b",
       fontSize: type.caption.size,
       lineHeight: 18,
-      fontWeight: "600",
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.md,
     },
@@ -60,12 +62,13 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     confirmTitle: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "700",
       paddingHorizontal: spacing.lg,
     },
     confirmBody: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
@@ -92,18 +95,18 @@ export const makeStyles = (t: Tokens) =>
     // All five button labels are `type.label.size` (13), not `body` (15) — B1.
     // The button is `minHeight`-floored, so this buys lightness, not height.
     approveLabel: {
+        ...typeface.bold,
       color: "#10b981",
       fontSize: type.label.size,
-      fontWeight: "700",
     },
     reject: {
       backgroundColor: "rgba(239,68,68,0.08)",
       borderColor: "rgba(239,68,68,0.2)",
     },
     rejectLabel: {
+        ...typeface.bold,
       color: "#ef4444",
       fontSize: type.label.size,
-      fontWeight: "700",
     },
     // `bar` carries its own top divider so it can stand alone (the pending
     // branch). When it sits INSIDE `stack` or `confirm`, that container already
@@ -120,9 +123,9 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.btnPrimary.colors[1],
     },
     primaryLabel: {
+        ...typeface.bold,
       color: "#ffffff",
       fontSize: type.label.size,
-      fontWeight: "700",
     },
     // Undo is deliberately quiet. It is a correction, not a destination — giving
     // it equal visual weight would invite taps on the one action that restarts the
@@ -132,9 +135,9 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.divider,
     },
     ghostLabel: {
+        ...typeface.semibold,
       color: t.text,
       fontSize: type.label.size,
-      fontWeight: "600",
     },
     // Flagging gets its own row beneath the main actions. It is an escalation,
     // not an alternative way to finish the booking, and side-by-side placement
@@ -158,9 +161,9 @@ export const makeStyles = (t: Tokens) =>
       borderColor: "rgba(225,29,72,0.35)",
     },
     dangerLabel: {
+        ...typeface.semibold,
       color: "#e11d48",
       fontSize: type.label.size,
-      fontWeight: "600",
     },
     pressed: {
       opacity: 0.7,
@@ -177,6 +180,7 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     resolvedText: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

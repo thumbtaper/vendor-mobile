@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -27,8 +28,8 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     initials: {
+        ...typeface.extraBold,
       fontSize: type.caption.size,
-      fontWeight: "800",
     },
     body: {
       flex: 1,
@@ -40,20 +41,21 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.sm,
     },
     name: {
+        ...typeface.semibold,
       flexShrink: 1,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     code: {
+        ...typeface.extraBold,
       fontSize: 10,
-      fontWeight: "800",
       paddingHorizontal: 7,
       paddingVertical: 2,
       borderRadius: radii.pill,
       overflow: "hidden",
     },
     meta: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
@@ -62,14 +64,15 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     badge: {
+        ...typeface.bold,
       fontSize: type.caption.size,
-      fontWeight: "700",
       paddingHorizontal: 9,
       paddingVertical: 3,
       borderRadius: radii.pill,
       overflow: "hidden",
     },
     price: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },

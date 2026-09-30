@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -44,20 +45,22 @@ export const makeStyles = (t: Tokens) =>
       marginTop: 2,
     },
     title: {
+        ...typeface.semibold,
       flex: 1,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     titleRead: {
-      fontWeight: "400",
+        ...typeface.regular,
     },
     message: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
     },
     time: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
@@ -83,8 +86,8 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: "rgba(239,68,68,0.15)",
     },
     actionLabel: {
+        ...typeface.bold,
       fontSize: type.caption.size,
-      fontWeight: "700",
       marginTop: 4,
     },
     archiveLabel: {

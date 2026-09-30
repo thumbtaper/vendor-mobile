@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -40,11 +41,12 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     title: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
-      fontWeight: type.title.weight,
     },
     subtitle: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
@@ -112,16 +114,18 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     optionLabel: {
+        ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     optionMeta: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
     },
     badge: {
+        ...typeface.extraBold,
       minWidth: 20,
       overflow: "hidden",
       borderRadius: radii.pill,
@@ -131,7 +135,6 @@ export const makeStyles = (t: Tokens) =>
       color: "#ffffff",
       backgroundColor: "#ef4444",
       fontSize: 10,
-      fontWeight: "800",
       flexShrink: 0,
     },
   })

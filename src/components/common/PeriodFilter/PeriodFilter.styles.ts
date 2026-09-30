@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -59,9 +60,9 @@ export const makeStyles = (t: Tokens) =>
       borderColor: "transparent",
     },
     label: {
+        ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
-      fontWeight: "600",
     },
     labelActive: {
       color: "#ffffff",

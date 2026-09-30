@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -8,11 +9,12 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.lg,
     },
     heading: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
-      fontWeight: type.title.weight,
     },
     subheading: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
     },
@@ -28,6 +30,7 @@ export const makeStyles = (t: Tokens) =>
       padding: spacing.md,
     },
     errorText: {
+        ...typeface.regular,
       color: "#ef4444",
       fontSize: type.body.size,
     },
@@ -36,17 +39,18 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     linkText: {
+        ...typeface.semibold,
       // Tokenised so the branded auth surface renders these gold, as the web's
       // `.forgotLink` / `.signupLink` do.
       color: t.accent,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     footer: {
       gap: spacing.xs,
       marginTop: spacing.sm,
     },
     footerText: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

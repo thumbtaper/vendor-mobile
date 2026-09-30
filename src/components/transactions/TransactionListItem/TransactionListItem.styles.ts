@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -23,18 +24,19 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     name: {
+        ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     meta: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
     payout: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "700",
     },
     payoutExcluded: {
       color: t.text,
@@ -52,24 +54,26 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     breakdownLabel: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
     breakdownValue: {
+        ...typeface.semibold,
       color: t.strong,
       fontSize: type.caption.size,
-      fontWeight: "600",
     },
     badge: {
+        ...typeface.bold,
       alignSelf: "flex-start",
       fontSize: 10,
-      fontWeight: "700",
       paddingHorizontal: 8,
       paddingVertical: 2,
       borderRadius: radii.pill,
       overflow: "hidden",
     },
     exclusion: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

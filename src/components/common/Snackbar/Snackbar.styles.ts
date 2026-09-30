@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -26,6 +27,7 @@ export const makeStyles = (t: Tokens) =>
       ...t.panelShadow,
     },
     message: {
+        ...typeface.regular,
       flex: 1,
       color: t.strong,
       fontSize: type.body.size,
@@ -38,9 +40,9 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     actionLabel: {
+        ...typeface.bold,
       color: "#3b82f6",
       fontSize: type.body.size,
-      fontWeight: "700",
     },
     error: {
       borderColor: "rgba(239,68,68,0.4)",

@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -16,11 +17,13 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.md,
     },
     note: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
     },
     warning: {
+        ...typeface.regular,
       color: "#f59e0b",
       fontSize: type.caption.size,
       lineHeight: 18,

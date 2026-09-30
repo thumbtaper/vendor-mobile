@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { BRAND_SHELL } from "@/theme/brandTokens"
 import { spacing, type, type Tokens } from "@/theme/tokens"
@@ -55,16 +56,16 @@ export const makeStyles = (t: Tokens) =>
       right: 0,
     },
     brand: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.stat.size,
-      fontWeight: type.stat.weight,
       letterSpacing: -0.5,
     },
     // `.brandSub` — gold, uppercase, tracked out.
     brandSub: {
+        ...typeface.semibold,
       color: t.accent,
       fontSize: 10,
-      fontWeight: "600",
       letterSpacing: 1.2,
       textTransform: "uppercase",
       marginTop: 2,

@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import {
   MIN_TOUCH_TARGET,
@@ -47,11 +48,12 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     headerTitle: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
-      fontWeight: type.title.weight,
     },
     headerSubtitle: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
@@ -101,11 +103,12 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     itemTitle: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
-      fontWeight: "700",
     },
     itemBody: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
@@ -115,20 +118,22 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.sm,
     },
     actionLabel: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.caption.size,
-      fontWeight: "700",
     },
     actionMeaning: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
     },
     tipTitle: {
+        ...typeface.bold,
       fontSize: type.label.size,
-      fontWeight: "700",
     },
     footnote: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

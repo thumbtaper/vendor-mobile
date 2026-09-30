@@ -1,10 +1,12 @@
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+  Poppins_700Bold_Italic,
+  Poppins_800ExtraBold,
   useFonts,
-} from "@expo-google-fonts/inter"
+} from "@expo-google-fonts/poppins"
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client"
 import * as SplashScreen from "expo-splash-screen"
 import { useEffect } from "react"
@@ -47,10 +49,12 @@ registerForegroundNotificationHandler()
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+    Poppins_700Bold_Italic,
+    Poppins_800ExtraBold,
   })
 
   useEffect(() => startFocusTracking(), [])

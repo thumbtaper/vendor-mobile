@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -49,16 +50,16 @@ export const makeStyles = (t: Tokens) =>
       minWidth: 0,
     },
     eyebrow: {
+        ...typeface.extraBold,
       color: t.text,
       fontSize: 10,
-      fontWeight: "800",
       textTransform: "uppercase",
       letterSpacing: 0.4,
     },
     value: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
-      fontWeight: "700",
     },
     searchWrap: {
       flex: 1,

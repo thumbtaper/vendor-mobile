@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -55,24 +56,25 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     label: {
+        ...typeface.semibold,
       // Shares the header row with the 30dp chip, so it must be allowed to shrink
       // and wrap — at 320dp there is roughly 58dp left for it.
       flex: 1,
       color: t.text,
       fontSize: type.caption.size,
-      fontWeight: "600",
     },
     value: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.stat.size,
-      fontWeight: type.stat.weight,
     },
     unavailable: {
+        ...typeface.bold,
       color: t.text,
       fontSize: type.title.size,
-      fontWeight: type.title.weight,
     },
     sub: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },

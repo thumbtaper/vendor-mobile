@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -16,9 +17,9 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.sm,
     },
     sectionTitle: {
+        ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
-      fontWeight: "600",
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
@@ -47,11 +48,13 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: t.overlaySubtle,
     },
     rowLabel: {
+        ...typeface.regular,
       flex: 1,
       color: t.strong,
       fontSize: type.body.size,
     },
     rowValue: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
@@ -75,9 +78,9 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.cardBdr,
     },
     segmentLabel: {
+        ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
-      fontWeight: "600",
     },
     segmentLabelActive: {
       color: t.strong,
@@ -86,6 +89,7 @@ export const makeStyles = (t: Tokens) =>
       color: "#ef4444",
     },
     footnote: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

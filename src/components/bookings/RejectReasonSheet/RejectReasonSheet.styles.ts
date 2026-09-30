@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -31,16 +32,18 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: t.toggleOff,
     },
     title: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
-      fontWeight: type.title.weight,
     },
     body: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
     },
     input: {
+        ...typeface.regular,
       minHeight: 96,
       padding: spacing.md,
       borderRadius: radii.md,

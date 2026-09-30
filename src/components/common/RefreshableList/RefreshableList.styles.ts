@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -46,15 +47,16 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.md,
     },
     message: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
       textAlign: "center",
     },
     messageTitle: {
+        ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "600",
       textAlign: "center",
     },
     footer: {

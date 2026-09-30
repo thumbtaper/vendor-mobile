@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -24,6 +25,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: "rgba(245,158,11,0.35)",
     },
     text: {
+        ...typeface.regular,
       flex: 1,
       color: t.strong,
       fontSize: type.caption.size,

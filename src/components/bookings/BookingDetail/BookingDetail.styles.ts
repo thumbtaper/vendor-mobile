@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -27,9 +28,9 @@ export const makeStyles = (t: Tokens) =>
       opacity: 0.75,
     },
     backLinkLabel: {
+        ...typeface.semibold,
       color: t.accent,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     centred: {
       flex: 1,
@@ -48,14 +49,14 @@ export const makeStyles = (t: Tokens) =>
       ...t.cardShadow,
     },
     headline: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
-      fontWeight: type.title.weight,
     },
     badge: {
+        ...typeface.bold,
       alignSelf: "flex-start",
       fontSize: type.caption.size,
-      fontWeight: "700",
       paddingHorizontal: 10,
       paddingVertical: 4,
       borderRadius: radii.pill,
@@ -65,23 +66,25 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     label: {
+        ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
-      fontWeight: "600",
       textTransform: "uppercase",
       letterSpacing: 0.4,
     },
     value: {
+        ...typeface.regular,
       color: t.strong,
       fontSize: type.body.size,
       lineHeight: 21,
     },
     price: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.stat.size,
-      fontWeight: type.stat.weight,
     },
     message: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       textAlign: "center",

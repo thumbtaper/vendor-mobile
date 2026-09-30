@@ -322,4 +322,16 @@ export const type = {
   stat: { size: 28, weight: "700" as const },
 } as const
 
-export const fontFamily = "Inter_400Regular"
+/**
+ * Registered in the root layout before any app screen is rendered. Use these
+ * complete font families instead of pairing a custom family with `fontWeight`:
+ * iOS and Android otherwise may synthesize an inconsistent weight.
+ */
+export const typeface = {
+  regular: { fontFamily: "Poppins_400Regular" },
+  medium: { fontFamily: "Poppins_500Medium" },
+  semibold: { fontFamily: "Poppins_600SemiBold" },
+  bold: { fontFamily: "Poppins_700Bold" },
+  boldItalic: { fontFamily: "Poppins_700Bold_Italic" },
+  extraBold: { fontFamily: "Poppins_800ExtraBold" },
+} as const

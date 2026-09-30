@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -12,11 +13,12 @@ export const makeStyles = (t: Tokens) =>
       marginBottom: spacing.sm,
     },
     heading: {
+        ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
-      fontWeight: type.title.weight,
     },
     subheading: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
@@ -28,16 +30,18 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.sm,
     },
     noticeTitle: {
+        ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
-      fontWeight: "600",
     },
     noticeBody: {
+        ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
     },
     errorText: {
+        ...typeface.regular,
       color: "#ef4444",
       fontSize: type.body.size,
     },

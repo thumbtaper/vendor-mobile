@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native"
+import { typeface } from "@/theme/tokens"
 
 import { MIN_TOUCH_TARGET, radii, spacing, type, type Tokens } from "@/theme/tokens"
 
@@ -33,9 +34,9 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.cardBdr,
     },
     segmentLabel: {
+        ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
-      fontWeight: "600",
     },
     segmentLabelActive: {
       color: t.strong,
@@ -46,8 +47,8 @@ export const makeStyles = (t: Tokens) =>
       paddingHorizontal: spacing.md,
     },
     readAllLabel: {
+        ...typeface.bold,
       color: "#2563eb",
       fontSize: type.caption.size,
-      fontWeight: "700",
     },
   })

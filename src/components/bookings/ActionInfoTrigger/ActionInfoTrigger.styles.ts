@@ -39,10 +39,10 @@ export const makeStyles = (t: Tokens) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    // A serif italic reads unmistakably as an information mark at this size, where
-    // a sans-serif "i" is easily mistaken for a stray character or a lowercase L.
+    // A bold italic "i" reads as an information mark at this size, where an
+    // upright "i" is easily mistaken for a stray character or a lowercase L.
     glyph: {
-        ...typeface.boldItalic,
+      ...typeface.boldItalic,
       color: t.text,
       fontSize: type.label.size,
     },

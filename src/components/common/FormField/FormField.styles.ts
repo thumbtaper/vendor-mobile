@@ -11,12 +11,12 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     label: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.text,
       fontSize: type.label.size,
     },
     input: {
-        ...typeface.regular,
+      ...typeface.regular,
       minHeight: MIN_TOUCH_TARGET,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
@@ -31,7 +31,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: "#ef4444",
     },
     error: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: "#ef4444",
       fontSize: type.caption.size,
     },

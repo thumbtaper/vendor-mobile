@@ -56,14 +56,14 @@ export const makeStyles = (t: Tokens) =>
       right: 0,
     },
     brand: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.stat.size,
       letterSpacing: -0.5,
     },
     // `.brandSub` — gold, uppercase, tracked out.
     brandSub: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.accent,
       fontSize: 10,
       letterSpacing: 1.2,

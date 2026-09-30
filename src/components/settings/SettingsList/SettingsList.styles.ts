@@ -17,7 +17,7 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.sm,
     },
     sectionTitle: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
       textTransform: "uppercase",
@@ -48,13 +48,13 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: t.overlaySubtle,
     },
     rowLabel: {
-        ...typeface.regular,
+      ...typeface.regular,
       flex: 1,
       color: t.strong,
       fontSize: type.body.size,
     },
     rowValue: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
@@ -78,7 +78,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.cardBdr,
     },
     segmentLabel: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
     },
@@ -89,7 +89,7 @@ export const makeStyles = (t: Tokens) =>
       color: "#ef4444",
     },
     footnote: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

@@ -45,22 +45,22 @@ export const makeStyles = (t: Tokens) =>
       marginTop: 2,
     },
     title: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       flex: 1,
       color: t.strong,
       fontSize: type.body.size,
     },
     titleRead: {
-        ...typeface.regular,
+    ...typeface.regular,
     },
     message: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
     },
     time: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
@@ -86,7 +86,7 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: "rgba(239,68,68,0.15)",
     },
     actionLabel: {
-        ...typeface.bold,
+      ...typeface.bold,
       fontSize: type.caption.size,
       marginTop: 4,
     },

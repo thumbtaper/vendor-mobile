@@ -16,7 +16,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.inputBdr,
     },
     input: {
-        ...typeface.regular,
+      ...typeface.regular,
       flex: 1,
       minHeight: MIN_TOUCH_TARGET,
       color: t.inputColor,

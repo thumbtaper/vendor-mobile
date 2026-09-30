@@ -59,13 +59,13 @@ export const styles = StyleSheet.create({
     borderColor: CARD_BDR,
   },
   title: {
-      ...typeface.bold,
+    ...typeface.bold,
     color: STRONG,
     fontSize: type.title.size,
     textAlign: "center",
   },
   body: {
-      ...typeface.regular,
+    ...typeface.regular,
     color: TEXT,
     fontSize: type.body.size,
     lineHeight: 21,
@@ -85,7 +85,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   detailText: {
-      ...typeface.medium,
+    ...typeface.medium,
     color: STRONG,
     fontSize: type.caption.size,
   },
@@ -102,7 +102,7 @@ export const styles = StyleSheet.create({
     opacity: 0.85,
   },
   buttonLabel: {
-      ...typeface.semibold,
+    ...typeface.semibold,
     color: "#ffffff",
     fontSize: type.label.size,
   },

@@ -9,7 +9,7 @@ export const makeStyles = (t: Tokens) =>
       marginTop: spacing.lg,
     },
     note: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

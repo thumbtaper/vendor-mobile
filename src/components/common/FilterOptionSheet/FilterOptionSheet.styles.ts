@@ -41,12 +41,12 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     title: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
     },
     subtitle: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
@@ -114,18 +114,18 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     optionLabel: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
     },
     optionMeta: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
     },
     badge: {
-        ...typeface.extraBold,
+      ...typeface.extraBold,
       minWidth: 20,
       overflow: "hidden",
       borderRadius: radii.pill,

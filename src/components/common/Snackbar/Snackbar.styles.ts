@@ -27,7 +27,7 @@ export const makeStyles = (t: Tokens) =>
       ...t.panelShadow,
     },
     message: {
-        ...typeface.regular,
+      ...typeface.regular,
       flex: 1,
       color: t.strong,
       fontSize: type.body.size,
@@ -40,7 +40,7 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     actionLabel: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: "#3b82f6",
       fontSize: type.body.size,
     },

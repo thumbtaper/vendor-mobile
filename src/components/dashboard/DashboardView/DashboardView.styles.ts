@@ -25,7 +25,7 @@ export const makeStyles = (t: Tokens) =>
       marginTop: spacing.sm,
     },
     sectionTitle: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
     },
@@ -34,7 +34,7 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     linkLabel: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: "#2563eb",
       fontSize: type.caption.size,
     },
@@ -42,13 +42,13 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.md,
     },
     emptyText: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
     },
     errorText: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: "#ef4444",
       fontSize: type.body.size,
     },

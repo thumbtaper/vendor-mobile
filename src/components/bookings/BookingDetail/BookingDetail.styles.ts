@@ -28,7 +28,7 @@ export const makeStyles = (t: Tokens) =>
       opacity: 0.75,
     },
     backLinkLabel: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.accent,
       fontSize: type.body.size,
     },
@@ -49,12 +49,12 @@ export const makeStyles = (t: Tokens) =>
       ...t.cardShadow,
     },
     headline: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
     },
     badge: {
-        ...typeface.bold,
+      ...typeface.bold,
       alignSelf: "flex-start",
       fontSize: type.caption.size,
       paddingHorizontal: 10,
@@ -66,25 +66,25 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     label: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
       textTransform: "uppercase",
       letterSpacing: 0.4,
     },
     value: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.strong,
       fontSize: type.body.size,
       lineHeight: 21,
     },
     price: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.stat.size,
     },
     message: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       textAlign: "center",

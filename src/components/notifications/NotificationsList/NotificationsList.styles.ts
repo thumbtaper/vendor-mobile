@@ -34,7 +34,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.cardBdr,
     },
     segmentLabel: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
     },
@@ -47,7 +47,7 @@ export const makeStyles = (t: Tokens) =>
       paddingHorizontal: spacing.md,
     },
     readAllLabel: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: "#2563eb",
       fontSize: type.caption.size,
     },

@@ -25,7 +25,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: "rgba(245,158,11,0.35)",
     },
     text: {
-        ...typeface.regular,
+      ...typeface.regular,
       flex: 1,
       color: t.strong,
       fontSize: type.caption.size,

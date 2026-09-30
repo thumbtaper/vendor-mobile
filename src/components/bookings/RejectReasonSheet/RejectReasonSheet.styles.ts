@@ -32,18 +32,18 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: t.toggleOff,
     },
     title: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
     },
     body: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
     },
     input: {
-        ...typeface.regular,
+      ...typeface.regular,
       minHeight: 96,
       padding: spacing.md,
       borderRadius: radii.md,

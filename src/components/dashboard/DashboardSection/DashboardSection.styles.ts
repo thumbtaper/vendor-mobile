@@ -15,7 +15,7 @@ export const makeStyles = (t: Tokens) =>
     // Small uppercase, matching the "Waiting for approval" heading already on this
     // screen rather than introducing a third heading treatment.
     title: {
-        ...typeface.extraBold,
+      ...typeface.extraBold,
       color: t.text,
       fontSize: 10,
       textTransform: "uppercase",
@@ -27,7 +27,7 @@ export const makeStyles = (t: Tokens) =>
     // preventing one period control over two groups from implying they measure
     // the same thing.
     caption: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 17,

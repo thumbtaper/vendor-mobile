@@ -37,18 +37,18 @@ export const makeStyles = (t: Tokens) =>
       paddingHorizontal: spacing.md,
     },
     label: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       // Tokenised, not white: on the branded auth surface `btnPrimary` is gold,
       // where white text is unreadable.
       color: t.btnPrimaryFg,
       fontSize: type.body.size,
     },
     labelLarge: {
-        ...typeface.regular,
+      ...typeface.regular,
       fontSize: 18,
     },
     labelCompact: {
-        ...typeface.regular,
+      ...typeface.regular,
       fontSize: 15,
     },
     pressed: {
@@ -78,16 +78,16 @@ export const makeStyles = (t: Tokens) =>
       width: "88%",
     },
     secondaryLabel: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
     },
     secondaryLabelLarge: {
-        ...typeface.regular,
+      ...typeface.regular,
       fontSize: 18,
     },
     secondaryLabelCompact: {
-        ...typeface.regular,
+      ...typeface.regular,
       fontSize: 15,
     },
   })

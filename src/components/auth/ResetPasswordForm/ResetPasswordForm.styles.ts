@@ -18,12 +18,12 @@ export const makeStyles = (t: Tokens) =>
       marginBottom: spacing.sm,
     },
     heading: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
     },
     subheading: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
@@ -36,18 +36,18 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.sm,
     },
     noticeTitle: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
     },
     noticeBody: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
     },
     errorText: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: "#ef4444",
       fontSize: type.body.size,
     },

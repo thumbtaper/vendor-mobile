@@ -45,7 +45,7 @@ export const makeStyles = (t: Tokens) =>
       backgroundColor: t.toggleOff,
     },
     title: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
     },
@@ -64,14 +64,14 @@ export const makeStyles = (t: Tokens) =>
     // The action's name, styled to echo the button it explains without imitating
     // it — this is a glossary entry, not a second place to tap.
     entryLabel: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
     },
     // The `meaning` string. Given the readable body size rather than a caption:
     // this is the sentence the vendor opened the sheet to read.
     body: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,

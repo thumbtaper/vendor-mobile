@@ -60,7 +60,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: "transparent",
     },
     label: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.text,
       fontSize: type.caption.size,
     },

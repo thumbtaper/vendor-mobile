@@ -13,12 +13,12 @@ export const makeStyles = (t: Tokens) =>
       paddingBottom: spacing.md,
     },
     title: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
     },
     subtitle: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },

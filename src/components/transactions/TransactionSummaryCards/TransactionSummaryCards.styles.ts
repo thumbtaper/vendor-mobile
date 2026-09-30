@@ -17,13 +17,13 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.md,
     },
     note: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
     },
     warning: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: "#f59e0b",
       fontSize: type.caption.size,
       lineHeight: 18,

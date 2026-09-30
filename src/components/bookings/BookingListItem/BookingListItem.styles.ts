@@ -28,7 +28,7 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     initials: {
-        ...typeface.extraBold,
+      ...typeface.extraBold,
       fontSize: type.caption.size,
     },
     body: {
@@ -41,13 +41,13 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.sm,
     },
     name: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       flexShrink: 1,
       color: t.strong,
       fontSize: type.body.size,
     },
     code: {
-        ...typeface.extraBold,
+      ...typeface.extraBold,
       fontSize: 10,
       paddingHorizontal: 7,
       paddingVertical: 2,
@@ -55,7 +55,7 @@ export const makeStyles = (t: Tokens) =>
       overflow: "hidden",
     },
     meta: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
@@ -64,7 +64,7 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     badge: {
-        ...typeface.bold,
+      ...typeface.bold,
       fontSize: type.caption.size,
       paddingHorizontal: 9,
       paddingVertical: 3,
@@ -72,7 +72,7 @@ export const makeStyles = (t: Tokens) =>
       overflow: "hidden",
     },
     price: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },

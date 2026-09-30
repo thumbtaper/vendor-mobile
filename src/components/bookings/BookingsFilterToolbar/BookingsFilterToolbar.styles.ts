@@ -46,7 +46,7 @@ export const makeStyles = (t: Tokens) =>
       minWidth: 0,
     },
     eyebrow: {
-        ...typeface.extraBold,
+      ...typeface.extraBold,
       color: t.text,
       fontSize: 10,
       textTransform: "uppercase",
@@ -58,13 +58,13 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     value: {
-        ...typeface.bold,
+      ...typeface.bold,
       flex: 1,
       color: t.strong,
       fontSize: type.label.size,
     },
     badge: {
-        ...typeface.extraBold,
+      ...typeface.extraBold,
       minWidth: 18,
       overflow: "hidden",
       borderRadius: radii.pill,

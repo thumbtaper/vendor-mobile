@@ -56,7 +56,7 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     label: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       // Shares the header row with the 30dp chip, so it must be allowed to shrink
       // and wrap — at 320dp there is roughly 58dp left for it.
       flex: 1,
@@ -64,17 +64,17 @@ export const makeStyles = (t: Tokens) =>
       fontSize: type.caption.size,
     },
     value: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.stat.size,
     },
     unavailable: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.text,
       fontSize: type.title.size,
     },
     sub: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },

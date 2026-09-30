@@ -20,13 +20,13 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.pillBdr,
     },
     title: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
       textAlign: "center",
     },
     body: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,

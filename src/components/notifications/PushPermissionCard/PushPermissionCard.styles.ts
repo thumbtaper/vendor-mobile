@@ -18,12 +18,12 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.cardBdr,
     },
     title: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
     },
     body: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

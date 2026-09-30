@@ -50,14 +50,14 @@ export const makeStyles = (t: Tokens) =>
       minWidth: 0,
     },
     eyebrow: {
-        ...typeface.extraBold,
+      ...typeface.extraBold,
       color: t.text,
       fontSize: 10,
       textTransform: "uppercase",
       letterSpacing: 0.4,
     },
     value: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
     },

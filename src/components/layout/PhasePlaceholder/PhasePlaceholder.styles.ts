@@ -22,12 +22,12 @@ export const makeStyles = (t: Tokens) =>
       ...t.cardShadow,
     },
     title: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
     },
     body: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

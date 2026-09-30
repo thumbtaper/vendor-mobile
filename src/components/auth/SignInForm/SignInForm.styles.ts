@@ -9,12 +9,12 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.lg,
     },
     heading: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
     },
     subheading: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
     },
@@ -30,7 +30,7 @@ export const makeStyles = (t: Tokens) =>
       padding: spacing.md,
     },
     errorText: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: "#ef4444",
       fontSize: type.body.size,
     },
@@ -39,7 +39,7 @@ export const makeStyles = (t: Tokens) =>
       justifyContent: "center",
     },
     linkText: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       // Tokenised so the branded auth surface renders these gold, as the web's
       // `.forgotLink` / `.signupLink` do.
       color: t.accent,
@@ -50,7 +50,7 @@ export const makeStyles = (t: Tokens) =>
       marginTop: spacing.sm,
     },
     footerText: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

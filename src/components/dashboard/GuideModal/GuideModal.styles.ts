@@ -48,12 +48,12 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     headerTitle: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
     },
     headerSubtitle: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
@@ -103,12 +103,12 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     itemTitle: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
     },
     itemBody: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
@@ -118,22 +118,22 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.sm,
     },
     actionLabel: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.caption.size,
     },
     actionMeaning: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
     },
     tipTitle: {
-        ...typeface.bold,
+      ...typeface.bold,
       fontSize: type.label.size,
     },
     footnote: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

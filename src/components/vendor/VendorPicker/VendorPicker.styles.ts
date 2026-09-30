@@ -13,12 +13,12 @@ export const makeStyles = (t: Tokens) =>
       marginBottom: spacing.lg,
     },
     heading: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.title.size,
     },
     subheading: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
     },
@@ -48,7 +48,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.pillBdr,
     },
     initials: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.label.size,
     },
@@ -57,12 +57,12 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     name: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
     },
     address: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },

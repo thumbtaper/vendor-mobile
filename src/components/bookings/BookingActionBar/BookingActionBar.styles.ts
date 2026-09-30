@@ -35,7 +35,7 @@ export const makeStyles = (t: Tokens) =>
     // timer working is the normal, good case — it is what stops one unresponsive
     // customer freezing a vendor's money indefinitely.
     timer: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
@@ -45,7 +45,7 @@ export const makeStyles = (t: Tokens) =>
     // Unpaid, on the other hand, IS a warning — amber, matching the `pending`
     // status hue, which is the app's existing "waiting on something" colour.
     unpaid: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: "#f59e0b",
       fontSize: type.caption.size,
       lineHeight: 18,
@@ -62,13 +62,13 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     confirmTitle: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.body.size,
       paddingHorizontal: spacing.lg,
     },
     confirmBody: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,
@@ -95,7 +95,7 @@ export const makeStyles = (t: Tokens) =>
     // All five button labels are `type.label.size` (13), not `body` (15) — B1.
     // The button is `minHeight`-floored, so this buys lightness, not height.
     approveLabel: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: "#10b981",
       fontSize: type.label.size,
     },
@@ -104,7 +104,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: "rgba(239,68,68,0.2)",
     },
     rejectLabel: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: "#ef4444",
       fontSize: type.label.size,
     },
@@ -123,7 +123,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.btnPrimary.colors[1],
     },
     primaryLabel: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: "#ffffff",
       fontSize: type.label.size,
     },
@@ -135,7 +135,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: t.divider,
     },
     ghostLabel: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.text,
       fontSize: type.label.size,
     },
@@ -161,7 +161,7 @@ export const makeStyles = (t: Tokens) =>
       borderColor: "rgba(225,29,72,0.35)",
     },
     dangerLabel: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: "#e11d48",
       fontSize: type.label.size,
     },
@@ -180,7 +180,7 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.xs,
     },
     resolvedText: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

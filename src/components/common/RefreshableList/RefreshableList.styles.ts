@@ -47,14 +47,14 @@ export const makeStyles = (t: Tokens) =>
       gap: spacing.md,
     },
     message: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.body.size,
       lineHeight: 21,
       textAlign: "center",
     },
     messageTitle: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
       textAlign: "center",

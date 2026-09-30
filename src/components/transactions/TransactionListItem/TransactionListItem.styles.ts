@@ -24,17 +24,17 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     name: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.strong,
       fontSize: type.body.size,
     },
     meta: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
     payout: {
-        ...typeface.bold,
+      ...typeface.bold,
       color: t.strong,
       fontSize: type.body.size,
     },
@@ -54,17 +54,17 @@ export const makeStyles = (t: Tokens) =>
       gap: 2,
     },
     breakdownLabel: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
     },
     breakdownValue: {
-        ...typeface.semibold,
+      ...typeface.semibold,
       color: t.strong,
       fontSize: type.caption.size,
     },
     badge: {
-        ...typeface.bold,
+      ...typeface.bold,
       alignSelf: "flex-start",
       fontSize: 10,
       paddingHorizontal: 8,
@@ -73,7 +73,7 @@ export const makeStyles = (t: Tokens) =>
       overflow: "hidden",
     },
     exclusion: {
-        ...typeface.regular,
+      ...typeface.regular,
       color: t.text,
       fontSize: type.caption.size,
       lineHeight: 18,

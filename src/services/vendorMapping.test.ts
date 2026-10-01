@@ -1,14 +1,21 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { toDbVendors, vendorInitials } from "./vendorMapping.ts"
+import {
+  blockedReasonFor, isVendorUsable, kycStatusOf, toDbVendors, vendorInitials,
+  type DbVendor, type KycStatus, type VendorStatus,
+} from "./vendorMapping.ts"
 
-const vendor = (name: string, status: string | null) => ({
+const vendor = (name: string, status: string | null, kyc: string | null = "approved") => ({
   id: `id-${name}`,
   name,
   address: "1 Test St",
   statuses: status ? { name: status } : null,
+  vendor_kyc: kyc ? { status: kyc } : null,
 })
+
+const db = (status: VendorStatus, kycStatus: KycStatus): DbVendor =>
+  ({ id: `${status}-${kycStatus}`, name: "V", address: null, status, kycStatus })
 
 describe("toDbVendors — the vendor access gate's input (I2)", () => {
   it("keeps vendor-admin memberships", () => {
@@ -73,5 +80,58 @@ describe("vendorInitials", () => {
 
   it("returns empty for an empty name rather than throwing", () => {
     assert.equal(vendorInitials(""), "")
+  })
+})
+
+// ── M1 (plan .plans/2026-09-30-vendor-signup-before-kyc.md): active AND KYC approved ──
+
+describe("toDbVendors — KYC status", () => {
+  it("maps the embedded packet status, and no packet to null", () => {
+    const rows = [
+      { roles: { name: "vendor-admin" }, vendors: vendor("A", "active", "approved") },
+      { roles: { name: "vendor-admin" }, vendors: vendor("B", "active", null) },
+    ]
+    assert.deepEqual(toDbVendors(rows).map((v) => v.kycStatus), ["approved", null])
+  })
+})
+
+describe("kycStatusOf", () => {
+  it("reads the 1:1 object shape, and tolerates an array", () => {
+    assert.equal(kycStatusOf({ status: "submitted" }), "submitted")
+    assert.equal(kycStatusOf([{ status: "approved" }]), "approved")
+  })
+  it("treats anything else as no packet", () => {
+    for (const x of [null, undefined, [], {}, { status: "APPROVED" }, { status: 1 }]) {
+      assert.equal(kycStatusOf(x), null, JSON.stringify(x))
+    }
+  })
+})
+
+describe("isVendorUsable", () => {
+  it("only active + approved opens the app", () => {
+    assert.equal(isVendorUsable(db("active", "approved")), true)
+    for (const k of [null, "submitted", "rejected"] as const) assert.equal(isVendorUsable(db("active", k)), false, String(k))
+    for (const s of ["pending_activation", "suspended", ""] as const) assert.equal(isVendorUsable(db(s, "approved")), false, s)
+  })
+})
+
+describe("blockedReasonFor", () => {
+  it("no vendors → no_access", () => {
+    assert.equal(blockedReasonFor([]), "no_access")
+  })
+  it("one vendor: each state gets its own reason", () => {
+    assert.equal(blockedReasonFor([db("pending_activation", null)]), "verification_required")
+    assert.equal(blockedReasonFor([db("active", null)]), "verification_required")
+    assert.equal(blockedReasonFor([db("active", "rejected")]), "verification_required")
+    assert.equal(blockedReasonFor([db("pending_activation", "submitted")]), "verification_in_review")
+    assert.equal(blockedReasonFor([db("active", "submitted")]), "verification_in_review")
+    assert.equal(blockedReasonFor([db("pending_activation", "approved")]), "pending_activation")
+    assert.equal(blockedReasonFor([db("suspended", "approved")]), "suspended")
+    assert.equal(blockedReasonFor([db("suspended", null)]), "suspended")
+  })
+  it("several vendors: the actionable reason wins, and pending still beats suspended", () => {
+    assert.equal(blockedReasonFor([db("suspended", "approved"), db("pending_activation", null)]), "verification_required")
+    assert.equal(blockedReasonFor([db("pending_activation", "approved"), db("active", "submitted")]), "verification_in_review")
+    assert.equal(blockedReasonFor([db("suspended", "approved"), db("pending_activation", "approved")]), "pending_activation")
   })
 })

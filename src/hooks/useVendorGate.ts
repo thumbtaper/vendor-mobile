@@ -3,9 +3,12 @@ import { useCallback, useEffect, useState } from "react"
 
 import { VENDOR_STORAGE_KEY } from "@/lib/constants"
 import { purgePersistedCache } from "@/lib/queryClient"
-import { getUserVendors, type DbVendor } from "@/services/vendor.service"
+import { getUserVendors, type BlockedReason, type DbVendor } from "@/services/vendor.service"
+import { blockedReasonFor, isVendorUsable } from "@/services/vendorMapping"
 
-export type BlockedReason = "pending_activation" | "suspended" | "no_access"
+// Defined with the rule it comes from (services/vendorMapping.ts); re-exported so the
+// blocked screen keeps importing it from the gate.
+export type { BlockedReason }
 
 interface GateState {
   status: "checking" | "blocked" | "choosing" | "ready"
@@ -62,34 +65,30 @@ export function useVendorGate(hasSession: boolean): VendorGate {
       const all = await getUserVendors()
       if (cancelled) return
 
-      const active = all.filter((v) => v.status === "active")
+      // Usable = active AND KYC approved (plan 2026-09-30-vendor-signup-before-kyc
+      // M1, mirroring the web gate). Activation alone used to be enough.
+      const usable = all.filter(isVendorUsable)
 
-      if (active.length === 0) {
-        // Distinguishing these three is the whole point of not filtering by
-        // status in the service — each one needs different copy and a different
-        // next step for the user.
+      if (usable.length === 0) {
+        // Distinguishing the reasons is the whole point of not filtering by status
+        // in the service — each one needs different copy and a different next step.
         setState({
           ...INITIAL,
           status: "blocked",
-          blockedReason:
-            all.length === 0
-              ? "no_access"
-              : all.some((v) => v.status === "pending_activation")
-                ? "pending_activation"
-                : "suspended",
+          blockedReason: blockedReasonFor(all),
         })
         return
       }
 
-      if (active.length === 1) {
-        await AsyncStorage.setItem(VENDOR_STORAGE_KEY, active[0].id)
+      if (usable.length === 1) {
+        await AsyncStorage.setItem(VENDOR_STORAGE_KEY, usable[0].id)
         if (cancelled) return
         setState({
           ...INITIAL,
           status: "ready",
-          vendors: active,
-          selectedVendorId: active[0].id,
-          selectedVendorName: active[0].name,
+          vendors: usable,
+          selectedVendorId: usable[0].id,
+          selectedVendorName: usable[0].name,
         })
         return
       }
@@ -97,11 +96,11 @@ export function useVendorGate(hasSession: boolean): VendorGate {
       const stored = await AsyncStorage.getItem(VENDOR_STORAGE_KEY)
       if (cancelled) return
 
-      const match = stored ? active.find((v) => v.id === stored) : undefined
+      const match = stored ? usable.find((v) => v.id === stored) : undefined
       setState({
         ...INITIAL,
         status: match ? "ready" : "choosing",
-        vendors: active,
+        vendors: usable,
         selectedVendorId: match?.id ?? null,
         selectedVendorName: match?.name ?? null,
       })

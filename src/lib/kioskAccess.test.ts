@@ -7,7 +7,7 @@ function allowed(): KioskAccessRows {
   return {
     profile: { statuses: { name: "active" } },
     portals: [{ portals: { name: "vendor" } }],
-    membership: { vendor_id: vendorId, roles: { name: "vendor-admin" }, vendors: { id: vendorId, name: "Summit", statuses: { name: "active" } } },
+    membership: { vendor_id: vendorId, roles: { name: "vendor-admin" }, vendors: { id: vendorId, name: "Summit", statuses: { name: "active" }, vendor_kyc: { status: "approved" } } },
   }
 }
 test("active profile, portal and pinned-vendor admin are all required", () => {
@@ -22,6 +22,11 @@ test("active profile, portal and pinned-vendor admin are all required", () => {
     (r: KioskAccessRows) => { r.membership!.vendors = null },
     (r: KioskAccessRows) => { r.membership!.vendors!.id = "another-vendor" },
     (r: KioskAccessRows) => { r.membership!.vendors!.statuses!.name = "suspended" },
+    // M1 (plan 2026-09-30-vendor-signup-before-kyc): active is not enough — the KYC
+    // packet must be approved too.
+    (r: KioskAccessRows) => { r.membership!.vendors!.vendor_kyc = null },
+    (r: KioskAccessRows) => { r.membership!.vendors!.vendor_kyc = { status: "submitted" } },
+    (r: KioskAccessRows) => { r.membership!.vendors!.vendor_kyc = { status: "rejected" } },
   ]) {
     const rows = allowed()
     change(rows)

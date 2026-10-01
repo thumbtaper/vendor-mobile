@@ -24,7 +24,7 @@ async function vendorAccess(client: SupabaseClient, userId: string, vendorId: st
     .eq("user_id", userId).eq("portals.name", "vendor").limit(1)
   if (portals.error) queryFailure(portals.status)
   const member = await client.from("vendor_members")
-    .select("vendor_id, roles(name), vendors(id, name, statuses(name))")
+    .select("vendor_id, roles(name), vendors(id, name, statuses(name), vendor_kyc(status))")
     .eq("user_id", userId).eq("vendor_id", vendorId).maybeSingle()
   if (member.error) queryFailure(member.status)
   const name = kioskVendorName({ profile: profile.data, portals: portals.data ?? [], membership: member.data } as unknown as KioskAccessRows, vendorId)

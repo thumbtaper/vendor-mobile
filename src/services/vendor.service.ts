@@ -12,7 +12,7 @@ import { toDbVendors, type DbVendor } from "./vendorMapping"
 
 // The mapping lives in `vendorMapping.ts` so it is testable without a Supabase
 // client (I7). Re-exported here so callers keep importing from the service.
-export type { DbVendor, VendorStatus } from "./vendorMapping"
+export type { DbVendor, VendorStatus, KycStatus, BlockedReason } from "./vendorMapping"
 export { vendorInitials } from "./vendorMapping"
 
 export async function getUserVendors(): Promise<DbVendor[]> {
@@ -23,7 +23,10 @@ export async function getUserVendors(): Promise<DbVendor[]> {
 
   const { data, error } = await supabase
     .from("vendor_members")
-    .select("roles(name), vendors(id, name, address, statuses(name))")
+    // vendor_kyc(status): the app opens only for an active vendor whose KYC is
+    // approved (plan 2026-09-30-vendor-signup-before-kyc M1). Readable under RLS
+    // ("vendor admins read own kyc").
+    .select("roles(name), vendors(id, name, address, statuses(name), vendor_kyc(status))")
     .eq("user_id", user.id)
 
   if (error || !Array.isArray(data)) return []

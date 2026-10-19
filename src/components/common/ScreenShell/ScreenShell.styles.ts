@@ -10,9 +10,9 @@ export const makeStyles = (_t: Tokens) =>
     safe: {
       flex: 1,
     },
-    // The only pinned chrome on a tab screen (B1). Right-aligned because it holds
-    // actions, not identity — the screen's name now scrolls with its content, in
-    // `ScreenTitle`.
+    // The only pinned chrome on a tab screen (B1). It carries the decorative
+    // brand mark at left and interactive controls at right; the screen's name
+    // still scrolls with its content in `ScreenTitle`.
     //
     // No `paddingBottom`: `ScreenTitle` carries the gap to the content below it,
     // so the space is owned by the thing that scrolls rather than split across the
@@ -20,10 +20,19 @@ export const makeStyles = (_t: Tokens) =>
     actionRow: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "flex-end",
-      gap: spacing.sm,
+      justifyContent: "space-between",
       paddingHorizontal: spacing.xl,
       paddingTop: spacing.md,
+    },
+    brandMark: {
+      width: 30,
+      height: 30,
+      borderRadius: 10,
+    },
+    actions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
     },
     actionRowHidden: {
       height: 0,

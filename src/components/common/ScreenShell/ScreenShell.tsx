@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient"
 import { useMemo } from "react"
-import { View } from "react-native"
+import { Image, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 import { ScreenTitleContext } from "@/components/common/ScreenTitle/ScreenTitleContext"
@@ -51,7 +51,8 @@ export function ScreenShell({ title, subtitle, action, children }: Props) {
       <SafeAreaView style={styles.safe} edges={["top"]}>
         {/* Rendered only when there is an action. Settings has none, and an empty
             pinned strip there would be dead space above content that already
-            starts at the safe-area edge. */}
+            starts at the safe-area edge. The mark is decorative: the screen title
+            below already identifies the current destination. */}
         {action ? (
           <View
             pointerEvents={shell.actionsVisible ? "auto" : "none"}
@@ -60,7 +61,14 @@ export function ScreenShell({ title, subtitle, action, children }: Props) {
               !shell.actionsVisible && styles.actionRowHidden,
             ]}
           >
-            {action}
+            <Image
+              source={require("@/assets/brand/icon-ios.png")}
+              style={styles.brandMark}
+              resizeMode="cover"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            />
+            <View style={styles.actions}>{action}</View>
           </View>
         ) : null}
         <ScreenChromeContext.Provider value={shell.chrome}>
